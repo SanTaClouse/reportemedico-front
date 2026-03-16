@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { BookOpen, Plus, Pencil, Trash2, Eye, EyeOff, ExternalLink, Code2 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -40,6 +41,27 @@ const emptyForm: FormData = {
 function extractIssuuEmbedSrc(embedCode: string): string | null {
   const match = embedCode.match(/src="([^"]*e\.issuu\.com\/embed[^"]*)"/i)
   return match ? match[1] : null
+}
+
+/** Construye la URL del thumbnail de portada (página 1) a partir del embed src */
+function extractIssuuThumbnail(embedSrc: string): string | null {
+  try {
+    const url = new URL(embedSrc)
+    // Los parámetros pueden estar en query string (?d=...&u=...) o en el hash (#d=...&u=...)
+    let docName = url.searchParams.get('d')
+    let username = url.searchParams.get('u')
+    if (!docName || !username) {
+      const hashParams = new URLSearchParams(url.hash.replace(/^#/, ''))
+      docName = docName ?? hashParams.get('d')
+      username = username ?? hashParams.get('u')
+    }
+    if (docName && username) {
+      return `https://image.isu.pub/${username}/${docName}/jpg/page_1.jpg`
+    }
+    return null
+  } catch {
+    return null
+  }
 }
 
 
@@ -96,7 +118,12 @@ export default function EdicionesClient({ editions: initial, token }: Props) {
     }
     const src = extractIssuuEmbedSrc(value)
     if (src) {
-      setForm((f) => ({ ...f, issuuUrl: src }))
+      const thumbnail = extractIssuuThumbnail(src)
+      setForm((f) => ({
+        ...f,
+        issuuUrl: src,
+        ...(thumbnail ? { coverImage: thumbnail } : {}),
+      }))
       setEmbedError('')
     } else {
       setEmbedError('No se encontró una URL de embed de Issuu válida en el código pegado.')
@@ -239,15 +266,29 @@ export default function EdicionesClient({ editions: initial, token }: Props) {
               />,
             )}
             {field(
-              'URL de portada (imagen)',
-              <input
-                type="url"
-                required
-                value={form.coverImage}
-                onChange={(e) => setForm((f) => ({ ...f, coverImage: e.target.value }))}
-                placeholder="https://..."
-                className={inputClass}
-              />,
+              'URL de portada (se llena automáticamente al pegar el embed)',
+              <div className="flex gap-3 items-start">
+                <div className="flex-1">
+                  <input
+                    type="url"
+                    required
+                    value={form.coverImage}
+                    onChange={(e) => setForm((f) => ({ ...f, coverImage: e.target.value }))}
+                    placeholder="Se completará automáticamente desde el embed de Issuu"
+                    className={inputClass}
+                  />
+                </div>
+                {form.coverImage && (
+                  <Image
+                    src={form.coverImage}
+                    alt="Portada"
+                    width={48}
+                    height={64}
+                    className="rounded border border-[var(--color-border)] object-cover flex-shrink-0"
+                    unoptimized
+                  />
+                )}
+              </div>,
             )}
             {field(
               'Fecha de publicación',

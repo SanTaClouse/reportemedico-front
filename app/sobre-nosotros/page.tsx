@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
-import { Newspaper, Globe, Mic2, Smartphone, Mail, Trophy, BarChart3, CheckCircle2 } from 'lucide-react'
+import { Newspaper, Globe, Mic2, Smartphone, Mail, Trophy, BarChart3, CheckCircle2, Linkedin } from 'lucide-react'
+import { getCouncilMembers } from '@/lib/api'
 
 export const metadata: Metadata = {
   title: 'Sobre Nosotros | Reporte Médico',
@@ -76,7 +77,9 @@ const razones = [
   },
 ]
 
-export default function SobreNosotrosPage() {
+export default async function SobreNosotrosPage() {
+  const consejo = await getCouncilMembers().catch(() => [])
+
   return (
     <main>
       {/* Hero — navy */}
@@ -271,6 +274,60 @@ export default function SobreNosotrosPage() {
           </div>
         </div>
       </section>
+
+      {/* Consejo Médico Editorial */}
+      {consejo.length > 0 && (
+        <section className="py-16 bg-[var(--color-surface)]">
+          <div className="max-w-site mx-auto px-4 md:px-6">
+            <div className="mb-10 text-center">
+              <h2 className="font-display font-bold text-3xl text-[var(--color-text-primary)] mb-3">
+                Consejo Médico Editorial
+              </h2>
+              <p className="text-[var(--color-text-secondary)] max-w-xl mx-auto">
+                Nuestro contenido está avalado por un equipo de médicos líderes en sus especialidades.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+              {consejo.map((miembro) => (
+                <div key={miembro.id} className="flex flex-col items-center text-center gap-3">
+                  <div className="w-24 h-24 rounded-full overflow-hidden bg-[var(--color-surface-2)] border-2 border-[var(--color-border)] flex-shrink-0">
+                    {miembro.photo ? (
+                      <Image
+                        src={miembro.photo}
+                        alt={miembro.name}
+                        width={96}
+                        height={96}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-2xl font-display font-bold text-[var(--color-text-muted)]">
+                        {miembro.name.charAt(0)}
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm text-[var(--color-text-primary)] leading-tight">
+                      {miembro.name}
+                    </p>
+                    <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{miembro.role}</p>
+                    {miembro.linkedinUrl && (
+                      <a
+                        href={miembro.linkedinUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 mt-1.5 text-xs text-[var(--brand-electric)] hover:underline"
+                      >
+                        <Linkedin size={12} />
+                        LinkedIn
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Contacto */}
       <section className="py-16 bg-[var(--color-surface)]">
