@@ -39,6 +39,16 @@ const config: Config = {
         article: '720px',
         site:    '1280px',
       },
+      keyframes: {
+        marquee: {
+          '0%':   { transform: 'translateX(0%)' },
+          '100%': { transform: 'translateX(-50%)' },
+        },
+      },
+      animation: {
+        // velocidad ajustable: más items → más lento para leer bien
+        marquee: 'marquee 30s linear infinite',
+      },
       typography: {
         DEFAULT: {
           css: {
