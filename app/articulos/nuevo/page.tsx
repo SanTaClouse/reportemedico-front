@@ -1,6 +1,20 @@
 import type { Metadata } from 'next'
-import ArticleSubmitForm from '@/components/forms/ArticleSubmitForm'
+import dynamic from 'next/dynamic'
 import { getTags } from '@/lib/api'
+
+const ArticleSubmitForm = dynamic(
+  () => import('@/components/forms/ArticleSubmitForm'),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="animate-pulse space-y-4">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="h-10 rounded" style={{ background: 'var(--color-surface-2)' }} />
+        ))}
+      </div>
+    ),
+  },
+)
 
 export const metadata: Metadata = {
   title: 'Publicar Artículo Médico',

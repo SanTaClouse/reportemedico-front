@@ -125,6 +125,26 @@ html {
   color: var(--color-text-secondary);
 }
 
+.article-body ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.article-body ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.article-body li {
+  margin-bottom: 0.4rem;
+}
+
+.article-body li p {
+  margin-bottom: 0;
+}
+
 /* Skeleton animation */
 @keyframes pulse-skeleton {
   0%, 100% { opacity: 1; }
@@ -156,6 +176,71 @@ html {
   transform: scale(1.03);
 }
 
+/* ─── Skeleton shimmer ─── */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-border) 25%,
+    var(--color-surface-2) 50%,
+    var(--color-border) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+/* ─── Scroll reveal ─── */
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 600ms ease, transform 600ms ease;
+}
+
+.reveal-on-scroll.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ─── Hero entrance animations ─── */
+@keyframes hero-zoom {
+  from { transform: scale(1.06); }
+  to   { transform: scale(1.0); }
+}
+
+@keyframes hero-fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.hero-ken-burns {
+  animation: hero-zoom 8s ease forwards;
+}
+
+.hero-anim {
+  animation: hero-fade-up 600ms ease both;
+}
+.hero-anim-1 { animation-delay: 100ms; }
+.hero-anim-2 { animation-delay: 220ms; }
+.hero-anim-3 { animation-delay: 360ms; }
+.hero-anim-4 { animation-delay: 480ms; }
+
+/* ─── About section — stagger cards on scroll reveal ─── */
+.about-card {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 500ms ease, transform 500ms ease;
+}
+
+.reveal-on-scroll.revealed .about-card { opacity: 1; transform: translateY(0); }
+.reveal-on-scroll.revealed .about-card:nth-child(1) { transition-delay: 80ms;  }
+.reveal-on-scroll.revealed .about-card:nth-child(2) { transition-delay: 180ms; }
+.reveal-on-scroll.revealed .about-card:nth-child(3) { transition-delay: 280ms; }
+.reveal-on-scroll.revealed .about-card:nth-child(4) { transition-delay: 380ms; }
+
 /* Gold left border animation for hero */
 @keyframes gold-line-in {
   from { border-left-width: 0px; }
@@ -167,3 +252,73 @@ html {
   padding-left: 1rem;
   animation: gold-line-in 300ms ease forwards;
 }
+
+/* ─── Sobre Nosotros — efectos ─── */
+
+/* Hero fondo: patrón de puntos sutil */
+.sn-hero-dots {
+  background-image: radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* Pulso dorado suave en el logo */
+@keyframes sn-logo-float {
+  0%, 100% { transform: translateY(0px);    box-shadow: 0 8px 32px rgba(0,0,0,0.25); }
+  50%       { transform: translateY(-8px);  box-shadow: 0 20px 40px rgba(0,0,0,0.35); }
+}
+.sn-logo-float { animation: sn-logo-float 5s ease-in-out infinite; }
+
+/* Timeline cards — stagger */
+.sn-timeline-card {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+.reveal-on-scroll.revealed .sn-timeline-card                  { opacity: 1; transform: translateY(0); }
+.reveal-on-scroll.revealed .sn-timeline-card:nth-child(1)     { transition-delay: 0ms;   }
+.reveal-on-scroll.revealed .sn-timeline-card:nth-child(2)     { transition-delay: 130ms; }
+.reveal-on-scroll.revealed .sn-timeline-card:nth-child(3)     { transition-delay: 260ms; }
+
+/* Service cards — stagger fade-up */
+.sn-service-card {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.reveal-on-scroll.revealed .sn-service-card                   { opacity: 1; transform: translateY(0); }
+.reveal-on-scroll.revealed .sn-service-card:nth-child(1)      { transition-delay: 0ms;   }
+.reveal-on-scroll.revealed .sn-service-card:nth-child(2)      { transition-delay: 70ms;  }
+.reveal-on-scroll.revealed .sn-service-card:nth-child(3)      { transition-delay: 140ms; }
+.reveal-on-scroll.revealed .sn-service-card:nth-child(4)      { transition-delay: 210ms; }
+.reveal-on-scroll.revealed .sn-service-card:nth-child(5)      { transition-delay: 280ms; }
+.reveal-on-scroll.revealed .sn-service-card:nth-child(6)      { transition-delay: 350ms; }
+.reveal-on-scroll.revealed .sn-service-card:nth-child(7)      { transition-delay: 420ms; }
+
+/* Razones — slide desde la izquierda */
+.sn-razon-item {
+  opacity: 0;
+  transform: translateX(-20px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.reveal-on-scroll.revealed .sn-razon-item                     { opacity: 1; transform: translateX(0); }
+.reveal-on-scroll.revealed .sn-razon-item:nth-child(1)        { transition-delay: 0ms;   }
+.reveal-on-scroll.revealed .sn-razon-item:nth-child(2)        { transition-delay: 110ms; }
+.reveal-on-scroll.revealed .sn-razon-item:nth-child(3)        { transition-delay: 220ms; }
+.reveal-on-scroll.revealed .sn-razon-item:nth-child(4)        { transition-delay: 330ms; }
+
+/* Miembros del consejo — fade-up escalonado */
+.sn-miembro-card {
+  opacity: 0;
+  transform: translateY(18px) scale(0.97);
+  transition: opacity 0.45s ease, transform 0.45s ease;
+}
+.reveal-on-scroll.revealed .sn-miembro-card                   { opacity: 1; transform: translateY(0) scale(1); }
+.reveal-on-scroll.revealed .sn-miembro-card:nth-child(1)      { transition-delay: 0ms;   }
+.reveal-on-scroll.revealed .sn-miembro-card:nth-child(2)      { transition-delay: 55ms;  }
+.reveal-on-scroll.revealed .sn-miembro-card:nth-child(3)      { transition-delay: 110ms; }
+.reveal-on-scroll.revealed .sn-miembro-card:nth-child(4)      { transition-delay: 165ms; }
+.reveal-on-scroll.revealed .sn-miembro-card:nth-child(5)      { transition-delay: 220ms; }
+.reveal-on-scroll.revealed .sn-miembro-card:nth-child(6)      { transition-delay: 275ms; }
+.reveal-on-scroll.revealed .sn-miembro-card:nth-child(7)      { transition-delay: 330ms; }
+.reveal-on-scroll.revealed .sn-miembro-card:nth-child(8)      { transition-delay: 385ms; }
+.reveal-on-scroll.revealed .sn-miembro-card:nth-child(n+9)    { transition-delay: 440ms; }

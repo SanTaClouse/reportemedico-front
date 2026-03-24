@@ -16,25 +16,22 @@ export const revalidate = 3600
 export default async function ConsejoMedicoPage() {
   const members = await getCouncilMembers().catch(() => [] as CouncilMember[])
   const featured = members.find((m) => m.isFeatured) ?? null
-  const rest = members.filter((m) => !m.isFeatured)
 
   return (
     <main>
       {/* ── HERO ─────────────────────────────────────────── */}
       <section className="relative bg-[var(--brand-navy)] text-white overflow-hidden">
-        {/* Fondo con imagen featured como overlay */}
-        {featured?.photo && (
-          <div className="absolute inset-0">
-            <Image
-              src={featured.photo}
-              alt={featured.name}
-              fill
-              className="object-cover object-top opacity-20"
-              priority
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-[var(--brand-navy)] via-[var(--brand-navy)]/90 to-[var(--brand-navy)]/40" />
-          </div>
-        )}
+        {/* Fondo fijo */}
+        <div className="absolute inset-0">
+          <Image
+            src="https://res.cloudinary.com/dfppghbdf/image/upload/v1773767746/Reporte-Medico/Noticias/20260317_doble-pagina-yo.jpg"
+            alt="Consejo Médico Editorial"
+            fill
+            className="object-cover object-[75%_center] opacity-50"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[var(--brand-navy)] via-[var(--brand-navy)]/90 to-[var(--brand-navy)]/40" />
+        </div>
 
         <div className="relative max-w-site mx-auto px-4 md:px-6 py-20 md:py-28 flex flex-col md:flex-row items-center gap-12 md:gap-20">
           {/* Texto */}
@@ -59,12 +56,10 @@ export default async function ConsejoMedicoPage() {
               comunicación y el compromiso se unen para impulsar el bienestar nacional.
             </p>
 
-            {featured && (
-              <div className="border-l-4 border-[var(--brand-gold)] pl-4">
-                <p className="text-white font-display font-semibold text-lg">{featured.name}</p>
-                <p className="text-white/60 text-sm font-body">{featured.role}</p>
-              </div>
-            )}
+            <div className="border-l-4 border-[var(--brand-gold)] pl-4">
+              <p className="text-white font-display font-semibold text-lg">Lic. Alberto Rodriguez Fonseca</p>
+              <p className="text-white/60 text-sm font-body">Presidente · Reporte Médico</p>
+            </div>
           </div>
 
           {/* Foto del featured */}

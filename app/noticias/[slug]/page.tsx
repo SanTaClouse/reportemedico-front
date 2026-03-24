@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { getArticleBySlug, getNews } from '@/lib/api'
+import { getArticleBySlug, getNews, getRelatedByTag } from '@/lib/api'
 import { formatDate, readingTime } from '@/lib/utils'
 import ArticleBody from '@/components/article/ArticleBody'
 import ArticleShare from '@/components/article/ArticleShare'
@@ -72,10 +72,51 @@ export default async function NoticiaPage({ params }: Props) {
   const articleUrl = `${siteUrl}/noticias/${article.slug}`
   const minutes = readingTime(article.content)
 
-  const relatedArticles = (article as any).relatedFrom?.map((r: any) => r.relatedArticle) || []
+  // Relacionadas por tag (más vistas) → fallback a últimas noticias
+  const tagSlugs = article.tags?.map(({ tag }: any) => tag.slug) ?? []
+  let relatedArticles: any[] = []
+  if (tagSlugs.length > 0) {
+    const res = await getRelatedByTag(tagSlugs[0]).catch(() => ({ data: [] as any[] }))
+    relatedArticles = res.data.filter((a) => a.slug !== article.slug).slice(0, 3)
+  }
+  if (relatedArticles.length === 0) {
+    const res = await getNews(1, 4).catch(() => ({ data: [] as any[] }))
+    relatedArticles = res.data.filter((a) => a.slug !== article.slug).slice(0, 3)
+  }
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'NewsArticle',
+    headline: article.title,
+    description: article.excerpt || undefined,
+    image: article.featuredImage ? [article.featuredImage] : undefined,
+    datePublished: article.publishedAt || article.createdAt,
+    dateModified: article.updatedAt || article.publishedAt || article.createdAt,
+    author: {
+      '@type': 'Person',
+      name: article.authorName,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Reporte Médico',
+      logo: {
+        '@type': 'ImageObject',
+        url: `${siteUrl}/logo.png`,
+      },
+    },
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': articleUrl,
+    },
+    inLanguage: 'es',
+  }
 
   return (
     <article className="max-w-site mx-auto px-4 md:px-6 py-10">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Breadcrumb */}
       <nav className="text-xs text-[var(--color-text-muted)] mb-6 flex items-center gap-2">
         <Link href="/" className="hover:text-[var(--color-primary)]">Inicio</Link>
@@ -156,10 +197,7 @@ export default async function NoticiaPage({ params }: Props) {
       {/* View counter (client side) */}
       <ViewsCounter slug={article.slug} />
 
-      {/* Related */}
-      {relatedArticles.length > 0 && (
-        <RelatedArticles articles={relatedArticles} />
-      )}
+      {relatedArticles.length > 0 && <RelatedArticles articles={relatedArticles} />}
     </article>
   )
 }

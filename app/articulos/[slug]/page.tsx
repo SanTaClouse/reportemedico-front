@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { getArticleBySlug, getMedicalArticles } from '@/lib/api'
+import { getArticleBySlug, getMedicalArticles, getRelatedByTag } from '@/lib/api'
 import { formatDate, readingTime } from '@/lib/utils'
 import ArticleBody from '@/components/article/ArticleBody'
 import ArticleShare from '@/components/article/ArticleShare'
@@ -64,10 +64,53 @@ export default async function ArticuloPage({ params }: Props) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://reportemedico.com'
   const articleUrl = `${siteUrl}/articulos/${article.slug}`
   const minutes = readingTime(article.content)
-  const relatedArticles = (article as any).relatedFrom?.map((r: any) => r.relatedArticle) || []
+
+  // Relacionadas por tag (más vistas) → fallback a artículos médicos recientes
+  const tagSlugs = article.tags?.map(({ tag }: any) => tag.slug) ?? []
+  let relatedArticles: any[] = []
+  if (tagSlugs.length > 0) {
+    const res = await getRelatedByTag(tagSlugs[0]).catch(() => ({ data: [] as any[] }))
+    relatedArticles = res.data.filter((a) => a.slug !== article.slug).slice(0, 3)
+  }
+  if (relatedArticles.length === 0) {
+    const res = await getMedicalArticles(1, 4).catch(() => ({ data: [] as any[] }))
+    relatedArticles = res.data.filter((a) => a.slug !== article.slug).slice(0, 3)
+  }
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'MedicalWebPage',
+    name: article.title,
+    description: article.excerpt || undefined,
+    image: article.featuredImage || undefined,
+    url: articleUrl,
+    datePublished: article.publishedAt || article.createdAt,
+    dateModified: article.updatedAt || article.publishedAt || article.createdAt,
+    author: {
+      '@type': 'Person',
+      name: article.authorName,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Reporte Médico',
+      logo: {
+        '@type': 'ImageObject',
+        url: `${siteUrl}/logo.png`,
+      },
+    },
+    inLanguage: 'es',
+    audience: {
+      '@type': 'MedicalAudience',
+      audienceType: 'Patient',
+    },
+  }
 
   return (
     <article className="max-w-site mx-auto px-4 md:px-6 py-10">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Breadcrumb */}
       <nav className="text-xs text-[var(--color-text-muted)] mb-6 flex items-center gap-2">
         <Link href="/" className="hover:text-[var(--color-primary)]">Inicio</Link>
@@ -140,7 +183,7 @@ export default async function ArticuloPage({ params }: Props) {
       </div>
 
       <ViewsCounter slug={article.slug} />
-      {relatedArticles.length > 0 && <RelatedArticles articles={relatedArticles} />}
+      {relatedArticles.length > 0 && <RelatedArticles articles={relatedArticles} showDoctorCta />}
     </article>
   )
 }

@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import { BookOpen, ExternalLink } from 'lucide-react'
 import { getPrintEditions } from '@/lib/api'
-import { formatDate, embedUrlToDirectUrl } from '@/lib/utils'
+import { formatDate, embedUrlToDirectUrl, issuuCoverUrl } from '@/lib/utils'
 
 export const revalidate = 3600
 
@@ -91,7 +91,7 @@ export default async function EdicionesPage() {
               >
                 <div className="aspect-[3/4] relative rounded-xl overflow-hidden border border-[var(--color-border)] shadow-sm img-hover mb-3">
                   <Image
-                    src={edition.coverImage}
+                    src={issuuCoverUrl(edition.coverImage)}
                     alt={edition.title}
                     fill
                     className="object-cover group-hover:opacity-90 transition-opacity"

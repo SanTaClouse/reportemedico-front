@@ -2,10 +2,12 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { usePathname } from 'next/navigation'
-import { useState } from 'react'
-import { Menu, X, Sun, Moon } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
+import { useState, useEffect, useRef } from 'react'
+import { useSearch } from '@/lib/hooks/useSearch'
+import { Menu, X, Sun, Moon, Search, Loader2, Check } from 'lucide-react'
 import { useTheme } from 'next-themes'
+import { subscribeNewsletter } from '@/lib/api'
 
 const NAV_LINKS = [
   { href: '/', label: 'Inicio' },
@@ -17,10 +19,289 @@ const NAV_LINKS = [
   { href: '/sobre-nosotros', label: 'Sobre Nosotros' },
 ]
 
+function SearchBar() {
+  const [open, setOpen]   = useState(false)
+  const inputRef          = useRef<HTMLInputElement>(null)
+  const router            = useRouter()
+  const { results, loading, query, setQuery, clear } = useSearch(300)
+
+  const close = () => { setOpen(false); clear() }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (query.length >= 2) {
+      router.push(`/buscar?q=${encodeURIComponent(query)}`)
+      close()
+    }
+  }
+
+  // Escape cierra el modal
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Focus al abrir
+  useEffect(() => {
+    if (open) setTimeout(() => inputRef.current?.focus(), 50)
+  }, [open])
+
+  const showResults = query.length >= 2
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        aria-label="Buscar"
+        className="p-2 rounded-full text-[var(--color-text-muted)] hover:text-[var(--brand-navy)] hover:bg-[var(--color-surface-2)] transition-colors"
+      >
+        <Search size={18} strokeWidth={1.5} />
+      </button>
+
+      {open && (
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center pt-16 px-4"
+          style={{ background: 'rgba(0,0,0,0.55)' }}
+          onClick={close}
+        >
+          <div
+            className="w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden"
+            style={{ background: 'var(--color-surface)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Input */}
+            <form onSubmit={handleSubmit}>
+              <div className="flex items-center gap-3 px-4 py-3 border-b" style={{ borderColor: 'var(--color-border)' }}>
+                {loading
+                  ? <div className="w-5 h-5 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin flex-shrink-0" />
+                  : <Search size={18} strokeWidth={1.5} className="text-[var(--color-text-muted)] flex-shrink-0" />
+                }
+                <input
+                  ref={inputRef}
+                  type="text"
+                  placeholder="Buscar artículos, noticias, doctores..."
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  className="flex-1 bg-transparent outline-none text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] text-base"
+                />
+                {query && (
+                  <button type="button" onClick={() => setQuery('')} aria-label="Limpiar">
+                    <X size={18} strokeWidth={1.5} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]" />
+                  </button>
+                )}
+              </div>
+            </form>
+
+            {/* Resultados live */}
+            {showResults && (
+              <div className="max-h-[420px] overflow-y-auto">
+                {results.length > 0 ? (
+                  <>
+                    <ul>
+                      {results.map((article) => {
+                        const href = article.type === 'NEWS'
+                          ? `/noticias/${article.slug}`
+                          : `/articulos/${article.slug}`
+                        return (
+                          <li key={article.id}>
+                            <a
+                              href={href}
+                              onClick={close}
+                              className="flex gap-3 px-4 py-3 hover:bg-[var(--color-surface-2)] transition-colors"
+                            >
+                              {article.featuredImage && (
+                                <img
+                                  src={article.featuredImage}
+                                  alt=""
+                                  className="w-14 h-14 object-cover rounded-lg flex-shrink-0"
+                                />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-[var(--color-text-primary)] line-clamp-1 mb-0.5">
+                                  {article.title}
+                                </p>
+                                {article.headline ? (
+                                  <p
+                                    className="text-xs text-[var(--color-text-secondary)] line-clamp-2 leading-relaxed [&_mark]:bg-[var(--brand-gold)]/30 [&_mark]:rounded"
+                                    dangerouslySetInnerHTML={{ __html: article.headline }}
+                                  />
+                                ) : article.excerpt ? (
+                                  <p className="text-xs text-[var(--color-text-secondary)] line-clamp-2">
+                                    {article.excerpt}
+                                  </p>
+                                ) : null}
+                              </div>
+                            </a>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                    <div className="border-t px-4 py-2.5" style={{ borderColor: 'var(--color-border)' }}>
+                      <button
+                        onClick={() => { router.push(`/buscar?q=${encodeURIComponent(query)}`); close() }}
+                        className="text-xs font-medium hover:underline"
+                        style={{ color: 'var(--color-primary)' }}
+                      >
+                        Ver todos los resultados para &ldquo;{query}&rdquo; →
+                      </button>
+                    </div>
+                  </>
+                ) : !loading ? (
+                  <p className="px-4 py-6 text-sm text-center text-[var(--color-text-muted)]">
+                    No se encontraron resultados para &ldquo;{query}&rdquo;
+                  </p>
+                ) : null}
+              </div>
+            )}
+
+            {/* Hint inicial */}
+            {!showResults && (
+              <p className="px-4 py-4 text-xs text-[var(--color-text-muted)] text-center">
+                Escribe para buscar · Enter para ver todos los resultados
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
+function SubscribeModal({ onClose }: { onClose: () => void }) {
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+    try {
+      await subscribeNewsletter(email.trim(), name.trim() || undefined)
+      setSuccess(true)
+    } catch {
+      setError('No se pudo completar la suscripción. Intentá de nuevo.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center px-4"
+      style={{ background: 'rgba(0,0,0,0.55)' }}
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md rounded-2xl shadow-2xl overflow-hidden"
+        style={{ background: 'var(--color-surface)' }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="bg-[var(--brand-navy)] px-6 py-5 flex items-start justify-between">
+          <div>
+            <h2 className="font-display font-bold text-lg text-white leading-tight">
+              Suscríbete a Reporte Médico
+            </h2>
+            <p className="text-xs text-white/70 mt-1">
+              Recibe las últimas noticias de salud en tu correo
+            </p>
+          </div>
+          <button onClick={onClose} aria-label="Cerrar" className="text-white/60 hover:text-white transition-colors ml-4 shrink-0 mt-0.5">
+            <X size={20} strokeWidth={1.5} />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="px-6 py-6">
+          {success ? (
+            <div className="flex flex-col items-center text-center py-4 gap-3">
+              <div className="w-14 h-14 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center">
+                <Check size={28} strokeWidth={2} className="text-[var(--color-primary)]" />
+              </div>
+              <p className="font-semibold text-[var(--color-text-primary)]">¡Gracias por suscribirte!</p>
+              <p className="text-sm text-[var(--color-text-secondary)]">
+                Te enviaremos las noticias más importantes de salud de República Dominicana.
+              </p>
+              <button
+                onClick={onClose}
+                className="mt-2 px-5 py-2 bg-[var(--color-primary)] text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-opacity"
+              >
+                Cerrar
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-[var(--color-text-secondary)] mb-1">
+                  Nombre (opcional)
+                </label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Tu nombre"
+                  className="w-full px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg bg-[var(--color-surface)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-navy)]/30"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-[var(--color-text-secondary)] mb-1">
+                  Email *
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="tu@email.com"
+                  className="w-full px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg bg-[var(--color-surface)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-navy)]/30"
+                />
+              </div>
+              {error && <p className="text-xs text-red-500">{error}</p>}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-2.5 bg-[var(--brand-navy)] text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-60 flex items-center justify-center gap-2"
+              >
+                {loading ? <Loader2 size={15} className="animate-spin" /> : 'Suscribirme'}
+              </button>
+              <p className="text-[10px] text-[var(--color-text-muted)] text-center">
+                Sin spam. Podés darte de baja en cualquier momento.
+              </p>
+            </form>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function Navbar() {
   const pathname = usePathname()
   const { theme, setTheme } = useTheme()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const [subscribeOpen, setSubscribeOpen] = useState(false)
+
+  useEffect(() => {
+    const update = () => {
+      const el = document.documentElement
+      const total = el.scrollHeight - el.clientHeight
+      setProgress(total > 0 ? (el.scrollTop / total) * 100 : 0)
+    }
+    window.addEventListener('scroll', update, { passive: true })
+    return () => window.removeEventListener('scroll', update)
+  }, [])
 
   return (
     <header className="sticky top-0 z-50">
@@ -29,9 +310,12 @@ export default function Navbar() {
         <div className="max-w-site mx-auto px-4 md:px-6 h-9 flex items-center justify-between">
           <span className="text-xs text-white/70 font-body">República Dominicana</span>
           <div className="flex items-center gap-4">
-            <span className="text-xs text-[var(--brand-gold)] font-body font-medium hidden sm:block">
-              25K suscriptores
-            </span>
+            <button
+              onClick={() => setSubscribeOpen(true)}
+              className="hidden sm:inline-flex items-center text-[10px] font-semibold px-3 py-1 rounded-full border border-[var(--brand-gold)]/60 text-[var(--brand-gold)] hover:bg-[var(--brand-gold)]/10 transition-colors tracking-wide"
+            >
+              SUSCRIBIRSE
+            </button>
             <div className="flex items-center gap-2.5">
               <a
                 href="https://www.youtube.com/@reportemedico1504"
@@ -61,9 +345,17 @@ export default function Navbar() {
       </div>
 
       {/* Main Header */}
-      <div
-        className="bg-[var(--color-surface)]/95 backdrop-blur border-b-2 border-[var(--brand-gold)]"
-      >
+      <div className="bg-[var(--color-surface)]/95 backdrop-blur relative">
+        {/* Barra de progreso de lectura — reemplaza el borde gold estático */}
+        <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[var(--brand-gold)]/20 overflow-hidden">
+          <div
+            className="h-full transition-transform duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] origin-left shadow-[0_0_8px_rgba(255,215,0,0.5)]"
+            style={{
+              transform: `scaleX(${progress / 100})`,
+              background: 'linear-gradient(to right, #facc15, #fde68a, #eab308)',
+            }}
+          />
+        </div>
         <nav className="max-w-site mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center shrink-0">
@@ -107,6 +399,8 @@ export default function Navbar() {
 
           {/* Actions */}
           <div className="flex items-center gap-3">
+            <SearchBar />
+
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               className="p-2 rounded-full text-[var(--color-text-muted)] hover:text-[var(--brand-navy)] hover:bg-[var(--color-surface-2)] transition-colors"
@@ -127,6 +421,8 @@ export default function Navbar() {
         </nav>
       </div>
 
+      {subscribeOpen && <SubscribeModal onClose={() => setSubscribeOpen(false)} />}
+
       {/* Mobile menu — fondo navy */}
       {menuOpen && (
         <div className="md:hidden bg-[var(--brand-navy)]">
@@ -146,6 +442,14 @@ export default function Navbar() {
                 </Link>
               </li>
             ))}
+            <li className="px-4 pt-2 pb-3">
+              <button
+                onClick={() => { setMenuOpen(false); setSubscribeOpen(true) }}
+                className="w-full py-2.5 text-sm font-semibold rounded-lg border border-[var(--brand-gold)]/60 text-[var(--brand-gold)] hover:bg-[var(--brand-gold)]/10 transition-colors"
+              >
+                Suscribirse
+              </button>
+            </li>
           </ul>
         </div>
       )}

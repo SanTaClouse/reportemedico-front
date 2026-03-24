@@ -4,7 +4,7 @@ import { cookies } from 'next/headers'
 import Link from 'next/link'
 import { getAdminArticles } from '@/lib/api'
 import { formatDateShort } from '@/lib/utils'
-import { Clock, Sparkles } from 'lucide-react'
+import { Clock, Sparkles, Mail } from 'lucide-react'
 import SuggestedSpecialtiesReview from '@/components/admin/SuggestedSpecialtiesReview'
 
 export default async function ArticulosPendientesPage() {
@@ -67,6 +67,15 @@ export default async function ArticulosPendientesPage() {
                       Por <strong>{article.authorName}</strong> ·{' '}
                       Enviado el {formatDateShort(article.createdAt)}
                     </p>
+                    {article.authorEmail && (
+                      <a
+                        href={`mailto:${article.authorEmail}`}
+                        className="inline-flex items-center gap-1.5 mt-1.5 text-xs font-medium text-[var(--color-primary)] hover:underline"
+                      >
+                        <Mail size={12} strokeWidth={1.5} />
+                        {article.authorEmail}
+                      </a>
+                    )}
                     {article.excerpt && (
                       <p className="text-sm text-[var(--color-text-muted)] mt-1 line-clamp-2">
                         {article.excerpt}

@@ -4,7 +4,7 @@ import { getArticlesByTag, getTags } from '@/lib/api'
 import ArticleCard from '@/components/article/ArticleCard'
 import Pagination from '@/components/ui/Pagination'
 
-export const revalidate = 600
+export const revalidate = 60
 
 interface Props {
   params: { slug: string }

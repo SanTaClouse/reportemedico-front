@@ -1,23 +1,26 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { Plus, Pencil, Trash2, Check, X, Loader2, Tag as TagIcon } from 'lucide-react'
+import { Plus, Pencil, Trash2, Check, X, Loader2, Tag as TagIcon, FlaskConical } from 'lucide-react'
 import { toast } from 'sonner'
-import { createTag, updateTag, deleteTag, type Tag } from '@/lib/api'
+import { createTag, updateTag, deleteTag, approveSpecialty, rejectSpecialty, type Tag, type PendingSpecialty } from '@/lib/api'
 
 interface Props {
   initialTags: Tag[]
+  initialPendingSpecialties: PendingSpecialty[]
   token: string
 }
 
-export default function TagsClient({ initialTags, token }: Props) {
+export default function TagsClient({ initialTags, initialPendingSpecialties, token }: Props) {
   const [tags, setTags] = useState(initialTags)
+  const [pending, setPending] = useState(initialPendingSpecialties)
   const [newTag, setNewTag] = useState('')
   const [creating, setCreating] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
   const [savingId, setSavingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [processingKey, setProcessingKey] = useState<string | null>(null)
   const editInputRef = useRef<HTMLInputElement>(null)
 
   const inputClass =
@@ -79,6 +82,38 @@ export default function TagsClient({ initialTags, token }: Props) {
     }
   }
 
+  // ─── Especialidades pendientes ───────────────────────
+
+  const handleApprove = async (item: PendingSpecialty) => {
+    const key = `${item.articleId}::${item.specialtyName}`
+    setProcessingKey(key)
+    const toastId = toast.loading(`Aprobando "${item.specialtyName}"...`)
+    try {
+      await approveSpecialty(item.articleId, item.specialtyName, token)
+      setPending((prev) => prev.filter((p) => !(p.articleId === item.articleId && p.specialtyName === item.specialtyName)))
+      toast.success(`Tag "${item.specialtyName}" creado y vinculado al artículo`, { id: toastId })
+    } catch (err: any) {
+      toast.error(err.message || 'Error al aprobar', { id: toastId })
+    } finally {
+      setProcessingKey(null)
+    }
+  }
+
+  const handleReject = async (item: PendingSpecialty) => {
+    const key = `${item.articleId}::${item.specialtyName}`
+    setProcessingKey(key)
+    const toastId = toast.loading(`Rechazando "${item.specialtyName}"...`)
+    try {
+      await rejectSpecialty(item.articleId, item.specialtyName, token)
+      setPending((prev) => prev.filter((p) => !(p.articleId === item.articleId && p.specialtyName === item.specialtyName)))
+      toast.success(`Propuesta "${item.specialtyName}" rechazada`, { id: toastId })
+    } catch (err: any) {
+      toast.error(err.message || 'Error al rechazar', { id: toastId })
+    } finally {
+      setProcessingKey(null)
+    }
+  }
+
   // ─── Eliminar ────────────────────────────────────────
 
   const handleDelete = (tag: Tag) => {
@@ -117,6 +152,74 @@ export default function TagsClient({ initialTags, token }: Props) {
         <h1 className="font-display font-bold text-2xl text-[var(--color-text-primary)]">Tags</h1>
         <span className="ml-auto text-sm text-[var(--color-text-muted)]">{tags.length} tags</span>
       </div>
+
+      {/* Especialidades pendientes */}
+      {pending.length > 0 && (
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-3">
+            <FlaskConical size={16} strokeWidth={1.5} className="text-amber-500" />
+            <h2 className="font-semibold text-sm text-[var(--color-text-primary)]">
+              Especialidades propuestas por médicos
+            </h2>
+            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold">
+              {pending.length}
+            </span>
+          </div>
+          <div className="bg-amber-50/60 border border-amber-200 rounded-xl overflow-hidden dark:bg-amber-900/10 dark:border-amber-800">
+            <table className="w-full text-sm">
+              <thead className="bg-amber-100/60 border-b border-amber-200 dark:bg-amber-900/20 dark:border-amber-800">
+                <tr>
+                  <th className="text-left px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-400">Especialidad propuesta</th>
+                  <th className="text-left px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-400 hidden sm:table-cell">Artículo origen</th>
+                  <th className="text-left px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-400 hidden md:table-cell">Autor</th>
+                  <th className="px-4 py-2.5 w-24"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-amber-100 dark:divide-amber-800/40">
+                {pending.map((item) => {
+                  const key = `${item.articleId}::${item.specialtyName}`
+                  const isProcessing = processingKey === key
+                  return (
+                    <tr key={key} className="hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors">
+                      <td className="px-4 py-2.5">
+                        <span className="font-medium text-[var(--color-text-primary)]">{item.specialtyName}</span>
+                      </td>
+                      <td className="px-4 py-2.5 text-[var(--color-text-muted)] text-xs hidden sm:table-cell max-w-[180px] truncate">
+                        {item.articleTitle}
+                      </td>
+                      <td className="px-4 py-2.5 text-[var(--color-text-muted)] text-xs hidden md:table-cell">
+                        {item.authorName}
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <div className="flex items-center gap-1.5 justify-end">
+                          <button
+                            onClick={() => handleApprove(item)}
+                            disabled={isProcessing}
+                            title="Aprobar — crea el tag y lo vincula al artículo"
+                            className="flex items-center gap-1 px-2 py-1 rounded-md bg-green-100 text-green-700 hover:bg-green-200 text-xs font-medium transition-colors disabled:opacity-40"
+                          >
+                            {isProcessing ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} strokeWidth={2.5} />}
+                            Aprobar
+                          </button>
+                          <button
+                            onClick={() => handleReject(item)}
+                            disabled={isProcessing}
+                            title="Rechazar"
+                            className="flex items-center gap-1 px-2 py-1 rounded-md bg-red-50 text-red-600 hover:bg-red-100 text-xs font-medium transition-colors disabled:opacity-40"
+                          >
+                            <X size={12} />
+                            Rechazar
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Crear */}
       <form onSubmit={handleCreate} className="flex gap-2 mb-6">

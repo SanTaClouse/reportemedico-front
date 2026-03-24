@@ -120,6 +120,7 @@ export default function ConsejoMedicoClient({ initialMembers, token }: Props) {
         })
         toast.success('Miembro añadido')
       }
+      fetch('/api/revalidate', { method: 'POST' })
       closeModal()
     } catch (err: any) {
       toast.error(err.message || 'Error al guardar')
@@ -134,6 +135,7 @@ export default function ConsejoMedicoClient({ initialMembers, token }: Props) {
     try {
       await deleteCouncilMember(id, token)
       setMembers((prev) => prev.filter((m) => m.id !== id))
+      fetch('/api/revalidate', { method: 'POST' })
       toast.success('Miembro eliminado')
     } catch {
       toast.error('Error al eliminar')
@@ -146,6 +148,7 @@ export default function ConsejoMedicoClient({ initialMembers, token }: Props) {
     try {
       const updated = await updateCouncilMember(m.id, { isVisible: !m.isVisible }, token)
       setMembers((prev) => prev.map((x) => (x.id === m.id ? updated : x)))
+      fetch('/api/revalidate', { method: 'POST' })
     } catch {
       toast.error('Error al actualizar visibilidad')
     }
@@ -161,6 +164,7 @@ export default function ConsejoMedicoClient({ initialMembers, token }: Props) {
         }
         return list
       })
+      fetch('/api/revalidate', { method: 'POST' })
       toast.success(updated.isFeatured ? 'Marcado como destacado del HERO' : 'Quitado del HERO')
     } catch {
       toast.error('Error al actualizar')

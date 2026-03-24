@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { setArticleStatus } from '@/lib/api'
 
@@ -20,6 +21,7 @@ interface Props {
 export default function InlineStatusSelect({ articleId, currentStatus, token }: Props) {
   const [status, setStatus] = useState(currentStatus)
   const [loading, setLoading] = useState(false)
+  const router = useRouter()
 
   useEffect(() => {
     setStatus(currentStatus)
@@ -37,6 +39,7 @@ export default function InlineStatusSelect({ articleId, currentStatus, token }: 
     try {
       await setArticleStatus(articleId, newStatus, token)
       fetch('/api/revalidate', { method: 'POST' })
+      router.refresh()
       toast.success(`Estado → ${label}`, { id: toastId })
     } catch (err: any) {
       setStatus(prev)

@@ -10,7 +10,7 @@ import {
   updatePrintEdition,
   deletePrintEdition,
 } from '@/lib/api'
-import { formatDateShort, embedUrlToDirectUrl } from '@/lib/utils'
+import { formatDateShort, embedUrlToDirectUrl, issuuCoverUrl } from '@/lib/utils'
 
 const triggerRevalidate = () => fetch('/api/revalidate', { method: 'POST' })
 
@@ -43,11 +43,16 @@ function extractIssuuEmbedSrc(embedCode: string): string | null {
   return match ? match[1] : null
 }
 
-/** Construye la URL del thumbnail de portada (página 1) a partir del embed src */
-function extractIssuuThumbnail(embedSrc: string): string | null {
+/** Extrae el atributo title del iframe del embed de Issuu */
+function extractIssuuTitle(embedCode: string): string | null {
+  const match = embedCode.match(/title="([^"]+)"/i)
+  return match ? match[1] : null
+}
+
+/** Extrae parámetros d= y u= del embed src (query string o hash) */
+function extractIssuuParams(embedSrc: string): { docName: string; username: string } | null {
   try {
     const url = new URL(embedSrc)
-    // Los parámetros pueden estar en query string (?d=...&u=...) o en el hash (#d=...&u=...)
     let docName = url.searchParams.get('d')
     let username = url.searchParams.get('u')
     if (!docName || !username) {
@@ -55,14 +60,31 @@ function extractIssuuThumbnail(embedSrc: string): string | null {
       docName = docName ?? hashParams.get('d')
       username = username ?? hashParams.get('u')
     }
-    if (docName && username) {
-      return `https://image.isu.pub/${username}/${docName}/jpg/page_1.jpg`
-    }
-    return null
+    return docName && username ? { docName, username } : null
   } catch {
     return null
   }
 }
+
+/** Construye la URL del thumbnail de portada (página 1) a partir del embed src */
+function extractIssuuThumbnail(embedSrc: string): string | null {
+  const params = extractIssuuParams(embedSrc)
+  return params
+    ? `https://image.isu.pub/${params.username}/${params.docName}/jpg/page_1.jpg`
+    : null
+}
+
+/**
+ * Extrae el número de edición del nombre del documento de Issuu.
+ * Soporta patrones como: ed-13, ed_13, ed-15-web, ED-13, etc.
+ */
+function extractEditionNumber(embedSrc: string): number | null {
+  const params = extractIssuuParams(embedSrc)
+  if (!params) return null
+  const match = params.docName.match(/ed[-_](\d+)/i)
+  return match ? parseInt(match[1], 10) : null
+}
+
 
 
 export default function EdicionesClient({ editions: initial, token }: Props) {
@@ -93,8 +115,29 @@ export default function EdicionesClient({ editions: initial, token }: Props) {
   }
 
   const handleNew = () => {
+    const isDirty = showForm && (form.title || form.issuuUrl || embedCode)
+    if (isDirty) {
+      toast.warning('¿Descartar el formulario actual?', {
+        description: 'Los datos no guardados se perderán.',
+        action: {
+          label: 'Descartar',
+          onClick: () => openNewForm(),
+        },
+        cancel: { label: 'Cancelar', onClick: () => {} },
+        duration: 8000,
+      })
+      return
+    }
+    openNewForm()
+  }
+
+  const openNewForm = () => {
+    const nextNumber =
+      editions.length > 0
+        ? Math.max(...editions.map((e) => e.editionNumber)) + 1
+        : 1
     setEditingId(null)
-    setForm(emptyForm)
+    setForm({ ...emptyForm, editionNumber: String(nextNumber) })
     setEmbedCode('')
     setEmbedError('')
     setShowForm(true)
@@ -118,13 +161,28 @@ export default function EdicionesClient({ editions: initial, token }: Props) {
     }
     const src = extractIssuuEmbedSrc(value)
     if (src) {
-      const thumbnail = extractIssuuThumbnail(src)
+      const titleFromEmbed = extractIssuuTitle(value)
+      const editionNum = extractEditionNumber(src)
       setForm((f) => ({
         ...f,
         issuuUrl: src,
-        ...(thumbnail ? { coverImage: thumbnail } : {}),
+        ...(titleFromEmbed && !f.title ? { title: titleFromEmbed } : {}),
+        ...(editionNum ? { editionNumber: String(editionNum) } : {}),
       }))
       setEmbedError('')
+
+      // Obtener thumbnail via oEmbed oficial de Issuu
+      const params = extractIssuuParams(src)
+      if (params) {
+        fetch(`/api/issuu-thumbnail?u=${params.username}&d=${params.docName}`)
+          .then((r) => r.json())
+          .then((data) => {
+            if (data.thumbnail) {
+              setForm((f) => ({ ...f, coverImage: data.thumbnail }))
+            }
+          })
+          .catch(() => {})
+      }
     } else {
       setEmbedError('No se encontró una URL de embed de Issuu válida en el código pegado.')
     }
@@ -280,7 +338,7 @@ export default function EdicionesClient({ editions: initial, token }: Props) {
                 </div>
                 {form.coverImage && (
                   <Image
-                    src={form.coverImage}
+                    src={issuuCoverUrl(form.coverImage)}
                     alt="Portada"
                     width={48}
                     height={64}

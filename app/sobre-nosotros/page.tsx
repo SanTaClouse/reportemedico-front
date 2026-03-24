@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import { Newspaper, Globe, Mic2, Smartphone, Mail, Trophy, BarChart3, CheckCircle2, Linkedin } from 'lucide-react'
 import { getCouncilMembers } from '@/lib/api'
+import ScrollReveal from '@/components/ui/ScrollReveal'
 
 export const metadata: Metadata = {
   title: 'Sobre Nosotros | Reporte Médico',
@@ -83,35 +84,36 @@ export default async function SobreNosotrosPage() {
   return (
     <main>
       {/* Hero — navy */}
-      <section className="bg-[var(--brand-navy)] text-white py-16 md:py-24">
-        <div className="max-w-site mx-auto px-4 md:px-6 flex flex-col md:flex-row items-center gap-12 md:gap-20">
+      <section className="relative bg-[var(--brand-navy)] text-white py-16 md:py-24 overflow-hidden">
+        {/* Patrón de puntos sutil */}
+        <div className="absolute inset-0 sn-hero-dots pointer-events-none" />
+        {/* Degradado radial suave desde el centro */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_60%_50%,rgba(0,180,160,0.12),transparent_70%)] pointer-events-none" />
+
+        <div className="relative max-w-site mx-auto px-4 md:px-6 flex flex-col md:flex-row items-center gap-12 md:gap-20">
           <div className="flex-1">
-            <p className="text-[var(--brand-gold)] text-xs font-body font-semibold uppercase tracking-widest mb-4">
+            <p className="hero-anim hero-anim-1 text-[var(--brand-gold)] text-xs font-body font-semibold uppercase tracking-widest mb-4">
               República Dominicana · Plataforma líder en salud
             </p>
-            <h1 className="font-display font-bold text-4xl md:text-5xl leading-tight mb-6">
+            <h1 className="hero-anim hero-anim-2 font-display font-bold text-4xl md:text-5xl leading-tight mb-6">
               La plataforma de salud líder en República Dominicana
             </h1>
-            <p className="text-white/80 text-lg leading-relaxed max-w-xl mb-8">
+            <p className="hero-anim hero-anim-3 text-white/80 text-lg leading-relaxed max-w-xl mb-8">
               En Reporte Médico nos enorgullece conectar profesionales, instituciones y pacientes
               con lo último en información médica, avances tecnológicos y estrategias de
               comunicación en el sector salud.
             </p>
-            <div className="border-l-4 border-[var(--brand-gold)] pl-4">
-              <p className="text-white font-display font-semibold text-lg">Lic. Alberto Rodriguez Fonseca</p>
-              <p className="text-white/60 text-sm font-body">Presidente · Reporte Médico</p>
-            </div>
           </div>
 
           {/* Logo ícono */}
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 hero-anim hero-anim-4">
             <Image
               src="/media/Logo Cuadrado (300 x 300 px) sin fondo.png"
               alt="Reporte Médico"
               width={260}
               height={260}
               priority
-              className="rounded-2xl object-contain opacity-90"
+              className="rounded-2xl object-contain opacity-90 sn-logo-float"
             />
           </div>
         </div>
@@ -120,78 +122,84 @@ export default async function SobreNosotrosPage() {
       {/* Historia */}
       <section className="py-16 bg-[var(--color-surface)]">
         <div className="max-w-article mx-auto px-4 md:px-6">
-          <h2 className="font-display font-bold text-3xl text-[var(--color-text-primary)] mb-8">
-            Nuestra Historia
-          </h2>
-          <div className="article-body space-y-5">
-            <p>
-              Reporte Médico nació en el año <strong>2010 en Venezuela</strong> como un proyecto
-              innovador orientado a la difusión de información científica y médica de calidad.
-              Desde sus inicios, se consolidó como una plataforma de comunicación confiable, que
-              sirvió de puente entre profesionales de la salud, instituciones y pacientes, con el
-              propósito de educar, informar y generar un impacto positivo en la comunidad médica.
-            </p>
-            <p>
-              Durante una década desarrollamos un engranaje sólido de medios, publicaciones y
-              eventos que marcaron un referente en el sector salud de nuestro país de origen.
-            </p>
-            <p>
-              En el año <strong>2020 iniciamos nuestras operaciones en la República Dominicana</strong>,
-              trasladando toda esa experiencia y estructura para ponerla al servicio de la comunidad
-              médica dominicana. Hoy, en un entorno dinámico y en plena transformación del sector
-              salud, Reporte Médico ofrece una plataforma integral de comunicación que combina
-              tradición y trayectoria con innovación y tecnología.
-            </p>
-          </div>
+          <ScrollReveal>
+            <h2 className="font-display font-bold text-3xl text-[var(--color-text-primary)] mb-8">
+              Nuestra Historia
+            </h2>
+            <div className="article-body space-y-5">
+              <p>
+                Reporte Médico nació en el año <strong>2010 en Venezuela</strong> como un proyecto
+                innovador orientado a la difusión de información científica y médica de calidad.
+                Desde sus inicios, se consolidó como una plataforma de comunicación confiable, que
+                sirvió de puente entre profesionales de la salud, instituciones y pacientes, con el
+                propósito de educar, informar y generar un impacto positivo en la comunidad médica.
+              </p>
+              <p>
+                Durante una década desarrollamos un engranaje sólido de medios, publicaciones y
+                eventos que marcaron un referente en el sector salud de nuestro país de origen.
+              </p>
+              <p>
+                En el año <strong>2020 iniciamos nuestras operaciones en la República Dominicana</strong>,
+                trasladando toda esa experiencia y estructura para ponerla al servicio de la comunidad
+                médica dominicana. Hoy, en un entorno dinámico y en plena transformación del sector
+                salud, Reporte Médico ofrece una plataforma integral de comunicación que combina
+                tradición y trayectoria con innovación y tecnología.
+              </p>
+            </div>
+          </ScrollReveal>
 
           {/* Línea de tiempo */}
-          <div className="mt-10 flex flex-col sm:flex-row gap-6">
-            <div className="flex-1 bg-[var(--color-surface-3)] rounded-xl p-6 border-l-4 border-[var(--brand-navy)]">
-              <div className="text-4xl font-display font-bold text-[var(--brand-gold)] mb-2">2010</div>
-              <p className="text-[var(--color-text-secondary)] text-sm">
-                Fundación en Venezuela como plataforma de difusión médica científica.
-              </p>
+          <ScrollReveal className="mt-10">
+            <div className="flex flex-col sm:flex-row gap-6">
+              <div className="sn-timeline-card flex-1 bg-[var(--color-surface-3)] rounded-xl p-6 border-l-4 border-[var(--brand-navy)] hover:shadow-md transition-shadow">
+                <div className="text-4xl font-display font-bold text-[var(--brand-gold)] mb-2">2010</div>
+                <p className="text-[var(--color-text-secondary)] text-sm">
+                  Fundación en Venezuela como plataforma de difusión médica científica.
+                </p>
+              </div>
+              <div className="sn-timeline-card flex-1 bg-[var(--color-surface-3)] rounded-xl p-6 border-l-4 border-[var(--brand-gold)] hover:shadow-md transition-shadow">
+                <div className="text-4xl font-display font-bold text-[var(--brand-gold)] mb-2">2020</div>
+                <p className="text-[var(--color-text-secondary)] text-sm">
+                  Inicio de operaciones en la República Dominicana con estructura y experiencia consolidada.
+                </p>
+              </div>
+              <div className="sn-timeline-card flex-1 bg-[var(--color-surface-3)] rounded-xl p-6 border-l-4 border-[var(--brand-navy)] hover:shadow-md transition-shadow">
+                <div className="text-4xl font-display font-bold text-[var(--brand-gold)] mb-2">Hoy</div>
+                <p className="text-[var(--color-text-secondary)] text-sm">
+                  Plataforma de salud líder en RD con más de 25,000 suscriptores y presencia digital nacional.
+                </p>
+              </div>
             </div>
-            <div className="flex-1 bg-[var(--color-surface-3)] rounded-xl p-6 border-l-4 border-[var(--brand-gold)]">
-              <div className="text-4xl font-display font-bold text-[var(--brand-gold)] mb-2">2020</div>
-              <p className="text-[var(--color-text-secondary)] text-sm">
-                Inicio de operaciones en la República Dominicana con estructura y experiencia consolidada.
-              </p>
-            </div>
-            <div className="flex-1 bg-[var(--color-surface-3)] rounded-xl p-6 border-l-4 border-[var(--brand-navy)]">
-              <div className="text-4xl font-display font-bold text-[var(--brand-gold)] mb-2">Hoy</div>
-              <p className="text-[var(--color-text-secondary)] text-sm">
-                Plataforma de salud líder en RD con más de 25,000 suscriptores y presencia digital nacional.
-              </p>
-            </div>
-          </div>
+          </ScrollReveal>
         </div>
       </section>
 
       {/* Misión y Visión */}
       <section className="py-16 bg-[var(--color-surface-2)]">
-        <div className="max-w-site mx-auto px-4 md:px-6 grid md:grid-cols-2 gap-8">
-          <div className="bg-[var(--color-surface)] rounded-2xl p-8 shadow-sm">
-            <h2 className="font-display font-bold text-2xl text-[var(--brand-navy)] mb-4">
-              Nuestra Misión
-            </h2>
-            <p className="text-[var(--color-text-secondary)] leading-relaxed">
-              Impulsar la transformación de la comunicación en salud mediante contenidos de calidad,
-              estrategias de marketing médico y el uso de plataformas digitales y tradicionales que
-              generen valor tanto para profesionales de la salud como para empresas del sector.
-            </p>
+        <ScrollReveal>
+          <div className="max-w-site mx-auto px-4 md:px-6 grid md:grid-cols-2 gap-8">
+            <div className="sn-timeline-card bg-[var(--color-surface)] rounded-2xl p-8 shadow-sm hover:shadow-md transition-shadow">
+              <h2 className="font-display font-bold text-2xl text-[var(--brand-navy)] mb-4">
+                Nuestra Misión
+              </h2>
+              <p className="text-[var(--color-text-secondary)] leading-relaxed">
+                Impulsar la transformación de la comunicación en salud mediante contenidos de calidad,
+                estrategias de marketing médico y el uso de plataformas digitales y tradicionales que
+                generen valor tanto para profesionales de la salud como para empresas del sector.
+              </p>
+            </div>
+            <div className="sn-timeline-card bg-[var(--color-surface)] rounded-2xl p-8 shadow-sm border-l-4 border-[var(--brand-gold)] hover:shadow-md transition-shadow">
+              <h2 className="font-display font-bold text-2xl text-[var(--brand-navy)] mb-4">
+                Nuestra Visión
+              </h2>
+              <p className="text-[var(--color-text-secondary)] leading-relaxed">
+                Ser el medio de comunicación y referencia más confiable e influyente en el ámbito de
+                la salud en la República Dominicana, promoviendo la innovación, la educación médica
+                y la difusión responsable de información que impacte positivamente en la sociedad.
+              </p>
+            </div>
           </div>
-          <div className="bg-[var(--color-surface)] rounded-2xl p-8 shadow-sm border-l-4 border-[var(--brand-gold)]">
-            <h2 className="font-display font-bold text-2xl text-[var(--brand-navy)] mb-4">
-              Nuestra Visión
-            </h2>
-            <p className="text-[var(--color-text-secondary)] leading-relaxed">
-              Ser el medio de comunicación y referencia más confiable e influyente en el ámbito de
-              la salud en la República Dominicana, promoviendo la innovación, la educación médica
-              y la difusión responsable de información que impacte positivamente en la sociedad.
-            </p>
-          </div>
-        </div>
+        </ScrollReveal>
       </section>
 
       {/* Servicios */}
@@ -206,25 +214,27 @@ export default async function SobreNosotrosPage() {
               a toda la comunidad médica.
             </p>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {servicios.map((s) => {
-              const Icon = s.icon
-              return (
-                <div
-                  key={s.titulo}
-                  className="bg-[var(--color-surface-2)] rounded-xl p-6 flex flex-col gap-3 border border-[var(--color-border)] hover:border-[var(--brand-gold)] transition-colors"
-                >
-                  <div className="w-10 h-10 rounded-lg bg-[var(--brand-navy)] flex items-center justify-center">
-                    <Icon size={20} strokeWidth={1.5} className="text-[var(--brand-gold)]" />
+          <ScrollReveal>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {servicios.map((s) => {
+                const Icon = s.icon
+                return (
+                  <div
+                    key={s.titulo}
+                    className="sn-service-card group bg-[var(--color-surface-2)] rounded-xl p-6 flex flex-col gap-3 border border-[var(--color-border)] hover:border-[var(--brand-gold)] hover:-translate-y-1 hover:shadow-lg transition-all duration-300"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-[var(--brand-navy)] flex items-center justify-center group-hover:bg-[var(--brand-gold)] transition-colors duration-300">
+                      <Icon size={20} strokeWidth={1.5} className="text-[var(--brand-gold)] group-hover:text-[var(--brand-navy)] transition-colors duration-300" />
+                    </div>
+                    <h3 className="font-semibold text-[var(--color-text-primary)]">{s.titulo}</h3>
+                    <p className="text-[var(--color-text-secondary)] text-sm leading-relaxed">
+                      {s.descripcion}
+                    </p>
                   </div>
-                  <h3 className="font-semibold text-[var(--color-text-primary)]">{s.titulo}</h3>
-                  <p className="text-[var(--color-text-secondary)] text-sm leading-relaxed">
-                    {s.descripcion}
-                  </p>
-                </div>
-              )
-            })}
-          </div>
+                )
+              })}
+            </div>
+          </ScrollReveal>
         </div>
       </section>
 
@@ -242,6 +252,7 @@ export default async function SobreNosotrosPage() {
           <div className="max-w-3xl mx-auto rounded-2xl overflow-hidden shadow-xl border border-[var(--color-border)]">
             <video
               src="https://res.cloudinary.com/dfppghbdf/video/upload/v1773254256/VID-20241123-WA0005_qux0ll.mp4"
+              poster="https://res.cloudinary.com/dfppghbdf/video/upload/so_5/v1773254256/VID-20241123-WA0005_qux0ll.jpg"
               controls
               playsInline
               className="w-full aspect-video bg-black"
@@ -257,21 +268,23 @@ export default async function SobreNosotrosPage() {
           <h2 className="font-display font-bold text-3xl text-white mb-10 text-center">
             ¿Por qué elegirnos?
           </h2>
-          <div className="grid sm:grid-cols-2 gap-6">
-            {razones.map((r) => (
-              <div key={r.titulo} className="flex gap-4 items-start">
-                <CheckCircle2
-                  size={22}
-                  strokeWidth={1.5}
-                  className="text-[var(--brand-gold)] flex-shrink-0 mt-0.5"
-                />
-                <div>
-                  <h3 className="font-semibold text-white mb-1">{r.titulo}</h3>
-                  <p className="text-white/70 text-sm leading-relaxed">{r.descripcion}</p>
+          <ScrollReveal>
+            <div className="grid sm:grid-cols-2 gap-6">
+              {razones.map((r) => (
+                <div key={r.titulo} className="sn-razon-item flex gap-4 items-start group">
+                  <CheckCircle2
+                    size={22}
+                    strokeWidth={1.5}
+                    className="text-[var(--brand-gold)] flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform duration-200"
+                  />
+                  <div>
+                    <h3 className="font-semibold text-white mb-1">{r.titulo}</h3>
+                    <p className="text-white/70 text-sm leading-relaxed">{r.descripcion}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </ScrollReveal>
         </div>
       </section>
 
@@ -287,44 +300,46 @@ export default async function SobreNosotrosPage() {
                 Nuestro contenido está avalado por un equipo de médicos líderes en sus especialidades.
               </p>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-              {consejo.map((miembro) => (
-                <div key={miembro.id} className="flex flex-col items-center text-center gap-3">
-                  <div className="w-24 h-24 rounded-full overflow-hidden bg-[var(--color-surface-2)] border-2 border-[var(--color-border)] flex-shrink-0">
-                    {miembro.photo ? (
-                      <Image
-                        src={miembro.photo}
-                        alt={miembro.name}
-                        width={96}
-                        height={96}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-2xl font-display font-bold text-[var(--color-text-muted)]">
-                        {miembro.name.charAt(0)}
-                      </div>
-                    )}
+            <ScrollReveal>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+                {consejo.map((miembro) => (
+                  <div key={miembro.id} className="sn-miembro-card group flex flex-col items-center text-center gap-3">
+                    <div className="w-24 h-24 rounded-full overflow-hidden bg-[var(--color-surface-2)] border-2 border-[var(--color-border)] group-hover:border-[var(--color-primary)] flex-shrink-0 transition-colors duration-300 group-hover:shadow-lg">
+                      {miembro.photo ? (
+                        <Image
+                          src={miembro.photo}
+                          alt={miembro.name}
+                          width={96}
+                          height={96}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-2xl font-display font-bold text-[var(--color-text-muted)]">
+                          {miembro.name.charAt(0)}
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm text-[var(--color-text-primary)] leading-tight">
+                        {miembro.name}
+                      </p>
+                      <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{miembro.role}</p>
+                      {miembro.linkedinUrl && (
+                        <a
+                          href={miembro.linkedinUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 mt-1.5 text-xs text-[var(--brand-electric)] hover:underline"
+                        >
+                          <Linkedin size={12} />
+                          LinkedIn
+                        </a>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-semibold text-sm text-[var(--color-text-primary)] leading-tight">
-                      {miembro.name}
-                    </p>
-                    <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{miembro.role}</p>
-                    {miembro.linkedinUrl && (
-                      <a
-                        href={miembro.linkedinUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 mt-1.5 text-xs text-[var(--brand-electric)] hover:underline"
-                      >
-                        <Linkedin size={12} />
-                        LinkedIn
-                      </a>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </ScrollReveal>
           </div>
         </section>
       )}

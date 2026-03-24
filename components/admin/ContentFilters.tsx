@@ -14,7 +14,7 @@ export default function ContentFilters({ tags }: { tags: Tag[] }) {
       if (value) params.set(key, value)
       else params.delete(key)
       params.delete('page')
-      router.push(`/admin/contenido?${params.toString()}`)
+      router.replace(`/admin/contenido?${params.toString()}`)
     },
     [router, searchParams],
   )
@@ -52,9 +52,12 @@ export default function ContentFilters({ tags }: { tags: Tag[] }) {
         onChange={(e) => update('relevance', e.target.value)}
       >
         <option value="">Relevancia: Todas</option>
-        <option value="1">Hero (1)</option>
-        <option value="2">Destacado (2)</option>
-        <option value="3">Compacto (3)</option>
+        <option value="1">1 — Hero</option>
+        <option value="2">2 — Lead</option>
+        <option value="3">3 — Big Destacada</option>
+        <option value="4">4 — Small Destacada</option>
+        <option value="5">5 — Actualidad</option>
+        <option value="null">Sin slot editorial</option>
       </select>
 
       {tags.length > 0 && (
@@ -69,16 +72,6 @@ export default function ContentFilters({ tags }: { tags: Tag[] }) {
           ))}
         </select>
       )}
-
-      <input
-        type="text"
-        placeholder="Buscar..."
-        defaultValue={searchParams.get('search') || ''}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') update('search', (e.target as HTMLInputElement).value)
-        }}
-        className={`${selectClass} min-w-36`}
-      />
 
       <select
         className={selectClass}

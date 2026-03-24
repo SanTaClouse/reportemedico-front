@@ -1,13 +1,16 @@
 export const dynamic = 'force-dynamic'
 
 import { cookies } from 'next/headers'
-import { getTagsAdmin } from '@/lib/api'
+import { getTagsAdmin, getPendingSpecialties } from '@/lib/api'
 import TagsClient from './TagsClient'
 
 export default async function AdminTagsPage() {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const token = cookieStore.get('rm_token')?.value || ''
-  const tags = await getTagsAdmin(token).catch(() => [])
+  const [tags, pendingSpecialties] = await Promise.all([
+    getTagsAdmin(token).catch(() => []),
+    getPendingSpecialties(token).catch(() => []),
+  ])
 
-  return <TagsClient initialTags={tags} token={token} />
+  return <TagsClient initialTags={tags} initialPendingSpecialties={pendingSpecialties} token={token} />
 }

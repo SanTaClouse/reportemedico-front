@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { getMedicalArticles } from '@/lib/api'
 import ArticleCard from '@/components/article/ArticleCard'
 import Pagination from '@/components/ui/Pagination'
-import Link from 'next/link'
+import MedicalArticlesBanner from '@/components/home/MedicalArticlesBanner'
 
 export const revalidate = 300
 
@@ -21,39 +21,11 @@ export default async function ArticulosPage({ searchParams }: Props) {
 
   return (
     <div className="max-w-site mx-auto px-4 md:px-6 py-10">
-      <div className="flex items-end justify-between mb-8">
-        <div>
-          <h1 className="font-display font-bold text-4xl text-[var(--color-text-primary)] mb-2">
-            Artículos Médicos
-          </h1>
-          <p className="text-[var(--color-text-secondary)]">
-            Contenido científico y clínico del sector salud
-          </p>
-        </div>
-        <div className="hidden sm:flex flex-col items-end gap-1.5">
-          <p className="text-xs text-[var(--color-text-muted)] font-medium">
-            ¿Eres médico? Publica tu artículo aquí
-          </p>
-          <Link
-            href="/articulos/nuevo"
-            className="inline-flex items-center gap-2 bg-[var(--brand-gold)] text-white text-sm font-medium px-4 py-2.5 rounded-lg hover:opacity-90 transition-opacity"
-          >
-            + Publicar artículo
-          </Link>
-        </div>
-      </div>
-
-      {/* CTA móvil */}
-      <div className="sm:hidden flex items-center justify-between bg-[var(--color-primary-pale)] rounded-xl px-4 py-3 mb-6">
-        <p className="text-sm text-[var(--color-text-primary)] font-medium">
-          ¿Eres médico? Publica tu artículo
-        </p>
-        <Link
-          href="/articulos/nuevo"
-          className="inline-flex items-center gap-1 bg-[var(--color-primary)] text-white text-xs font-semibold px-3 py-2 rounded-lg hover:opacity-90 transition-opacity"
-        >
-          + Publicar
-        </Link>
+      <div className="mb-10">
+        <MedicalArticlesBanner
+          priority
+          heading="Artículos escritos por médicos dominicanos"
+        />
       </div>
 
       {articles.length === 0 ? (

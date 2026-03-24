@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import type { Tag } from '@/lib/api'
-import { submitArticle, checkTagExists } from '@/lib/api'
-import { CheckCircle, Plus, Check, X, Loader2, Clock } from 'lucide-react'
+import { submitArticle, checkTagExists, subscribeNewsletter } from '@/lib/api'
+import { CheckCircle, Plus, Check, X, Loader2, Clock, Mail } from 'lucide-react'
 import ImageUploader from '@/components/ui/ImageUploader'
 
 interface ArticleSubmitFormProps {
@@ -14,6 +14,10 @@ export default function ArticleSubmitForm({ tags }: ArticleSubmitFormProps) {
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [emailInput, setEmailInput] = useState('')
+  const [emailLoading, setEmailLoading] = useState(false)
+  const [emailSubmitted, setEmailSubmitted] = useState(false)
+  const [emailError, setEmailError] = useState('')
 
   const [form, setForm] = useState({
     title: '',
@@ -120,6 +124,7 @@ export default function ArticleSubmitForm({ tags }: ArticleSubmitFormProps) {
         sources: form.sources.filter((s) => s.title).map((s, i) => ({ ...s, order: i })),
       })
       setSubmitted(true)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch (err: unknown) {
       setError((err as Error).message || 'Error al enviar. Intenta nuevamente.')
     } finally {
@@ -127,16 +132,78 @@ export default function ArticleSubmitForm({ tags }: ArticleSubmitFormProps) {
     }
   }
 
+  const handleEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!emailInput.trim()) return
+    setEmailLoading(true)
+    setEmailError('')
+    try {
+      await subscribeNewsletter(emailInput.trim(), form.authorName || undefined)
+      setEmailSubmitted(true)
+    } catch {
+      setEmailError('No se pudo registrar el email. Intentá de nuevo.')
+    } finally {
+      setEmailLoading(false)
+    }
+  }
+
   if (submitted) {
     return (
-      <div className="text-center py-16">
-        <CheckCircle className="text-[var(--brand-navy)] mx-auto mb-4" size={48} />
-        <h2 className="font-display font-bold text-2xl text-[var(--color-text-primary)] mb-2">
-          ¡Artículo enviado exitosamente!
-        </h2>
-        <p className="text-[var(--color-text-secondary)] max-w-md mx-auto">
-          Tu artículo fue enviado exitosamente. Será revisado por nuestro equipo y publicado en breve.
-        </p>
+      <div className="py-12 space-y-8 max-w-md mx-auto">
+        {/* Confirmación */}
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-50 dark:bg-green-900/20 mb-4">
+            <CheckCircle className="text-[var(--color-primary)]" size={36} strokeWidth={1.5} />
+          </div>
+          <h2 className="font-display font-bold text-2xl text-[var(--color-text-primary)] mb-2">
+            ¡Artículo enviado!
+          </h2>
+          <p className="text-[var(--color-text-secondary)] text-sm leading-relaxed">
+            Tu artículo fue enviado exitosamente. Nuestro equipo editorial lo revisará en los próximos 3-5 días hábiles.
+          </p>
+        </div>
+
+        {/* Captura de email */}
+        <div className="border border-[var(--color-border)] rounded-xl p-6 bg-[var(--color-surface-2)]">
+          {emailSubmitted ? (
+            <div className="flex items-center gap-3 text-[var(--color-primary)]">
+              <Check size={20} strokeWidth={2} />
+              <p className="text-sm font-medium">
+                Te notificaremos a <span className="font-semibold">{emailInput}</span> cuando tu artículo sea publicado.
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center gap-2 mb-3">
+                <Mail size={18} strokeWidth={1.5} className="text-[var(--color-primary)]" />
+                <p className="text-sm font-semibold text-[var(--color-text-primary)]">
+                  ¿Quieres saber cuándo se publique tu artículo?
+                </p>
+              </div>
+              <p className="text-xs text-[var(--color-text-muted)] mb-4">
+                Ingresa tu email y te avisamos cuando sea aprobado y publicado.
+              </p>
+              <form onSubmit={handleEmailSubmit} className="flex gap-2">
+                <input
+                  type="email"
+                  required
+                  value={emailInput}
+                  onChange={(e) => setEmailInput(e.target.value)}
+                  placeholder="tu@email.com"
+                  className="flex-1 px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg bg-[var(--color-surface)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30"
+                />
+                <button
+                  type="submit"
+                  disabled={emailLoading}
+                  className="px-4 py-2 bg-[var(--color-primary)] text-white text-sm font-semibold rounded-lg hover:bg-[var(--color-primary-dark,#085f3a)] transition-colors disabled:opacity-60 shrink-0"
+                >
+                  {emailLoading ? <Loader2 size={15} className="animate-spin" /> : 'Notificarme'}
+                </button>
+              </form>
+              {emailError && <p className="text-xs text-red-500 mt-2">{emailError}</p>}
+            </>
+          )}
+        </div>
       </div>
     )
   }

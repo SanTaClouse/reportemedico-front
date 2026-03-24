@@ -3,26 +3,33 @@ import ArticleCard from '@/components/article/ArticleCard'
 import SectionTitle from '@/components/ui/SectionTitle'
 
 interface FeaturedGridProps {
-  articles: Article[]
+  lead: Article | null
+  bigFeatured: Article[]
+  smallFeatured: Article[]
 }
 
-export default function FeaturedGrid({ articles }: FeaturedGridProps) {
-  const [first, second, ...rest] = articles
+export default function FeaturedGrid({ lead, bigFeatured, smallFeatured }: FeaturedGridProps) {
+  const [big1, big2] = bigFeatured
 
   return (
     <section>
-      <SectionTitle>Destacadas</SectionTitle>
+      <SectionTitle>Noticias Destacadas</SectionTitle>
 
-      {/* Relevancia 2: cards grandes */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        {first && <ArticleCard article={first} variant="principal" />}
-        {second && <ArticleCard article={second} variant="principal" />}
+      {/* Lead izquierda (2 filas) + Big Destacadas derechas */}
+      <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-6">
+        {lead && (
+          <div className="md:row-span-2 h-full">
+            <ArticleCard article={lead} variant="lead" />
+          </div>
+        )}
+        {big1 && <ArticleCard article={big1} variant="principal" />}
+        {big2 && <ArticleCard article={big2} variant="principal" />}
       </div>
 
-      {/* Relevancia 3: cards compactas */}
-      {rest.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {rest.slice(0, 4).map((article) => (
+      {/* Small Destacadas — compactas debajo (máx 8, grilla de 4 columnas) */}
+      {smallFeatured.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+          {smallFeatured.map((article) => (
             <ArticleCard key={article.id} article={article} variant="compacta" />
           ))}
         </div>

@@ -3,15 +3,20 @@ import { Newspaper, Mic2, Mail, Trophy } from 'lucide-react'
 
 const highlights = [
   { icon: Newspaper, label: 'Revista con Consejo Editorial de 24 médicos' },
-  { icon: Mic2, label: 'Video podcast semanal en YouTube' },
-  { icon: Mail, label: '+25,000 suscriptores en newsletter' },
-  { icon: Trophy, label: 'Foro de Innovación y Tecnología Médica anual' },
+  { icon: Mic2,      label: 'Video podcast semanal en YouTube' },
+  { icon: Mail,      label: '+25,000 suscriptores en newsletter' },
+  { icon: Trophy,    label: 'Foro de Innovación y Tecnología Médica anual' },
 ]
 
 export default function AboutSection() {
   return (
-    <section className="bg-[var(--color-primary-pale)] dark:bg-[var(--color-surface-2)] py-16">
-      <div className="max-w-site mx-auto px-4 md:px-6">
+    <section className="relative bg-[var(--color-primary-pale)] dark:bg-[var(--color-surface-2)] py-16 overflow-hidden">
+      {/* Watermark decorativo */}
+      <span className="absolute right-0 top-1/2 -translate-y-1/2 font-display font-bold text-[180px] md:text-[220px] leading-none text-[var(--color-primary)] opacity-[0.04] select-none pointer-events-none">
+        2010
+      </span>
+
+      <div className="relative max-w-site mx-auto px-4 md:px-6">
         <div className="grid md:grid-cols-2 gap-10 items-center">
           {/* Texto */}
           <div>
@@ -34,14 +39,14 @@ export default function AboutSection() {
             </Link>
           </div>
 
-          {/* Highlights */}
+          {/* Highlights con stagger */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {highlights.map((h) => {
               const Icon = h.icon
               return (
                 <div
                   key={h.label}
-                  className="bg-[var(--color-surface-1)] rounded-xl px-5 py-4 flex items-center gap-3 shadow-sm"
+                  className="about-card bg-[var(--color-surface-1)] rounded-xl px-5 py-4 flex items-center gap-3 shadow-sm"
                 >
                   <div className="w-9 h-9 rounded-lg bg-[var(--color-primary-pale)] flex items-center justify-center flex-shrink-0">
                     <Icon size={18} strokeWidth={1.5} className="text-[var(--color-primary)]" />

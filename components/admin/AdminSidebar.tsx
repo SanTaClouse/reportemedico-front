@@ -12,20 +12,28 @@ import {
   Image,
   LogOut,
   Users,
+  Megaphone,
+  Mail,
 } from 'lucide-react'
 
-const NAV_ITEMS = [
+const BASE_NAV_ITEMS = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/contenido', label: 'Contenido', icon: FileText },
   { href: '/admin/articulos-pendientes', label: 'Pendientes', icon: Clock, badge: true },
-  { href: '/admin/tags', label: 'Tags', icon: Tag },
+  { href: '/admin/tags', label: 'Tags', icon: Tag, badgeKey: 'tags' as const },
   { href: '/admin/ediciones', label: 'Ediciones', icon: BookOpen },
   { href: '/admin/podcast', label: 'Podcast', icon: Mic },
   { href: '/admin/consejo-medico', label: 'Consejo Médico', icon: Users },
+  { href: '/admin/suscriptores', label: 'Suscriptores', icon: Mail },
   { href: '/admin/media', label: 'Media', icon: Image },
+  { href: '/admin/publicidad', label: 'Publicidad', icon: Megaphone },
 ]
 
-export default function AdminSidebar() {
+interface AdminSidebarProps {
+  pendingTagsBadge?: boolean
+}
+
+export default function AdminSidebar({ pendingTagsBadge = false }: AdminSidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
 
@@ -45,8 +53,9 @@ export default function AdminSidebar() {
 
       <nav className="flex-1 py-4">
         <ul className="space-y-0.5 px-2">
-          {NAV_ITEMS.map(({ href, label, icon: Icon, badge }) => {
+          {BASE_NAV_ITEMS.map(({ href, label, icon: Icon, badge, badgeKey }) => {
             const isActive = pathname.startsWith(href)
+            const showBadge = badge || (badgeKey === 'tags' && pendingTagsBadge)
             return (
               <li key={href}>
                 <Link
@@ -59,7 +68,7 @@ export default function AdminSidebar() {
                 >
                   <Icon size={18} strokeWidth={1.5} />
                   <span className="flex-1">{label}</span>
-                  {badge && (
+                  {showBadge && (
                     <span className="w-2 h-2 rounded-full bg-breaking" />
                   )}
                 </Link>

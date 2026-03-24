@@ -4,6 +4,16 @@ type FetchOptions = RequestInit & {
   token?: string
 }
 
+export class ApiError extends Error {
+  constructor(
+    public readonly status: number,
+    message: string,
+  ) {
+    super(message)
+    this.name = 'ApiError'
+  }
+}
+
 async function apiFetch<T>(path: string, options: FetchOptions = {}): Promise<T> {
   const { token, ...init } = options
 
@@ -16,11 +26,23 @@ async function apiFetch<T>(path: string, options: FetchOptions = {}): Promise<T>
   const res = await fetch(`${API_URL}${path}`, { ...init, headers })
 
   if (!res.ok) {
-    const error = await res.json().catch(() => ({ message: 'Error desconocido' }))
-    throw new Error(error.message || `Error ${res.status}`)
+    const body = await res.json().catch(() => ({ message: '' }))
+    const message = body.message || GENERIC_ERROR_MESSAGES[res.status] || `Error ${res.status}`
+    throw new ApiError(res.status, message)
   }
 
   return res.json()
+}
+
+const GENERIC_ERROR_MESSAGES: Record<number, string> = {
+  400: 'Solicitud inválida',
+  401: 'No autenticado. Por favor iniciá sesión.',
+  403: 'No tenés permiso para realizar esta acción.',
+  404: 'El recurso solicitado no existe.',
+  409: 'Ya existe un registro con esos datos.',
+  422: 'Los datos enviados no son válidos.',
+  500: 'Error interno del servidor. Intentá de nuevo más tarde.',
+  503: 'Servicio temporalmente no disponible.',
 }
 
 // ─── ARTÍCULOS — PÚBLICO ──────────────────────────────
@@ -35,8 +57,8 @@ export function getArticles(page = 1, limit = 10) {
   })
 }
 
-export function getNews(page = 1, limit = 10) {
-  return apiFetch<PaginatedResponse<Article>>(`/articles/type/news?page=${page}&limit=${limit}`, {
+export function getNews(page = 1, limit = 10, sort: 'publishedAt_desc' | 'views_desc' = 'views_desc') {
+  return apiFetch<PaginatedResponse<Article>>(`/articles/type/news?page=${page}&limit=${limit}&sort=${sort}`, {
     next: { revalidate: 300 },
   })
 }
@@ -57,12 +79,26 @@ export function getArticlesByTag(slug: string, page = 1) {
   })
 }
 
+export function getRelatedByTag(tagSlug: string, limit = 4) {
+  return apiFetch<PaginatedResponse<Article>>(
+    `/articles/tag/${tagSlug}?sort=views_desc&limit=${limit}`,
+    { next: { revalidate: 300 } },
+  )
+}
+
 export function incrementViews(slug: string) {
   return apiFetch(`/articles/${slug}/view`, { method: 'POST' })
 }
 
 export function submitArticle(data: SubmitArticleData) {
   return apiFetch('/articles/submit', { method: 'POST', body: JSON.stringify(data) })
+}
+
+export function searchArticles(query: string, page = 1) {
+  return apiFetch<PaginatedResponse<Article>>(
+    `/articles/search?q=${encodeURIComponent(query)}&page=${page}&limit=10`,
+    { next: { revalidate: 60 } },
+  )
 }
 
 // ─── TAGS ─────────────────────────────────────────────
@@ -102,8 +138,13 @@ export function getPrintEditions() {
 
 // ─── PODCAST ──────────────────────────────────────────
 
-export function getPodcastEpisodes() {
-  return apiFetch<PodcastEpisode[]>('/podcast-episodes', { next: { revalidate: 3600 } })
+export function getPodcastEpisodes(page = 1, limit = 100, q?: string) {
+  const qs = new URLSearchParams({ page: String(page), limit: String(limit) })
+  if (q) qs.set('q', q)
+  return apiFetch<PaginatedResponse<PodcastEpisode>>(
+    `/podcast-episodes?${qs}`,
+    { next: { revalidate: 3600, tags: ['podcast-episodes'] } },
+  )
 }
 
 // ─── PRINT EDITIONS — ADMIN ───────────────────────────
@@ -140,6 +181,14 @@ export function updatePodcastEpisode(id: string, data: Partial<PodcastEpisode>, 
 
 export function deletePodcastEpisode(id: string, token: string) {
   return apiFetch(`/podcast-episodes/${id}`, { method: 'DELETE', token })
+}
+
+export function reorderPodcastEpisodes(items: { id: string; order: number }[], token: string) {
+  return apiFetch('/podcast-episodes/reorder', {
+    method: 'POST',
+    body: JSON.stringify({ items }),
+    token,
+  })
 }
 
 // ─── MEDIA — ADMIN ────────────────────────────────────
@@ -243,7 +292,7 @@ export function deleteArticle(id: string, token: string) {
 // ─── COUNCIL MEMBERS — PÚBLICO ────────────────────────
 
 export function getCouncilMembers() {
-  return apiFetch<CouncilMember[]>('/council-members', { next: { revalidate: 3600 } })
+  return apiFetch<CouncilMember[]>('/council-members', { next: { revalidate: 3600, tags: ['council-members'] } })
 }
 
 // ─── COUNCIL MEMBERS — ADMIN ──────────────────────────
@@ -268,6 +317,76 @@ export function uploadFotoConsejo(file: File, token: string) {
   return multipartFetch('/media/upload/consejo', file, token)
 }
 
+// ─── ADS — PÚBLICO ────────────────────────────────────
+
+/**
+ * Devuelve todos los anuncios activos para un slot, ordenados por `order`.
+ * El componente elige cuál mostrar. Devuelve [] si no hay anuncios.
+ */
+export async function getActiveAds(slotName: string): Promise<ActiveAd[]> {
+  try {
+    const data = await apiFetch<ActiveAd[]>(
+      `/ads/slot?name=${encodeURIComponent(slotName)}`,
+      { cache: 'no-store' },
+    )
+    return Array.isArray(data) ? data : []
+  } catch {
+    return []
+  }
+}
+
+export function trackAdClick(adId: string) {
+  return apiFetch(`/ads/${adId}/click`, { method: 'PATCH' })
+}
+
+// ─── ADS — ADMIN ──────────────────────────────────────
+
+export function getAdminAds(token: string) {
+  return apiFetch<Ad[]>('/ads', { token, cache: 'no-store' })
+}
+
+export function createAd(data: Pick<Ad, 'title' | 'imageUrl' | 'link' | 'isActive'>, token: string) {
+  return apiFetch<Ad>('/ads', { method: 'POST', body: JSON.stringify(data), token })
+}
+
+export function updateAd(id: string, data: Partial<Pick<Ad, 'title' | 'imageUrl' | 'link' | 'isActive'>>, token: string) {
+  return apiFetch<Ad>(`/ads/${id}`, { method: 'PATCH', body: JSON.stringify(data), token })
+}
+
+export function deleteAd(id: string, token: string) {
+  return apiFetch(`/ads/${id}`, { method: 'DELETE', token })
+}
+
+// ─── AD SLOTS — ADMIN ─────────────────────────────────
+
+export function getAdminAdSlots(token: string) {
+  return apiFetch<AdSlot[]>('/ad-slots', { token, cache: 'no-store' })
+}
+
+/** Asigna un anuncio a un banner/slot */
+export function assignAdToSlot(adId: string, slotId: string, token: string) {
+  return apiFetch(`/ads/${adId}/slots/${slotId}`, { method: 'POST', token })
+}
+
+/** Quita un anuncio de un banner/slot */
+export function removeAdFromSlot(adId: string, slotId: string, token: string) {
+  return apiFetch(`/ads/${adId}/slots/${slotId}`, { method: 'DELETE', token })
+}
+
+/** Actualiza la configuración de un slot (displayMode, isActive, etc.) */
+export function updateAdSlot(slotId: string, data: { displayMode?: 'SINGLE' | 'STRIP'; isActive?: boolean }, token: string) {
+  return apiFetch<AdSlot>(`/ad-slots/${slotId}`, { method: 'PATCH', body: JSON.stringify(data), token })
+}
+
+/** Reordena los anuncios dentro de un slot */
+export function reorderSlotAds(slotId: string, orderedAdIds: string[], token: string) {
+  return apiFetch(`/ad-slots/${slotId}/reorder`, {
+    method: 'PATCH',
+    body: JSON.stringify({ orderedAdIds }),
+    token,
+  })
+}
+
 // ─── TYPES ────────────────────────────────────────────
 
 export interface Article {
@@ -279,8 +398,9 @@ export interface Article {
   content: string
   featuredImage?: string
   authorName: string
+  authorEmail?: string
   status: 'DRAFT' | 'PENDING' | 'PUBLISHED' | 'ARCHIVED'
-  relevance: 1 | 2 | 3
+  relevance: 1 | 2 | 3 | 4 | 5 | null
   viewsCount: number
   publishedAt?: string
   createdAt: string
@@ -355,9 +475,66 @@ export interface User {
 
 export interface HomeData {
   hero: Article | null
-  featured: Article[]
-  latest: Article[]
+  lead: Article | null        // relevance 2 — card grande izquierda
+  bigFeatured: Article[]      // relevance 3 — 2 cards derechas
+  smallFeatured: Article[]    // relevance 4 — compactas (máx 8)
+  actualidad: Article[]       // relevance 5 — grilla 4×3
   medicalArticles: Article[]
+}
+
+/** Límites editoriales — espejo del backend para validaciones en el front */
+export const RELEVANCE_LIMITS: Record<number, number> = {
+  1: 1,
+  2: 1,
+  3: 2,
+  4: 8,
+  5: 12,
+}
+
+export const RELEVANCE_LABELS: Record<number, string> = {
+  1: 'Hero principal',
+  2: 'Lead Destacada',
+  3: 'Big Destacada',
+  4: 'Small Destacada',
+  5: 'Actualidad',
+}
+
+export function getRelevanceCounts(token: string) {
+  return apiFetch<Record<number, number>>('/articles/relevance-counts', {
+    token,
+    cache: 'no-store',
+  })
+}
+
+export interface PendingSpecialty {
+  articleId: string
+  articleTitle: string
+  articleStatus: string
+  authorName: string
+  specialtyName: string
+}
+
+export function getPendingSpecialties(token: string) {
+  return apiFetch<PendingSpecialty[]>('/articles/pending-specialties', {
+    token,
+    cache: 'no-store',
+  })
+}
+
+export function approveSpecialty(articleId: string, name: string, token: string) {
+  return apiFetch(`/articles/${articleId}/approve-specialty`, {
+    method: 'PATCH',
+    body: JSON.stringify({ name }),
+    token,
+  })
+}
+
+export function rejectSpecialty(articleId: string, name: string, token: string) {
+  return apiFetch(`/articles/${articleId}/reject-specialty`, {
+    method: 'PATCH',
+    body: JSON.stringify({ name }),
+    token,
+  })
 }
 
 export interface PaginatedResponse<T> {
@@ -383,6 +560,50 @@ export interface CouncilMember {
   updatedAt: string
 }
 
+export interface AdSlot {
+  id: string
+  name: string
+  description?: string
+  isActive: boolean
+  displayMode: 'SINGLE' | 'STRIP'
+  _count?: { assignments: number }
+  /** Anuncios asignados, ordenados por `order` (solo viene del endpoint admin) */
+  assignments?: {
+    order: number
+    ad: { id: string; title: string; imageUrl: string; isActive: boolean }
+  }[]
+}
+
+/** Respuesta del endpoint público GET /ads/slot?name=X */
+export interface AdSlotPublicResponse {
+  displayMode: 'SINGLE' | 'STRIP'
+  ads: ActiveAd[]
+}
+
+export interface Ad {
+  id: string
+  title: string
+  imageUrl: string
+  link: string
+  isActive: boolean
+  clicks: number
+  impressions: number
+  createdAt: string
+  updatedAt: string
+  /** Slots donde está asignado (solo viene del endpoint admin) */
+  assignments?: {
+    slot: Pick<AdSlot, 'id' | 'name' | 'description'>
+  }[]
+}
+
+/** Solo los campos que el componente público necesita */
+export interface ActiveAd {
+  id: string
+  title: string
+  imageUrl: string
+  link: string
+}
+
 export interface SubmitArticleData {
   title: string
   authorName: string
@@ -392,4 +613,38 @@ export interface SubmitArticleData {
   tagIds?: string[]
   suggestedSpecialties?: string[]
   sources?: { title: string; url?: string; order?: number }[]
+  authorEmail?: string
+}
+
+// ─── SUBSCRIBERS ──────────────────────────────────────
+
+export interface Subscriber {
+  id: string
+  email: string
+  name?: string
+  source: 'ARTICLE_SUBMISSION' | 'NEWSLETTER_SIGNUP'
+  createdAt: string
+  tags?: { tag: Tag }[]
+}
+
+export interface SubscriberStats {
+  total: number
+  fromArticles: number
+  fromNewsletter: number
+}
+
+export function subscribeNewsletter(email: string, name?: string) {
+  return apiFetch<Subscriber>('/subscribers', {
+    method: 'POST',
+    body: JSON.stringify({ email, name }),
+  })
+}
+
+export function getAdminSubscribers(params: { page?: string; limit?: string }, token: string) {
+  const qs = new URLSearchParams(params).toString()
+  return apiFetch<PaginatedResponse<Subscriber>>(`/subscribers?${qs}`, { token, cache: 'no-store' })
+}
+
+export function getSubscriberStats(token: string) {
+  return apiFetch<SubscriberStats>('/subscribers/stats', { token, cache: 'no-store' })
 }
