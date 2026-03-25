@@ -14,12 +14,16 @@ import AdSlotRenderer from '@/components/ads/AdSlotRenderer'
 export const revalidate = 300 // 5 min ISR
 
 export default async function HomePage() {
-  const [home, podcasts, editions, channelVideos] = await Promise.all([
+  const results = await Promise.allSettled([
     getHomeData(),
     getPodcastEpisodes(),
     getPrintEditions(),
     getChannelVideos(16),
   ])
+  const home       = results[0].status === 'fulfilled' ? results[0].value : { hero: null, lead: null, bigFeatured: [], smallFeatured: [], actualidad: [], medicalArticles: [] }
+  const podcasts   = results[1].status === 'fulfilled' ? results[1].value : { data: [] }
+  const editions   = results[2].status === 'fulfilled' ? results[2].value : []
+  const channelVideos = results[3].status === 'fulfilled' ? results[3].value : []
 
   const FALLBACK_PODCAST: PodcastEpisode = {
     id: 'fallback',

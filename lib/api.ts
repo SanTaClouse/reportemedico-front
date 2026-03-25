@@ -23,7 +23,11 @@ async function apiFetch<T>(path: string, options: FetchOptions = {}): Promise<T>
     ...init.headers,
   }
 
-  const res = await fetch(`${API_URL}${path}`, { ...init, headers })
+  const res = await fetch(`${API_URL}${path}`, {
+    ...init,
+    headers,
+    signal: init.signal ?? AbortSignal.timeout(10000),
+  })
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({ message: '' }))
