@@ -1,11 +1,11 @@
 export const dynamic = 'force-dynamic'
 
-import dynamic from 'next/dynamic'
+import dynamicImport from 'next/dynamic'
 import { cookies } from 'next/headers'
 import { getTags, getRelevanceCounts } from '@/lib/api'
 import { EditorSkeleton } from '@/components/admin/EditorSkeleton'
 
-const ArticleEditor = dynamic(
+const ArticleEditor = dynamicImport(
   () => import('@/components/admin/ArticleEditor'),
   { ssr: false, loading: () => <EditorSkeleton /> },
 )
