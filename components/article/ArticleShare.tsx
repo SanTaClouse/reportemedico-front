@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Share2, Copy, Check } from 'lucide-react'
 import { getShareUrls, copyToClipboard } from '@/lib/share'
 
@@ -11,12 +11,21 @@ interface ArticleShareProps {
 
 export default function ArticleShare({ title, url }: ArticleShareProps) {
   const [copied, setCopied] = useState(false)
+  const [canShare, setCanShare] = useState(false)
   const shareUrls = getShareUrls(title, url)
+
+  useEffect(() => {
+    setCanShare(typeof navigator !== 'undefined' && !!navigator.share)
+  }, [])
 
   const handleCopy = async () => {
     await copyToClipboard(url)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleNativeShare = async () => {
+    await navigator.share({ title, url })
   }
 
   const buttons = [
@@ -73,6 +82,16 @@ export default function ArticleShare({ title, url }: ArticleShareProps) {
             {label[0]}
           </a>
         ))}
+        {canShare && (
+          <button
+            onClick={handleNativeShare}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
+            style={{ background: 'linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)' }}
+            aria-label="Compartir en Instagram"
+          >
+            IG
+          </button>
+        )}
         <button
           onClick={handleCopy}
           className="w-8 h-8 rounded-full flex items-center justify-center bg-[var(--color-border)]"
