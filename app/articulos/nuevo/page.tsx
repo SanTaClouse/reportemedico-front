@@ -16,6 +16,8 @@ const ArticleSubmitForm = dynamic(
   },
 )
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'Publicar Artículo Médico',
   description: 'Envía tu artículo médico para publicación en Reporte Médico.',

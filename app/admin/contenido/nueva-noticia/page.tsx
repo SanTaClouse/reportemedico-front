@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import dynamic from 'next/dynamic'
 import { cookies } from 'next/headers'
 import { getTags, getRelevanceCounts } from '@/lib/api'
