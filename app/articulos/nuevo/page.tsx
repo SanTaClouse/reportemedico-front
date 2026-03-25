@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
-import dynamic from 'next/dynamic'
+import dynamicImport from 'next/dynamic'
 import { getTags } from '@/lib/api'
 
-const ArticleSubmitForm = dynamic(
+const ArticleSubmitForm = dynamicImport(
   () => import('@/components/forms/ArticleSubmitForm'),
   {
     ssr: false,
