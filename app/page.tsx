@@ -7,6 +7,7 @@ import MedicalArticlesSection from '@/components/home/MedicalArticlesSection'
 import PodcastSection from '@/components/home/PodcastSection'
 import EditionsSection from '@/components/home/EditionsSection'
 import AboutSection from '@/components/home/AboutSection'
+import WhatsAppChannelBanner from '@/components/home/WhatsAppChannelBanner'
 import ScrollReveal from '@/components/ui/ScrollReveal'
 import SectionDots from '@/components/ui/SectionDots'
 import AdSlotRenderer from '@/components/ads/AdSlotRenderer'
@@ -20,9 +21,9 @@ export default async function HomePage() {
     getPrintEditions(),
     getChannelVideos(16),
   ])
-  const home       = results[0].status === 'fulfilled' ? results[0].value : { hero: null, lead: null, bigFeatured: [], smallFeatured: [], actualidad: [], medicalArticles: [] }
-  const podcasts   = results[1].status === 'fulfilled' ? results[1].value : { data: [] }
-  const editions   = results[2].status === 'fulfilled' ? results[2].value : []
+  const home = results[0].status === 'fulfilled' ? results[0].value : { hero: null, lead: null, bigFeatured: [], smallFeatured: [], actualidad: [], medicalArticles: [] }
+  const podcasts = results[1].status === 'fulfilled' ? results[1].value : { data: [] }
+  const editions = results[2].status === 'fulfilled' ? results[2].value : []
   const channelVideos = results[3].status === 'fulfilled' ? results[3].value : []
 
   const FALLBACK_PODCAST: PodcastEpisode = {
@@ -102,6 +103,10 @@ export default async function HomePage() {
           <AboutSection />
         </ScrollReveal>
       </div>
+
+      <ScrollReveal>
+        <WhatsAppChannelBanner />
+      </ScrollReveal>
     </>
   )
 }

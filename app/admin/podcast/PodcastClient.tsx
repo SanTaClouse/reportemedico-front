@@ -68,6 +68,8 @@ export default function PodcastClient({ episodes: initial, token }: Props) {
   const [titleStatus, setTitleStatus] = useState<'idle' | 'fetching' | 'done'>('idle')
   const [highlighted, setHighlighted] = useState(false)
   const [showUrlInfo, setShowUrlInfo] = useState(false)
+  const [flashTitle, setFlashTitle] = useState(false)
+  const [flashThumb, setFlashThumb] = useState(false)
 
   // Pagination
   const PAGE_SIZE = 12
@@ -154,7 +156,14 @@ export default function PodcastClient({ episodes: initial, token }: Props) {
   const handleYoutubeUrlChange = (value: string) => {
     markDirty()
     const id = extractYouTubeId(value)
-    setForm((f) => ({ ...f, youtubeUrl: value, youtubeId: id || '' }))
+    setForm((f) => {
+      // Flash cuando recién se detecta un ID válido
+      if (id && id !== f.youtubeId) {
+        setFlashThumb(true)
+        setTimeout(() => setFlashThumb(false), 1200)
+      }
+      return { ...f, youtubeUrl: value, youtubeId: id || '' }
+    })
   }
 
   // Fetch title automatically when a valid YouTube ID is detected and title is empty
@@ -176,7 +185,13 @@ export default function PodcastClient({ episodes: initial, token }: Props) {
         if (res.ok) {
           const data = await res.json()
           if (data.title) {
-            setForm((f) => (f.title ? f : { ...f, title: data.title }))
+            setForm((f) => {
+              if (f.title) return f
+              // Dispara el flash solo cuando el título realmente se autocompleta
+              setFlashTitle(true)
+              setTimeout(() => setFlashTitle(false), 1200)
+              return { ...f, title: data.title }
+            })
             setTitleStatus('done')
             setTimeout(() => setTitleStatus('idle'), 3000)
             return
@@ -401,12 +416,17 @@ export default function PodcastClient({ episodes: initial, token }: Props) {
 
             {/* Thumbnail preview when ID detected */}
             {form.youtubeId ? (
-              <div className="flex items-center gap-3 p-2 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+              <div
+                key={form.youtubeId}
+                className={`flex items-center gap-3 p-2 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 ${
+                  flashThumb ? 'autofill-flash' : ''
+                }`}
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={`https://img.youtube.com/vi/${form.youtubeId}/mqdefault.jpg`}
                   alt="Preview"
-                  className="w-20 h-12 rounded object-cover shrink-0"
+                  className={`w-20 h-12 rounded object-cover shrink-0 ${flashThumb ? 'autofill-thumb-pop' : ''}`}
                 />
                 <div>
                   <p className="text-xs font-semibold text-green-700 dark:text-green-400">✓ Video detectado</p>
@@ -429,7 +449,7 @@ export default function PodcastClient({ episodes: initial, token }: Props) {
               value={form.title}
               onChange={(e) => { markDirty(); setForm((f) => ({ ...f, title: e.target.value })) }}
               placeholder="Título del episodio"
-              className={inputClass}
+              className={`${inputClass} ${flashTitle ? 'autofill-flash' : ''}`}
             />
             {titleStatus === 'fetching' && (
               <p className="mt-1.5 flex items-center gap-1.5 text-xs text-[var(--color-text-muted)]">

@@ -23,12 +23,12 @@ export default function AdBanner({ position, className = '' }: AdBannerProps) {
     fetch(`${API_URL}/ads/${ad.id}/impression`, { method: 'PATCH', keepalive: true }).catch(() => {})
   }, [ad?.id])
 
-  if (loading) return <div className={`w-full rounded-lg ${className}`} style={{ height: 'clamp(70px, 10vw, 90px)' }} />
+  if (loading) return <div className={`w-full aspect-[40/3] ${className}`} />
   if (!ad) return null
 
   return (
     <div
-      className={`w-full relative overflow-hidden rounded-lg border border-[var(--color-border)] bg-white dark:bg-[var(--color-surface)] ${className}`}
+      className={`w-full relative overflow-hidden ${className}`}
       aria-label="Publicidad"
     >
       <a
@@ -39,11 +39,9 @@ export default function AdBanner({ position, className = '' }: AdBannerProps) {
         title={ad.title}
         className="block w-full"
       >
-        {/* Contenedor con altura responsive — position: relative necesario para Image fill */}
-        <div
-          className="relative w-full"
-          style={{ height: 'clamp(70px, 10vw, 90px)' }}
-        >
+        {/* Contenedor con la misma proporción que la imagen recomendada (40:3),
+            sin borde ni fondo: la card calza exacta y no hay franjas blancas. */}
+        <div className="relative w-full aspect-[40/3]">
           <Image
             src={ad.imageUrl}
             alt={ad.title}

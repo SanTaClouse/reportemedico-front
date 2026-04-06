@@ -12,7 +12,7 @@ interface SponsorsStripProps {
 }
 
 function trackClick(adId: string) {
-  fetch(`${API_URL}/ads/${adId}/click`, { method: 'PATCH', keepalive: true }).catch(() => {})
+  fetch(`${API_URL}/ads/${adId}/click`, { method: 'PATCH', keepalive: true }).catch(() => { })
 }
 
 /**
@@ -26,24 +26,29 @@ export default function SponsorsStrip({ ads, className = '' }: SponsorsStripProp
   // Impresiones: una vez al montar, por cada anuncio activo
   useEffect(() => {
     ads.forEach((ad) => {
-      fetch(`${API_URL}/ads/${ad.id}/impression`, { method: 'PATCH', keepalive: true }).catch(() => {})
+      fetch(`${API_URL}/ads/${ad.id}/impression`, { method: 'PATCH', keepalive: true }).catch(() => { })
     })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []) // solo al montar
 
   if (ads.length === 0) return null
 
-  // Duplicar items para el loop sin corte
-  const items = [...ads, ...ads]
+  // Duplicar items lo suficiente para que el marquee siempre llene el contenedor
+  // y no queden huecos en los costados (mantiene los logos visualmente centrados
+  // porque el contenido siempre excede el ancho del strip).
+  // Se repiten al menos ~6 copias por mitad, luego se duplica para el loop -50%.
+  const baseCount = Math.max(1, Math.ceil(6 / ads.length))
+  const halfItems = Array.from({ length: baseCount }).flatMap(() => ads)
+  const items = [...halfItems, ...halfItems]
 
   return (
     <div
-      className={`group w-full relative overflow-hidden rounded-lg border border-[var(--color-border)] bg-white dark:bg-[var(--color-surface)] ${className}`}
-      style={{ height: 'clamp(70px, 10vw, 90px)' }}
+      className={`group w-full relative overflow-hidden rounded-lg bg-white dark:bg-[var(--color-surface)] ${className}`}
+      style={{ height: 'clamp(91px, 13vw, 117px)' }}
       aria-label="Patrocinadores"
     >
       {/* Strip con marquee — se pausa al hover sobre el contenedor */}
-      <div className="flex h-full items-center animate-marquee group-hover:[animation-play-state:paused]">
+      <div className="flex h-full items-center animate-marquee group-hover:[animation-play-state:paused] w-max">
         {items.map((ad, i) => (
           <a
             key={`${ad.id}-${i}`}
@@ -57,13 +62,13 @@ export default function SponsorsStrip({ ads, className = '' }: SponsorsStripProp
             {/* Logo: gris por defecto → color al hover, con transición suave */}
             <div
               className="relative grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-500 ease-out"
-              style={{ width: '140px', height: '52px' }}
+              style={{ width: '180px', height: '68px' }}
             >
               <Image
                 src={ad.imageUrl}
                 alt={ad.title}
                 fill
-                sizes="140px"
+                sizes="180px"
                 className="object-contain"
                 priority={false}
               />
@@ -76,9 +81,9 @@ export default function SponsorsStrip({ ads, className = '' }: SponsorsStripProp
       <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white dark:from-[var(--color-surface)] to-transparent pointer-events-none z-10" />
       <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white dark:from-[var(--color-surface)] to-transparent pointer-events-none z-10" />
 
-      <span className="absolute top-1 right-2 text-[9px] text-[var(--color-text-muted)] select-none pointer-events-none z-20">
+      {/* <span className="absolute top-1 right-2 text-[9px] text-[var(--color-text-muted)] select-none pointer-events-none z-20">
         Publicidad
-      </span>
+      </span> */}
     </div>
   )
 }

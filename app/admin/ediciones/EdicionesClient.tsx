@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import Image from 'next/image'
 import { BookOpen, Plus, Pencil, Trash2, Eye, EyeOff, ExternalLink, Code2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -97,6 +97,25 @@ export default function EdicionesClient({ editions: initial, token }: Props) {
   const [saving, setSaving] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [error, setError] = useState('')
+  // Autofill flash — campos que se acaban de completar automáticamente
+  const [flashingFields, setFlashingFields] = useState<Set<string>>(new Set())
+  const flashTimeouts = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
+
+  const flashField = (key: string) => {
+    setFlashingFields((prev) => {
+      const next = new Set(prev)
+      next.add(key)
+      return next
+    })
+    if (flashTimeouts.current[key]) clearTimeout(flashTimeouts.current[key])
+    flashTimeouts.current[key] = setTimeout(() => {
+      setFlashingFields((prev) => {
+        const next = new Set(prev)
+        next.delete(key)
+        return next
+      })
+    }, 1200)
+  }
 
   const handleEdit = (edition: PrintEdition) => {
     setEditingId(edition.id)
@@ -163,12 +182,18 @@ export default function EdicionesClient({ editions: initial, token }: Props) {
     if (src) {
       const titleFromEmbed = extractIssuuTitle(value)
       const editionNum = extractEditionNumber(src)
-      setForm((f) => ({
-        ...f,
-        issuuUrl: src,
-        ...(titleFromEmbed && !f.title ? { title: titleFromEmbed } : {}),
-        ...(editionNum ? { editionNumber: String(editionNum) } : {}),
-      }))
+      setForm((f) => {
+        const willSetTitle = !!titleFromEmbed && !f.title
+        const willSetNumber = !!editionNum
+        if (willSetTitle) flashField('title')
+        if (willSetNumber) flashField('editionNumber')
+        return {
+          ...f,
+          issuuUrl: src,
+          ...(willSetTitle ? { title: titleFromEmbed! } : {}),
+          ...(willSetNumber ? { editionNumber: String(editionNum) } : {}),
+        }
+      })
       setEmbedError('')
 
       // Obtener thumbnail via oEmbed oficial de Issuu
@@ -179,6 +204,8 @@ export default function EdicionesClient({ editions: initial, token }: Props) {
           .then((data) => {
             if (data.thumbnail) {
               setForm((f) => ({ ...f, coverImage: data.thumbnail }))
+              flashField('coverImage')
+              flashField('coverThumb')
             }
           })
           .catch(() => {})
@@ -300,90 +327,35 @@ export default function EdicionesClient({ editions: initial, token }: Props) {
             {editingId ? 'Editar edición' : 'Nueva edición'}
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {field(
-              'Número de edición',
-              <input
-                type="number"
-                required
-                min={1}
-                value={form.editionNumber}
-                onChange={(e) => setForm((f) => ({ ...f, editionNumber: e.target.value }))}
-                className={inputClass}
-              />,
-            )}
-            {field(
-              'Título',
-              <input
-                type="text"
-                required
-                value={form.title}
-                onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-                placeholder="Ej: Edición Enero 2025"
-                className={inputClass}
-              />,
-            )}
-            {field(
-              'URL de portada (se llena automáticamente al pegar el embed)',
-              <div className="flex gap-3 items-start">
-                <div className="flex-1">
-                  <input
-                    type="url"
-                    required
-                    value={form.coverImage}
-                    onChange={(e) => setForm((f) => ({ ...f, coverImage: e.target.value }))}
-                    placeholder="Se completará automáticamente desde el embed de Issuu"
-                    className={inputClass}
-                  />
-                </div>
-                {form.coverImage && (
-                  <Image
-                    src={issuuCoverUrl(form.coverImage)}
-                    alt="Portada"
-                    width={48}
-                    height={64}
-                    className="rounded border border-[var(--color-border)] object-cover flex-shrink-0"
-                    unoptimized
-                  />
-                )}
-              </div>,
-            )}
-            {field(
-              'Fecha de publicación',
-              <input
-                type="date"
-                required
-                value={form.publishedAt}
-                onChange={(e) => setForm((f) => ({ ...f, publishedAt: e.target.value }))}
-                className={inputClass}
-              />,
-            )}
-          </div>
-
-          {/* Embed code input */}
-          <div className="space-y-2">
+          {/* PASO 1 — Embed code (jerarquizado) */}
+          <div className="rounded-xl border-2 border-[var(--color-primary)]/30 bg-[var(--color-primary)]/5 p-5 space-y-3">
             <div className="flex items-center gap-2">
-              <Code2 size={15} strokeWidth={1.5} className="text-[var(--color-primary)]" />
-              <label className="text-xs font-medium text-[var(--color-text-muted)]">
-                Código embed de Issuu
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[var(--color-primary)] text-white text-xs font-bold">
+                1
+              </span>
+              <Code2 size={18} strokeWidth={1.5} className="text-[var(--color-primary)]" />
+              <label className="text-sm font-semibold text-[var(--color-text-primary)]">
+                Pegá el código embed de Issuu
               </label>
             </div>
             <p className="text-xs text-[var(--color-text-muted)]">
-              En Issuu, abre la revista → Compartir → Embed → copia y pega el código aquí.
+              En Issuu: abrí la revista → <strong>Compartir</strong> → <strong>Embed</strong> → copiá el código y pegalo aquí.
+              El título, número de edición y la portada se completarán automáticamente.
             </p>
             <textarea
-              rows={4}
+              rows={5}
               value={embedCode}
               onChange={(e) => handleEmbedCodeChange(e.target.value)}
               placeholder={'<div style="position:relative...">\n  <iframe src="https://e.issuu.com/embed.html?d=...&u=..."></iframe>\n</div>'}
-              className={`${inputClass} font-mono text-xs resize-y`}
+              className={`${inputClass} font-mono text-xs resize-y bg-[var(--color-surface)]`}
+              autoFocus
             />
             {embedError && (
               <p className="text-xs text-red-600">{embedError}</p>
             )}
             {form.issuuUrl && !embedError && (
               <div className="flex items-center gap-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg px-3 py-2">
-                <span className="text-xs text-green-700 dark:text-green-400 font-medium">URL detectada:</span>
+                <span className="text-xs text-green-700 dark:text-green-400 font-medium">✓ URL detectada:</span>
                 <span className="text-xs text-green-600 dark:text-green-500 truncate flex-1 font-mono">
                   {form.issuuUrl}
                 </span>
@@ -397,6 +369,84 @@ export default function EdicionesClient({ editions: initial, token }: Props) {
                 </a>
               </div>
             )}
+          </div>
+
+          {/* PASO 2 — Detalles (se autocompletan desde el embed) */}
+          <div className="space-y-3 pt-2">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-secondary)] text-xs font-bold">
+                2
+              </span>
+              <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">
+                Detalles de la edición
+              </h3>
+              <span className="text-xs text-[var(--color-text-muted)]">
+                (se autocompletan desde el embed — revisalos antes de guardar)
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {field(
+                'Número de edición',
+                <input
+                  type="number"
+                  required
+                  min={1}
+                  value={form.editionNumber}
+                  onChange={(e) => setForm((f) => ({ ...f, editionNumber: e.target.value }))}
+                  className={`${inputClass} ${flashingFields.has('editionNumber') ? 'autofill-flash' : ''}`}
+                />,
+              )}
+              {field(
+                'Título',
+                <input
+                  type="text"
+                  required
+                  value={form.title}
+                  onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                  placeholder="Ej: Edición Enero 2025"
+                  className={`${inputClass} ${flashingFields.has('title') ? 'autofill-flash' : ''}`}
+                />,
+              )}
+              {field(
+                'URL de portada',
+                <div className="flex gap-3 items-start">
+                  <div className="flex-1">
+                    <input
+                      type="url"
+                      required
+                      value={form.coverImage}
+                      onChange={(e) => setForm((f) => ({ ...f, coverImage: e.target.value }))}
+                      placeholder="Se completará automáticamente desde el embed"
+                      className={`${inputClass} ${flashingFields.has('coverImage') ? 'autofill-flash' : ''}`}
+                    />
+                  </div>
+                  {form.coverImage && (
+                    <Image
+                      key={form.coverImage}
+                      src={issuuCoverUrl(form.coverImage)}
+                      alt="Portada"
+                      width={48}
+                      height={64}
+                      className={`rounded border border-[var(--color-border)] object-cover flex-shrink-0 ${
+                        flashingFields.has('coverThumb') ? 'autofill-thumb-pop' : ''
+                      }`}
+                      unoptimized
+                    />
+                  )}
+                </div>,
+              )}
+              {field(
+                'Fecha de publicación',
+                <input
+                  type="date"
+                  required
+                  value={form.publishedAt}
+                  onChange={(e) => setForm((f) => ({ ...f, publishedAt: e.target.value }))}
+                  className={inputClass}
+                />,
+              )}
+            </div>
           </div>
 
           <div className="flex items-center gap-2">

@@ -13,7 +13,7 @@ interface AdSlotRendererProps {
 }
 
 function trackClick(adId: string) {
-  fetch(`${API_URL}/ads/${adId}/click`, { method: 'PATCH', keepalive: true }).catch(() => {})
+  fetch(`${API_URL}/ads/${adId}/click`, { method: 'PATCH', keepalive: true }).catch(() => { })
 }
 
 /**
@@ -31,12 +31,12 @@ export default function AdSlotRenderer({ position, className = '' }: AdSlotRende
   // Impresión para modo SINGLE
   useEffect(() => {
     if (displayMode !== 'SINGLE' || !ad) return
-    fetch(`${API_URL}/ads/${ad.id}/impression`, { method: 'PATCH', keepalive: true }).catch(() => {})
+    fetch(`${API_URL}/ads/${ad.id}/impression`, { method: 'PATCH', keepalive: true }).catch(() => { })
   }, [ad?.id, displayMode])
 
   // Placeholder mientras carga (reserva espacio, evita layout shift)
   if (loading) {
-    return <div className={`w-full rounded-lg ${className}`} style={{ height: 'clamp(70px, 10vw, 90px)' }} />
+    return <div className={`w-full aspect-[40/3] ${className}`} />
   }
 
   if (ads.length === 0) return null
@@ -47,9 +47,11 @@ export default function AdSlotRenderer({ position, className = '' }: AdSlotRende
   }
 
   // ── SINGLE (banner leaderboard) ─────────────────
+  // Sin borde ni fondo: el contenedor usa la misma proporción que la imagen
+  // recomendada (40:3) para que la card calce exacta y no queden franjas blancas.
   return (
     <div
-      className={`w-full relative overflow-hidden rounded-lg border border-[var(--color-border)] bg-white dark:bg-[var(--color-surface)] ${className}`}
+      className={`w-full relative overflow-hidden ${className}`}
       aria-label="Publicidad"
     >
       <a
@@ -60,7 +62,7 @@ export default function AdSlotRenderer({ position, className = '' }: AdSlotRende
         title={ad!.title}
         className="block w-full"
       >
-        <div className="relative w-full" style={{ height: 'clamp(70px, 10vw, 90px)' }}>
+        <div className="relative w-full aspect-[40/3]">
           <Image
             src={ad!.imageUrl}
             alt={ad!.title}
@@ -71,9 +73,9 @@ export default function AdSlotRenderer({ position, className = '' }: AdSlotRende
           />
         </div>
       </a>
-      <span className="absolute top-1 right-2 text-[9px] text-[var(--color-text-muted)] select-none pointer-events-none">
+      {/* <span className="absolute top-1 right-2 text-[9px] text-[var(--color-text-muted)] select-none pointer-events-none">
         Publicidad
-      </span>
+      </span> */}
     </div>
   )
 }

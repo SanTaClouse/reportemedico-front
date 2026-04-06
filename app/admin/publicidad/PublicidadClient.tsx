@@ -601,9 +601,10 @@ export default function PublicidadClient({ initialAds, initialSlots, token }: Pr
             <Info size={13} className="flex-shrink-0 mt-0.5 text-[var(--color-primary)]" />
             <p className="text-[11px] text-[var(--color-text-muted)] leading-snug">
               <strong className="text-[var(--color-text-secondary)]">Modo Banner:</strong>{' '}
-              1200 × 90 px · JPG, PNG o WebP · rota aleatoriamente si hay varios.{' '}
+              1600 × 120 px (proporción 40:3) · JPG, PNG o WebP · en móvil la card ajusta
+              su alto al de la imagen, en desktop llega a ~117 px · rota aleatoriamente si hay varios.{' '}
               <strong className="text-[var(--color-text-secondary)]">Modo Strip:</strong>{' '}
-              300 × 150 px · PNG con fondo transparente · todos los logos se muestran en marquee continuo.
+              360 × 140 px · PNG con fondo transparente · todos los logos se muestran en marquee continuo.
             </p>
           </div>
         </div>
@@ -646,7 +647,7 @@ export default function PublicidadClient({ initialAds, initialSlots, token }: Pr
               <div>
                 <label className={labelClass}>Imagen del banner *</label>
                 <p className="text-[10px] text-[var(--color-text-muted)] mb-1.5">
-                  Recomendado: <strong>1200 × 90 px</strong> · JPG, PNG o WebP · máx. 5 MB
+                  Banner: <strong>1600 × 120 px</strong> (proporción 40:3) · Strip: <strong>360 × 140 px</strong> PNG transparente · JPG, PNG o WebP · máx. 5 MB
                 </p>
                 <div className="flex gap-2 items-start">
                   <input
