@@ -21,6 +21,18 @@ export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {
   title: 'Publicar Artículo Médico',
   description: 'Envía tu artículo médico para publicación en Reporte Médico.',
+  alternates: { canonical: '/articulos/nuevo' },
+  openGraph: {
+    title: 'Publicar Artículo Médico | Reporte Médico',
+    description: 'Envía tu artículo médico para publicación en Reporte Médico.',
+    url: '/articulos/nuevo',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Publicar Artículo Médico | Reporte Médico',
+    description: 'Envía tu artículo médico para publicación en Reporte Médico.',
+  },
 }
 
 export default async function NuevoArticuloPage() {

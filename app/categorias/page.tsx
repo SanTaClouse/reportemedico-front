@@ -7,6 +7,18 @@ export const revalidate = 3600
 export const metadata: Metadata = {
   title: 'Categorías',
   description: 'Explorá todas las categorías de Reporte Médico.',
+  alternates: { canonical: '/categorias' },
+  openGraph: {
+    title: 'Categorías | Reporte Médico',
+    description: 'Explorá todas las categorías de Reporte Médico.',
+    url: '/categorias',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Categorías | Reporte Médico',
+    description: 'Explorá todas las categorías de Reporte Médico.',
+  },
 }
 
 const CARD_COLORS = [

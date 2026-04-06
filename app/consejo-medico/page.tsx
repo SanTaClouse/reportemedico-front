@@ -5,10 +5,24 @@ import { Linkedin, BookOpen, Users } from 'lucide-react'
 import { getCouncilMembers } from '@/lib/api'
 import type { CouncilMember } from '@/lib/api'
 
+const CONSEJO_DESC =
+  'Conoce a los profesionales que conforman el Consejo Médico Editorial de Reporte Médico — el brazo estratégico y decisor que guía los estándares y el impacto de nuestra plataforma.'
+
 export const metadata: Metadata = {
-  title: 'Consejo Médico Editorial | Reporte Médico',
-  description:
-    'Conoce a los profesionales que conforman el Consejo Médico Editorial de Reporte Médico — el brazo estratégico y decisor que guía los estándares y el impacto de nuestra plataforma.',
+  title: 'Consejo Médico Editorial',
+  description: CONSEJO_DESC,
+  alternates: { canonical: '/consejo-medico' },
+  openGraph: {
+    title: 'Consejo Médico Editorial | Reporte Médico',
+    description: CONSEJO_DESC,
+    url: '/consejo-medico',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Consejo Médico Editorial | Reporte Médico',
+    description: CONSEJO_DESC,
+  },
 }
 
 export const revalidate = 3600

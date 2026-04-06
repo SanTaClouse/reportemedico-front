@@ -8,8 +8,20 @@ import PodcastSearch from './PodcastSearch'
 import { Play, ChevronLeft, ChevronRight } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Podcast | Reporte Médico',
+  title: 'Podcast',
   description: 'Todos los episodios del video podcast de Reporte Médico — salud y medicina en República Dominicana.',
+  alternates: { canonical: '/podcast' },
+  openGraph: {
+    title: 'Podcast | Reporte Médico',
+    description: 'Todos los episodios del video podcast de Reporte Médico — salud y medicina en República Dominicana.',
+    url: '/podcast',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Podcast | Reporte Médico',
+    description: 'Todos los episodios del video podcast de Reporte Médico — salud y medicina en República Dominicana.',
+  },
 }
 
 const PER_PAGE = 12

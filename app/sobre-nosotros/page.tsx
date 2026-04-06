@@ -4,10 +4,24 @@ import { Newspaper, Globe, Mic2, Smartphone, Mail, Trophy, BarChart3, CheckCircl
 import { getCouncilMembers } from '@/lib/api'
 import ScrollReveal from '@/components/ui/ScrollReveal'
 
+const SOBRE_DESC =
+  'Reporte Médico es la plataforma de salud líder en la República Dominicana. Conectamos profesionales, instituciones y pacientes con lo último en información médica.'
+
 export const metadata: Metadata = {
-  title: 'Sobre Nosotros | Reporte Médico',
-  description:
-    'Reporte Médico es la plataforma de salud líder en la República Dominicana. Conectamos profesionales, instituciones y pacientes con lo último en información médica.',
+  title: 'Sobre Nosotros',
+  description: SOBRE_DESC,
+  alternates: { canonical: '/sobre-nosotros' },
+  openGraph: {
+    title: 'Sobre Nosotros | Reporte Médico',
+    description: SOBRE_DESC,
+    url: '/sobre-nosotros',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Sobre Nosotros | Reporte Médico',
+    description: SOBRE_DESC,
+  },
 }
 
 const servicios = [

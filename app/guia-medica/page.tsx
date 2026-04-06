@@ -4,6 +4,18 @@ import Link from 'next/link'
 export const metadata: Metadata = {
   title: 'Guía Médica',
   description: 'Directorio de médicos especialistas de República Dominicana. Próximamente.',
+  alternates: { canonical: '/guia-medica' },
+  openGraph: {
+    title: 'Guía Médica | Reporte Médico',
+    description: 'Directorio de médicos especialistas de República Dominicana. Próximamente.',
+    url: '/guia-medica',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Guía Médica | Reporte Médico',
+    description: 'Directorio de médicos especialistas de República Dominicana. Próximamente.',
+  },
 }
 
 export default function GuiaMedicaPage() {

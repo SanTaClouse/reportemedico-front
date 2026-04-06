@@ -21,33 +21,46 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const article = await getArticleBySlug(params.slug)
     const title = article.seoMetadata?.metaTitle || article.title
-    const description = article.seoMetadata?.metaDescription || article.excerpt
-    const image = article.seoMetadata?.ogImage || article.featuredImage
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://reportemedico.com'
+    const description =
+      article.seoMetadata?.metaDescription ||
+      article.excerpt ||
+      `${article.title} — Noticia de Reporte Médico.`
+    const url = `/noticias/${params.slug}`
+    const tagNames = article.tags?.map(({ tag }) => tag.name) ?? []
+    const section = tagNames[0] || 'Salud'
 
     return {
       title,
       description,
+      // Nota: NO seteamos openGraph.images aquí — Next.js inyecta automáticamente
+      // la imagen generada por app/noticias/[slug]/opengraph-image.tsx
       openGraph: {
         title,
-        description: description || '',
-        images: image ? [{ url: image, width: 1200, height: 630 }] : [],
+        description,
+        url,
         type: 'article',
-        publishedTime: article.publishedAt || undefined,
+        publishedTime: article.publishedAt || article.createdAt,
+        modifiedTime: article.updatedAt,
         authors: [article.authorName],
+        section,
+        tags: tagNames,
       },
       twitter: {
         card: 'summary_large_image',
         title,
-        description: description || '',
-        images: image ? [image] : [],
+        description,
       },
+      authors: [{ name: article.authorName }],
+      keywords: tagNames.length > 0 ? tagNames : undefined,
       alternates: {
-        canonical: `${siteUrl}/noticias/${params.slug}`,
+        canonical: url,
       },
     }
   } catch {
-    return { title: 'Noticia no encontrada' }
+    return {
+      title: 'Noticia no encontrada',
+      robots: { index: false, follow: false },
+    }
   }
 }
 
@@ -84,12 +97,25 @@ export default async function NoticiaPage({ params }: Props) {
     relatedArticles = res.data.filter((a) => a.slug !== article.slug).slice(0, 3)
   }
 
+  const tagNames = article.tags?.map(({ tag }) => tag.name) ?? []
+  const plainText = article.content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+  const wordCount = plainText ? plainText.split(' ').length : undefined
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'NewsArticle',
-    headline: article.title,
+    headline: article.title.slice(0, 110),
     description: article.excerpt || undefined,
-    image: article.featuredImage ? [article.featuredImage] : undefined,
+    image: article.featuredImage
+      ? [
+          {
+            '@type': 'ImageObject',
+            url: article.featuredImage,
+            width: 1200,
+            height: 630,
+          },
+        ]
+      : undefined,
     datePublished: article.publishedAt || article.createdAt,
     dateModified: article.updatedAt || article.publishedAt || article.createdAt,
     author: {
@@ -99,16 +125,24 @@ export default async function NoticiaPage({ params }: Props) {
     publisher: {
       '@type': 'Organization',
       name: 'Reporte Médico',
+      url: siteUrl,
       logo: {
         '@type': 'ImageObject',
         url: `${siteUrl}/logo.png`,
+        width: 600,
+        height: 60,
       },
     },
     mainEntityOfPage: {
       '@type': 'WebPage',
       '@id': articleUrl,
     },
+    articleSection: tagNames[0] || 'Salud',
+    keywords: tagNames.length > 0 ? tagNames.join(', ') : undefined,
+    wordCount,
+    timeRequired: `PT${minutes}M`,
     inLanguage: 'es',
+    isAccessibleForFree: true,
   }
 
   return (

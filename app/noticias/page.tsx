@@ -14,6 +14,18 @@ interface Props {
 export const metadata: Metadata = {
   title: 'Noticias',
   description: 'Últimas noticias médicas y de salud de República Dominicana.',
+  alternates: { canonical: '/noticias' },
+  openGraph: {
+    title: 'Noticias | Reporte Médico',
+    description: 'Últimas noticias médicas y de salud de República Dominicana.',
+    url: '/noticias',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Noticias | Reporte Médico',
+    description: 'Últimas noticias médicas y de salud de República Dominicana.',
+  },
 }
 
 export default async function NoticiasPage({ searchParams }: Props) {

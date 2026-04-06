@@ -7,8 +7,20 @@ import { formatDate, embedUrlToDirectUrl, issuuCoverUrl } from '@/lib/utils'
 export const revalidate = 3600
 
 export const metadata: Metadata = {
-  title: 'Ediciones Impresas | Reporte Médico',
+  title: 'Ediciones Impresas',
   description: 'Lee todas las ediciones impresas de Reporte Médico en formato digital interactivo.',
+  alternates: { canonical: '/ediciones' },
+  openGraph: {
+    title: 'Ediciones Impresas | Reporte Médico',
+    description: 'Lee todas las ediciones impresas de Reporte Médico en formato digital interactivo.',
+    url: '/ediciones',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Ediciones Impresas | Reporte Médico',
+    description: 'Lee todas las ediciones impresas de Reporte Médico en formato digital interactivo.',
+  },
 }
 
 export default async function EdicionesPage() {

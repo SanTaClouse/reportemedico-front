@@ -14,6 +14,18 @@ interface Props {
 export const metadata: Metadata = {
   title: 'Artículos Médicos',
   description: 'Artículos científicos y clínicos escritos por profesionales de la salud.',
+  alternates: { canonical: '/articulos' },
+  openGraph: {
+    title: 'Artículos Médicos | Reporte Médico',
+    description: 'Artículos científicos y clínicos escritos por profesionales de la salud.',
+    url: '/articulos',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Artículos Médicos | Reporte Médico',
+    description: 'Artículos científicos y clínicos escritos por profesionales de la salud.',
+  },
 }
 
 export default async function ArticulosPage({ searchParams }: Props) {

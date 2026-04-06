@@ -12,9 +12,30 @@ interface Props {
 }
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  const tags = await getTags().catch(() => [])
+  const tag = tags.find((t) => t.slug === params.slug)
+  const name = tag?.name || params.slug
+  const title = name
+  const description =
+    tag?.description ||
+    `Artículos y noticias sobre ${name} en Reporte Médico — la plataforma de salud líder en República Dominicana.`
+  const url = `/tag/${params.slug}`
+
   return {
-    title: `Tag: ${params.slug}`,
-    description: `Artículos y noticias sobre ${params.slug} en Reporte Médico.`,
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title: `${name} | Reporte Médico`,
+      description,
+      url,
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${name} | Reporte Médico`,
+      description,
+    },
   }
 }
 
