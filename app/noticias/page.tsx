@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { getNews } from '@/lib/api'
 import ArticleCard from '@/components/article/ArticleCard'
 import Pagination from '@/components/ui/Pagination'
+import WhatsAppChannelBanner from '@/components/home/WhatsAppChannelBanner'
 import { Eye } from 'lucide-react'
 
 export const revalidate = 300
@@ -22,6 +23,7 @@ export default async function NoticiasPage({ searchParams }: Props) {
   const [hero, ...rest] = articles
 
   return (
+    <>
     <div className="max-w-site mx-auto px-4 md:px-6 py-10">
       <div className="flex items-baseline gap-3 mb-2">
         <h1 className="font-display font-bold text-4xl text-[var(--color-text-primary)]">
@@ -71,5 +73,7 @@ export default async function NoticiasPage({ searchParams }: Props) {
         basePath="/noticias"
       />
     </div>
+    <WhatsAppChannelBanner />
+    </>
   )
 }

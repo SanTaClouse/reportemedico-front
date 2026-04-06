@@ -3,6 +3,7 @@ import { getMedicalArticles } from '@/lib/api'
 import ArticleCard from '@/components/article/ArticleCard'
 import Pagination from '@/components/ui/Pagination'
 import MedicalArticlesBanner from '@/components/home/MedicalArticlesBanner'
+import WhatsAppChannelBanner from '@/components/home/WhatsAppChannelBanner'
 
 export const revalidate = 300
 
@@ -20,6 +21,7 @@ export default async function ArticulosPage({ searchParams }: Props) {
   const { data: articles, meta } = await getMedicalArticles(page)
 
   return (
+    <>
     <div className="max-w-site mx-auto px-4 md:px-6 py-10">
       <div className="mb-10">
         <MedicalArticlesBanner
@@ -46,5 +48,7 @@ export default async function ArticulosPage({ searchParams }: Props) {
         basePath="/articulos"
       />
     </div>
+    <WhatsAppChannelBanner />
+    </>
   )
 }
