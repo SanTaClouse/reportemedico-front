@@ -118,11 +118,19 @@ export default async function ConsejoMedicoPage() {
           <h2 className="font-display font-bold text-2xl md:text-3xl text-[var(--color-text-primary)] mb-4">
             ¿Quiénes conforman el Consejo?
           </h2>
-          <p className="text-[var(--color-text-secondary)] text-lg leading-relaxed max-w-2xl mx-auto">
+          <p className="text-[var(--color-text-secondary)] text-lg leading-relaxed max-w-2xl mx-auto mb-4">
             Nuestro Consejo Médico Editorial está conformado por los profesionales que respaldan
             la credibilidad y la dirección editorial de Reporte Médico. Aunque muchos son médicos
             en ejercicio activo, su rol trasciende la práctica clínica: son el brazo estratégico
             y decisor que guía el contenido, los estándares y el impacto de nuestra plataforma.
+          </p>
+          <p className="inline-flex items-center gap-1.5 text-xs text-[var(--color-text-muted)] bg-[var(--color-surface)] px-3 py-1.5 rounded-full border border-[var(--color-border)]">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+              <circle cx="12" cy="12" r="4"/>
+              <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+            </svg>
+            Toca en un médico para acceder a su perfil de Instagram
           </p>
         </div>
       </section>

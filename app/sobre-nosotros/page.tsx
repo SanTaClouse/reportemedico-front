@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Newspaper, Globe, Mic2, Smartphone, Mail, Trophy, BarChart3, CheckCircle2, Linkedin } from 'lucide-react'
+import { Newspaper, Globe, Mic2, Smartphone, Mail, Trophy, BarChart3, CheckCircle2, ArrowUpRight } from 'lucide-react'
 import { getCouncilMembers } from '@/lib/api'
 import ScrollReveal from '@/components/ui/ScrollReveal'
 import { cldUrl } from '@/lib/cloudinary'
@@ -312,8 +312,16 @@ export default async function SobreNosotrosPage() {
               <h2 className="font-display font-bold text-3xl text-[var(--color-text-primary)] mb-3">
                 Consejo Médico Editorial
               </h2>
-              <p className="text-[var(--color-text-secondary)] max-w-xl mx-auto">
+              <p className="text-[var(--color-text-secondary)] max-w-xl mx-auto mb-3">
                 Nuestro contenido está avalado por un equipo de médicos líderes en sus especialidades.
+              </p>
+              <p className="inline-flex items-center gap-1.5 text-xs text-[var(--color-text-muted)] bg-[var(--color-surface-2)] px-3 py-1.5 rounded-full">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                  <circle cx="12" cy="12" r="4"/>
+                  <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+                </svg>
+                Toca en un médico para acceder a su perfil de Instagram
               </p>
             </div>
             <ScrollReveal>
@@ -340,15 +348,20 @@ export default async function SobreNosotrosPage() {
                         {miembro.name}
                       </p>
                       <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{miembro.role}</p>
-                      {miembro.linkedinUrl && (
+                      {miembro.profileUrl && (
                         <a
-                          href={miembro.linkedinUrl}
+                          href={miembro.profileUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 mt-1.5 text-xs text-[var(--brand-electric)] hover:underline"
+                          className="inline-flex items-center gap-1 mt-1.5 text-xs text-[var(--color-primary)] hover:underline"
                         >
-                          <Linkedin size={12} />
-                          LinkedIn
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                            <circle cx="12" cy="12" r="4"/>
+                            <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+                          </svg>
+                          Ver en Instagram
+                          <ArrowUpRight size={10} strokeWidth={2} />
                         </a>
                       )}
                     </div>
