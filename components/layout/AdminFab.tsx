@@ -1,20 +1,18 @@
-import { cookies } from 'next/headers'
-import { jwtVerify } from 'jose'
+'use client'
+
+import { useEffect, useState } from 'react'
 import AdminFabButton from './AdminFabButton'
 
-async function isAdmin(): Promise<boolean> {
-  try {
-    const token = cookies().get('rm_token')?.value
-    if (!token) return false
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET)
-    await jwtVerify(token, secret)
-    return true
-  } catch {
-    return false
-  }
-}
+export default function AdminFab() {
+  const [isAdmin, setIsAdmin] = useState(false)
 
-export default async function AdminFab() {
-  if (!(await isAdmin())) return null
+  useEffect(() => {
+    fetch('/api/auth/check')
+      .then((r) => r.json())
+      .then((data) => setIsAdmin(Boolean(data?.isAdmin)))
+      .catch(() => setIsAdmin(false))
+  }, [])
+
+  if (!isAdmin) return null
   return <AdminFabButton />
 }
