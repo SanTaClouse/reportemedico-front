@@ -17,6 +17,7 @@
     "@tiptap/extension-link": "^3.20.4",
     "@tiptap/react": "^3.20.4",
     "@tiptap/starter-kit": "^3.20.4",
+    "@vercel/analytics": "^2.0.1",
     "heic2any": "^0.0.4",
     "jose": "^5.0.0",
     "lucide-react": "^0.400.0",
