@@ -68,13 +68,13 @@ export default function InlineRelevanceSelect({ articleId, currentRelevance, tok
   useEffect(() => { setRelevance(currentRelevance) }, [currentRelevance])
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    if (!e.target.value) return
-    const val = Number(e.target.value)
-    if (CONFIRM_LEVELS.has(val)) { setPendingValue(val); return }
+    const raw = e.target.value
+    const val = raw === 'none' ? null : Number(raw)
+    if (val !== null && CONFIRM_LEVELS.has(val)) { setPendingValue(val); return }
     applyChange(val)
   }
 
-  const applyChange = async (newRelevance: number) => {
+  const applyChange = async (newRelevance: number | null) => {
     setPendingValue(null)
     setLoading(true)
     const toastId = toast.loading('Actualizando relevancia...')
@@ -83,7 +83,8 @@ export default function InlineRelevanceSelect({ articleId, currentRelevance, tok
       setRelevance(newRelevance)
       fetch('/api/revalidate', { method: 'POST' })
       router.refresh()
-      toast.success(`Relevancia → ${RELEVANCE_LABELS[newRelevance] ?? newRelevance}`, { id: toastId })
+      const label = newRelevance === null ? 'Sin slot editorial' : (RELEVANCE_LABELS[newRelevance] ?? newRelevance)
+      toast.success(`Relevancia → ${label}`, { id: toastId })
     } catch (err: any) {
       toast.error(err.message || 'Error al cambiar la relevancia', { id: toastId })
     } finally {
@@ -128,14 +129,12 @@ export default function InlineRelevanceSelect({ articleId, currentRelevance, tok
 
   return (
     <select
-      value={relevance ?? ''}
+      value={relevance ?? 'none'}
       onChange={handleChange}
       disabled={loading}
       className="text-xs font-medium border-none bg-transparent focus:outline-none cursor-pointer disabled:opacity-50 text-[var(--color-text-secondary)]"
     >
-      {relevance == null && (
-        <option value="" disabled>— Sin slot editorial —</option>
-      )}
+      <option value="none">○ Sin slot editorial</option>
       <option value={1}>● Hero (máx {RELEVANCE_LIMITS[1]})</option>
       <option value={2}>● Lead Destacada (máx {RELEVANCE_LIMITS[2]})</option>
       <option value={3}>● Big Destacada (máx {RELEVANCE_LIMITS[3]})</option>

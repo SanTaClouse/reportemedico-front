@@ -14,6 +14,7 @@ import {
   uploadFotoConsejo,
 } from '@/lib/api'
 import type { CouncilMember } from '@/lib/api'
+import { cldUrl } from '@/lib/cloudinary'
 
 interface Props {
   initialMembers: CouncilMember[]
@@ -216,13 +217,12 @@ export default function ConsejoMedicoClient({ initialMembers, token }: Props) {
           {members.map((m) => (
             <div
               key={m.id}
-              className={`relative group rounded-2xl border p-4 flex flex-col items-center text-center gap-2 transition-all ${
-                m.isFeatured
+              className={`relative group rounded-2xl border p-4 flex flex-col items-center text-center gap-2 transition-all ${m.isFeatured
                   ? 'border-amber-400 bg-amber-50'
                   : m.isVisible
-                  ? 'border-[var(--color-border)] bg-[var(--color-surface)]'
-                  : 'border-[var(--color-border)] bg-[var(--color-surface-2)] opacity-60'
-              }`}
+                    ? 'border-[var(--color-border)] bg-[var(--color-surface)]'
+                    : 'border-[var(--color-border)] bg-[var(--color-surface-2)] opacity-60'
+                }`}
             >
               {/* Badges */}
               <div className="absolute top-2 left-2 flex gap-1">
@@ -278,7 +278,7 @@ export default function ConsejoMedicoClient({ initialMembers, token }: Props) {
               {/* Foto */}
               <div className="relative w-20 h-20 rounded-full overflow-hidden bg-[var(--color-surface-3)] ring-2 ring-[var(--color-border)] mt-2">
                 {m.photo ? (
-                  <Image src={m.photo} alt={m.name} fill className="object-cover object-top" sizes="80px" />
+                  <Image src={cldUrl(m.photo, { w: 160, h: 160 })} alt={m.name} fill className="object-cover" sizes="80px" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <span className="text-xl font-display font-bold text-[var(--brand-navy)]/30">
@@ -331,7 +331,7 @@ export default function ConsejoMedicoClient({ initialMembers, token }: Props) {
                   onClick={() => fileRef.current?.click()}
                 >
                   {form.photo ? (
-                    <Image src={form.photo} alt="Preview" fill className="object-cover object-top" sizes="96px" />
+                    <Image src={cldUrl(form.photo, { w: 192, h: 192 })} alt="Preview" fill className="object-cover" sizes="96px" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       {uploading ? (
@@ -390,7 +390,7 @@ export default function ConsejoMedicoClient({ initialMembers, token }: Props) {
               {/* LinkedIn */}
               <div>
                 <label className="block text-xs font-medium text-[var(--color-text-secondary)] mb-1">
-                  URL LinkedIn (opcional)
+                  URL Perfil (opcional)
                 </label>
                 <input
                   type="url"

@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { Newspaper, Globe, Mic2, Smartphone, Mail, Trophy, BarChart3, CheckCircle2, Linkedin } from 'lucide-react'
 import { getCouncilMembers } from '@/lib/api'
 import ScrollReveal from '@/components/ui/ScrollReveal'
+import { cldUrl } from '@/lib/cloudinary'
 
 const SOBRE_DESC =
   'Reporte Médico es la plataforma de salud líder en la República Dominicana. Conectamos profesionales, instituciones y pacientes con lo último en información médica.'
@@ -321,7 +322,7 @@ export default async function SobreNosotrosPage() {
                     <div className="w-24 h-24 rounded-full overflow-hidden bg-[var(--color-surface-2)] border-2 border-[var(--color-border)] group-hover:border-[var(--color-primary)] flex-shrink-0 transition-colors duration-300 group-hover:shadow-lg">
                       {miembro.photo ? (
                         <Image
-                          src={miembro.photo}
+                          src={cldUrl(miembro.photo, { w: 192, h: 192 })}
                           alt={miembro.name}
                           width={96}
                           height={96}

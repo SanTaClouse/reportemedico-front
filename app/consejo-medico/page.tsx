@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Linkedin, BookOpen, Users } from 'lucide-react'
 import { getCouncilMembers } from '@/lib/api'
 import type { CouncilMember } from '@/lib/api'
+import { cldUrl } from '@/lib/cloudinary'
 
 const CONSEJO_DESC =
   'Conoce a los profesionales que conforman el Consejo Médico Editorial de Reporte Médico — el brazo estratégico y decisor que guía los estándares y el impacto de nuestra plataforma.'
@@ -81,10 +82,10 @@ export default async function ConsejoMedicoPage() {
             <div className="flex-shrink-0 relative">
               <div className="w-72 h-80 md:w-80 md:h-96 rounded-2xl overflow-hidden shadow-2xl border-2 border-[var(--brand-gold)]/30">
                 <Image
-                  src={featured.photo}
+                  src={cldUrl(featured.photo, { w: 640, h: 800 })}
                   alt={featured.name}
                   fill
-                  className="object-cover object-top"
+                  className="object-cover"
                   priority
                 />
               </div>
@@ -178,10 +179,10 @@ function MemberCard({ member }: { member: CouncilMember }) {
       <div className="relative w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden bg-[var(--color-surface-3)] flex-shrink-0 ring-2 ring-[var(--color-border)] group-hover:ring-[var(--brand-gold)] transition-all">
         {member.photo ? (
           <Image
-            src={member.photo}
+            src={cldUrl(member.photo, { w: 224, h: 224 })}
             alt={member.name}
             fill
-            className="object-cover object-top"
+            className="object-cover"
             sizes="(max-width: 768px) 96px, 112px"
           />
         ) : (

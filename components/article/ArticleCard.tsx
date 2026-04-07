@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import type { Article } from '@/lib/api'
 import { formatDateShort, readingTime } from '@/lib/utils'
+import { cldUrl } from '@/lib/cloudinary'
 import TagBadge from '@/components/ui/TagBadge'
 
 interface ArticleCardProps {
@@ -24,7 +25,7 @@ export default function ArticleCard({ article, variant = 'principal' }: ArticleC
         {article.featuredImage && (
           <div className="shrink-0 w-20 h-20 rounded-lg overflow-hidden img-hover">
             <Image
-              src={article.featuredImage}
+              src={cldUrl(article.featuredImage, { w: 160, h: 160 })}
               alt={article.title}
               width={80}
               height={80}
@@ -76,7 +77,7 @@ export default function ArticleCard({ article, variant = 'principal' }: ArticleC
         {article.featuredImage && (
           <div className="relative flex-1 min-h-[220px] img-hover overflow-hidden">
             <Image
-              src={article.featuredImage}
+              src={cldUrl(article.featuredImage, { w: 1280, h: 720 })}
               alt={article.title}
               fill
               className="object-cover"
@@ -130,7 +131,7 @@ export default function ArticleCard({ article, variant = 'principal' }: ArticleC
       {article.featuredImage && (
         <div className="relative aspect-video overflow-hidden img-hover">
           <Image
-            src={article.featuredImage}
+            src={cldUrl(article.featuredImage, { w: 600, h: 338 })}
             alt={article.title}
             width={600}
             height={338}

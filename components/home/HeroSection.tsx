@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { Eye } from 'lucide-react'
 import type { Article } from '@/lib/api'
 import { formatDate, readingTime } from '@/lib/utils'
+import { cldUrl } from '@/lib/cloudinary'
 
 interface HeroSectionProps {
   article: Article
@@ -23,7 +24,7 @@ export default function HeroSection({ article }: HeroSectionProps) {
       {article.featuredImage ? (
         <div className="relative w-full h-[520px] md:h-[600px] hero-ken-burns overflow-hidden">
           <Image
-            src={article.featuredImage}
+            src={cldUrl(article.featuredImage, { w: 1920, h: 1080 })}
             alt={article.title}
             fill
             priority

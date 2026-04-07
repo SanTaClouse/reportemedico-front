@@ -95,12 +95,16 @@ export default function ContentTable({ articles, token, meta, relevanceCounts = 
                     {article.authorName}
                   </td>
                   <td className="px-4 py-3 hidden lg:table-cell">
-                    <InlineRelevanceSelect
-                      articleId={article.id}
-                      currentRelevance={article.relevance}
-                      token={token}
-                      counts={relevanceCounts}
-                    />
+                    {article.type === 'NEWS' ? (
+                      <InlineRelevanceSelect
+                        articleId={article.id}
+                        currentRelevance={article.relevance}
+                        token={token}
+                        counts={relevanceCounts}
+                      />
+                    ) : (
+                      <span className="text-xs text-[var(--color-text-muted)]">—</span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <InlineStatusSelect

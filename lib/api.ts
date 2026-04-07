@@ -285,7 +285,7 @@ export function setArticleStatus(id: string, status: string, token: string) {
   return apiFetch<Article>(`/articles/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }), token })
 }
 
-export function setArticleRelevance(id: string, relevance: number, token: string) {
+export function setArticleRelevance(id: string, relevance: number | null, token: string) {
   return apiFetch<Article>(`/articles/${id}/relevance`, { method: 'PATCH', body: JSON.stringify({ relevance }), token })
 }
 

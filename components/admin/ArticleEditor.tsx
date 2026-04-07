@@ -62,7 +62,8 @@ export default function ArticleEditor({
     excerpt: initialData?.excerpt || '',
     authorName: initialData?.authorName || 'Reporte Médico',
     status: initialData?.status || 'DRAFT',
-    relevance: initialData?.relevance || 4,
+    // Preservar null explícito ("Sin slot editorial"); en create-mode default 4
+    relevance: (initialData?.relevance === null ? null : initialData?.relevance ?? 4) as number | null,
     featuredImage: initialData?.featuredImage || '',
     tagIds: initialData?.tags?.map((t: any) => t.tag.id) || [],
     metaTitle: initialData?.seoMetadata?.metaTitle || '',
@@ -206,7 +207,7 @@ export default function ArticleEditor({
     content: editor?.getHTML() || '',
     authorName: form.authorName,
     status: form.status,
-    relevance: Number(form.relevance),
+    relevance: form.relevance, // number | null
     featuredImage: form.featuredImage || undefined,
     ...(mode === 'create' && !currentId ? { type: articleType } : {}),
     publishedAt: form.publishedAt ? rdInputToISO(form.publishedAt) : undefined,
@@ -718,47 +719,60 @@ export default function ArticleEditor({
                 className={inputClass}
               />
             </div>
-            <div>
-              <label className={labelClass}>Relevancia</label>
-              <select
-                value={form.relevance}
-                onChange={(e) => setForm((p) => ({ ...p, relevance: Number(e.target.value) }))}
-                className={inputClass}
-              >
-                {([1, 2, 3, 4, 5] as const).map((level) => {
+            {articleType === 'NEWS' && (
+              <div>
+                <label className={labelClass}>Relevancia</label>
+                <select
+                  value={form.relevance ?? 'none'}
+                  onChange={(e) => {
+                    const val = e.target.value === 'none' ? null : Number(e.target.value)
+                    setForm((p) => ({ ...p, relevance: val }))
+                  }}
+                  className={inputClass}
+                >
+                  <option value="none">— Sin slot editorial (no aparece en el home) —</option>
+                  {([1, 2, 3, 4, 5] as const).map((level) => {
+                    const limit = RELEVANCE_LIMITS[level]
+                    const count = relevanceCounts[level] ?? 0
+                    // Si el artículo ya ocupa este nivel, no se activarán avisos al guardar aquí
+                    const isArticleOwnLevel = mode === 'edit' && initialData?.relevance === level
+                    const pct = limit === Infinity || isArticleOwnLevel ? 0 : count / limit
+                    const suffix = limit === Infinity ? '' : ` — ${count}/${limit}`
+                    return (
+                      <option key={level} value={level}>
+                        {level} — {RELEVANCE_LABELS[level]}{suffix}{pct >= 1 ? ' ⚠ lleno' : pct >= 0.75 ? ' ·casi lleno' : ''}
+                      </option>
+                    )
+                  })}
+                </select>
+                {/* Aviso visual debajo del select */}
+                {(() => {
+                  if (form.relevance == null) {
+                    return (
+                      <p className="text-xs mt-1 text-[var(--color-text-muted)] leading-snug">
+                        El artículo se publica y sigue accesible por URL y en /noticias, pero no ocupa ningún slot del home.
+                      </p>
+                    )
+                  }
+                  const level = form.relevance
                   const limit = RELEVANCE_LIMITS[level]
+                  if (!limit || limit === Infinity) return null
                   const count = relevanceCounts[level] ?? 0
-                  // Si el artículo ya ocupa este nivel, no se activarán avisos al guardar aquí
-                  const isArticleOwnLevel = mode === 'edit' && initialData?.relevance === level
-                  const pct = limit === Infinity || isArticleOwnLevel ? 0 : count / limit
-                  const suffix = limit === Infinity ? '' : ` — ${count}/${limit}`
+                  // Si el artículo ya ocupa este nivel, guardarlo aquí no desplazará a nadie
+                  if (mode === 'edit' && initialData?.relevance === level) return null
+                  const pct = count / limit
+                  if (pct < 0.75) return null
+                  const isFull = count >= limit
                   return (
-                    <option key={level} value={level}>
-                      {level} — {RELEVANCE_LABELS[level]}{suffix}{pct >= 1 ? ' ⚠ lleno' : pct >= 0.75 ? ' ·casi lleno' : ''}
-                    </option>
+                    <p className={`text-xs mt-1 font-medium ${isFull ? 'text-red-500' : 'text-amber-500'}`}>
+                      {isFull
+                        ? `⚠ Nivel lleno (${count}/${limit}). Al guardar, el más antiguo bajará al siguiente nivel.`
+                        : `Casi lleno: ${count}/${limit} artículos en este nivel.`}
+                    </p>
                   )
-                })}
-              </select>
-              {/* Aviso visual debajo del select */}
-              {(() => {
-                const level = form.relevance as number
-                const limit = RELEVANCE_LIMITS[level]
-                if (!limit || limit === Infinity) return null
-                const count = relevanceCounts[level] ?? 0
-                // Si el artículo ya ocupa este nivel, guardarlo aquí no desplazará a nadie
-                if (mode === 'edit' && initialData?.relevance === level) return null
-                const pct = count / limit
-                if (pct < 0.75) return null
-                const isFull = count >= limit
-                return (
-                  <p className={`text-xs mt-1 font-medium ${isFull ? 'text-red-500' : 'text-amber-500'}`}>
-                    {isFull
-                      ? `⚠ Nivel lleno (${count}/${limit}). Al guardar, el más antiguo bajará al siguiente nivel.`
-                      : `Casi lleno: ${count}/${limit} artículos en este nivel.`}
-                  </p>
-                )
-              })()}
-            </div>
+                })()}
+              </div>
+            )}
           </div>
         </SidebarCard>
 

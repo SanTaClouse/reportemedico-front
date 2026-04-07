@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { getArticleBySlug, getNews, getRelatedByTag } from '@/lib/api'
 import { formatDate, readingTime } from '@/lib/utils'
+import { cldUrl } from '@/lib/cloudinary'
 import ArticleBody from '@/components/article/ArticleBody'
 import ArticleShare from '@/components/article/ArticleShare'
 import ArticleSources from '@/components/article/ArticleSources'
@@ -197,7 +198,7 @@ export default async function NoticiaPage({ params }: Props) {
       {article.featuredImage && (
         <div className="max-w-3xl mx-auto mb-8 rounded-xl overflow-hidden">
           <Image
-            src={article.featuredImage}
+            src={cldUrl(article.featuredImage, { w: 1800, h: 1012 })}
             alt={article.title}
             width={900}
             height={506}
