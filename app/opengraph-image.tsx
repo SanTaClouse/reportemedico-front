@@ -7,11 +7,35 @@ export const alt = 'Reporte Médico — La plataforma de salud líder en Repúbl
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://reportemedico.com'
+
+async function loadLogo(): Promise<string | null> {
+  // Intento 1 — filesystem (rápido en local/standalone)
+  try {
+    const buffer = await readFile(
+      join(process.cwd(), 'public/media/logo-completo-claro.png'),
+    )
+    return `data:image/png;base64,${buffer.toString('base64')}`
+  } catch (err) {
+    console.warn('[opengraph-image] readFile del logo falló, intentando fetch:', err)
+  }
+  // Intento 2 — fetch público (caso Vercel donde public/ no está en el bundle)
+  try {
+    const res = await fetch(`${SITE_URL}/media/logo-completo-claro.png`, {
+      next: { revalidate: 86400 },
+      signal: AbortSignal.timeout(5000),
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const buffer = Buffer.from(await res.arrayBuffer())
+    return `data:image/png;base64,${buffer.toString('base64')}`
+  } catch (err) {
+    console.error('[opengraph-image] No se pudo cargar el logo:', err)
+    return null
+  }
+}
+
 export default async function OpengraphImage() {
-  const logoBuffer = await readFile(
-    join(process.cwd(), 'public/media/logo-completo-claro.png'),
-  )
-  const logoSrc = `data:image/png;base64,${logoBuffer.toString('base64')}`
+  const logoSrc = await loadLogo()
 
   return new ImageResponse(
     (
@@ -51,15 +75,29 @@ export default async function OpengraphImage() {
           }}
         />
 
-        {/* Logo */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={logoSrc}
-          alt="Reporte Médico"
-          width={260}
-          height={80}
-          style={{ objectFit: 'contain' }}
-        />
+        {/* Logo (con fallback de texto si no se pudo cargar) */}
+        {logoSrc ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={logoSrc}
+            alt="Reporte Médico"
+            width={260}
+            height={80}
+            style={{ objectFit: 'contain' }}
+          />
+        ) : (
+          <div
+            style={{
+              fontSize: 44,
+              fontWeight: 800,
+              color: '#ffffff',
+              letterSpacing: -1,
+              display: 'flex',
+            }}
+          >
+            REPORTE MÉDICO
+          </div>
+        )}
 
         {/* Contenido */}
         <div

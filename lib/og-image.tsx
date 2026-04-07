@@ -6,15 +6,50 @@ import type { Article } from './api'
 export const OG_SIZE = { width: 1200, height: 630 }
 export const OG_CONTENT_TYPE = 'image/png'
 
-let cachedLogo: string | null = null
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://reportemedico.com'
+const LOGO_PUBLIC_PATH = '/media/logo-completo-claro.png'
 
-async function getLogoDataUri(): Promise<string> {
+let cachedLogo: string | null = null
+let logoLoadFailed = false
+
+/**
+ * Carga el logo de forma resiliente:
+ * 1. Intenta leer el archivo desde el filesystem (rápido en local/standalone)
+ * 2. Si falla (caso Vercel: public/ no está en el bundle de la función),
+ *    fetchea el logo desde el URL público del sitio
+ * 3. Si todo falla, devuelve null y el render usa un placeholder de texto
+ */
+async function getLogoDataUri(): Promise<string | null> {
   if (cachedLogo) return cachedLogo
-  const buffer = await readFile(
-    join(process.cwd(), 'public/media/logo-completo-claro.png'),
-  )
-  cachedLogo = `data:image/png;base64,${buffer.toString('base64')}`
-  return cachedLogo
+  if (logoLoadFailed) return null
+
+  // Intento 1 — filesystem local
+  try {
+    const buffer = await readFile(
+      join(process.cwd(), 'public/media/logo-completo-claro.png'),
+    )
+    cachedLogo = `data:image/png;base64,${buffer.toString('base64')}`
+    return cachedLogo
+  } catch (err) {
+    console.warn('[og-image] readFile del logo falló, intentando fetch:', err)
+  }
+
+  // Intento 2 — fetch público
+  try {
+    const res = await fetch(`${SITE_URL}${LOGO_PUBLIC_PATH}`, {
+      // Cachear la respuesta a nivel data-cache; el logo no cambia
+      next: { revalidate: 86400 },
+      signal: AbortSignal.timeout(5000),
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const buffer = Buffer.from(await res.arrayBuffer())
+    cachedLogo = `data:image/png;base64,${buffer.toString('base64')}`
+    return cachedLogo
+  } catch (err) {
+    console.error('[og-image] No se pudo cargar el logo por fetch:', err)
+    logoLoadFailed = true
+    return null
+  }
 }
 
 function truncate(str: string, max: number): string {
@@ -27,8 +62,8 @@ function truncate(str: string, max: number): string {
  * pueda decodificar SIEMPRE: JPG forzado, sin f_auto, dimensiones fijas.
  *
  * Satori solo soporta PNG y JPEG — si Cloudinary sirve WebP/AVIF (que es lo
- * default con f_auto), la generación de la OG image falla silenciosamente y
- * Next.js cae al fallback del padre (que en nuestro caso es solo el logo).
+ * default con f_auto), la generación de la OG image falla y Next.js cae al
+ * fallback del padre (que en nuestro caso es solo el logo).
  */
 function toOgSafeImageUrl(src: string | null | undefined): string | null {
   if (!src) return null
@@ -42,6 +77,30 @@ function toOgSafeImageUrl(src: string | null | undefined): string | null {
   return cleaned.replace('/upload/', `/upload/${transform}/`)
 }
 
+/**
+ * Pre-fetchea la imagen destacada como ArrayBuffer para que Satori la consuma
+ * via data URI. Esto evita que Satori tenga que hacer su propio fetch (que
+ * puede fallar silenciosamente y reventar todo el render).
+ */
+async function fetchImageAsDataUri(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url, {
+      next: { revalidate: 3600 },
+      signal: AbortSignal.timeout(5000),
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const contentType = res.headers.get('content-type') || 'image/jpeg'
+    if (!contentType.startsWith('image/jpeg') && !contentType.startsWith('image/png')) {
+      throw new Error(`formato no soportado por Satori: ${contentType}`)
+    }
+    const buffer = Buffer.from(await res.arrayBuffer())
+    return `data:${contentType};base64,${buffer.toString('base64')}`
+  } catch (err) {
+    console.warn('[og-image] No se pudo precargar imagen destacada:', err)
+    return null
+  }
+}
+
 interface RenderOptions {
   article: Article
   kind: 'Noticia' | 'Artículo médico'
@@ -50,14 +109,193 @@ interface RenderOptions {
 /**
  * Renderiza la OG card de un artículo.
  * Layout: imagen destacada a la izquierda (o gradiente si no hay), contenido a la derecha.
+ *
+ * Si CUALQUIER paso falla, cae a un fallback text-only en vez de devolver 500.
  */
 export async function renderArticleOgImage({ article, kind }: RenderOptions) {
-  const logoSrc = await getLogoDataUri()
-  const title = truncate(article.title, 110)
-  const tagName = article.tags?.[0]?.tag?.name
-  const ogImageUrl = toOgSafeImageUrl(article.featuredImage)
-  const hasImage = Boolean(ogImageUrl)
+  try {
+    const [logoSrc, ogImageUrl] = await Promise.all([
+      getLogoDataUri(),
+      Promise.resolve(toOgSafeImageUrl(article.featuredImage)),
+    ])
 
+    const featuredDataUri = ogImageUrl ? await fetchImageAsDataUri(ogImageUrl) : null
+    const hasImage = Boolean(featuredDataUri)
+    const title = truncate(article.title, 110)
+    const tagName = article.tags?.[0]?.tag?.name
+    const authorName = article.authorName?.trim() || 'Redacción Reporte Médico'
+
+    return new ImageResponse(
+      (
+        <div
+          style={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            background: '#ffffff',
+            fontFamily: 'sans-serif',
+          }}
+        >
+          {/* Lado izquierdo: imagen o gradiente */}
+          <div
+            style={{
+              width: 480,
+              height: '100%',
+              display: 'flex',
+              position: 'relative',
+              background:
+                'linear-gradient(160deg, #0A7B4B 0%, #0A7B4B 60%, #00B4A0 100%)',
+            }}
+          >
+            {hasImage && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={featuredDataUri as string}
+                alt=""
+                width={480}
+                height={630}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                }}
+              />
+            )}
+            {/* Overlay sutil */}
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background:
+                  'linear-gradient(180deg, rgba(10,123,75,0) 60%, rgba(10,123,75,0.55) 100%)',
+              }}
+            />
+          </div>
+
+          {/* Lado derecho: contenido */}
+          <div
+            style={{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              padding: '60px 64px',
+              background: '#ffffff',
+            }}
+          >
+            {/* Header: badge + logo */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 40,
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  background: '#0A7B4B',
+                  color: '#ffffff',
+                  padding: '10px 22px',
+                  borderRadius: 999,
+                  fontSize: 22,
+                  fontWeight: 600,
+                  letterSpacing: 0.5,
+                  textTransform: 'uppercase',
+                }}
+              >
+                {kind}
+              </div>
+              {logoSrc ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={logoSrc}
+                  alt="Reporte Médico"
+                  width={150}
+                  height={46}
+                  style={{ objectFit: 'contain' }}
+                />
+              ) : (
+                <div
+                  style={{
+                    fontSize: 22,
+                    fontWeight: 700,
+                    color: '#0A7B4B',
+                    display: 'flex',
+                  }}
+                >
+                  REPORTE MÉDICO
+                </div>
+              )}
+            </div>
+
+            {/* Tag opcional */}
+            {tagName && (
+              <div
+                style={{
+                  fontSize: 22,
+                  color: '#00B4A0',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: 1.2,
+                  marginBottom: 16,
+                }}
+              >
+                {tagName}
+              </div>
+            )}
+
+            {/* Título */}
+            <div
+              style={{
+                fontSize: title.length > 70 ? 46 : 56,
+                fontWeight: 700,
+                color: '#111827',
+                lineHeight: 1.1,
+                letterSpacing: -1,
+                display: 'flex',
+              }}
+            >
+              {title}
+            </div>
+
+            {/* Footer: autor */}
+            <div
+              style={{
+                marginTop: 'auto',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 16,
+                paddingTop: 32,
+                borderTop: '2px solid #E5E7EB',
+                fontSize: 24,
+                color: '#4B5563',
+              }}
+            >
+              <span style={{ color: '#0A7B4B', fontWeight: 600 }}>
+                Por {authorName}
+              </span>
+              <span>·</span>
+              <span>reportemedico.com</span>
+            </div>
+          </div>
+        </div>
+      ),
+      { ...OG_SIZE },
+    )
+  } catch (err) {
+    console.error('[og-image] Render principal falló, devolviendo fallback:', err)
+    return renderFallbackCard(article.title, kind)
+  }
+}
+
+/**
+ * Card text-only de emergencia. No depende de imágenes externas ni del logo.
+ * Garantiza que NUNCA devolvamos 500 desde una ruta opengraph-image.
+ */
+function renderFallbackCard(title: string, kind: 'Noticia' | 'Artículo médico') {
+  const safeTitle = truncate(title, 140)
   return new ImageResponse(
     (
       <div
@@ -65,140 +303,44 @@ export async function renderArticleOgImage({ article, kind }: RenderOptions) {
           width: '100%',
           height: '100%',
           display: 'flex',
-          background: '#ffffff',
+          flexDirection: 'column',
+          padding: 80,
+          background:
+            'linear-gradient(135deg, #0A7B4B 0%, #0A7B4B 55%, #00B4A0 100%)',
+          color: '#ffffff',
           fontFamily: 'sans-serif',
         }}
       >
-        {/* Lado izquierdo: imagen o gradiente */}
         <div
           style={{
-            width: 480,
-            height: '100%',
-            display: 'flex',
-            position: 'relative',
-            background:
-              'linear-gradient(160deg, #0A7B4B 0%, #0A7B4B 60%, #00B4A0 100%)',
+            fontSize: 24,
+            letterSpacing: 2,
+            textTransform: 'uppercase',
+            opacity: 0.85,
+            marginBottom: 24,
           }}
         >
-          {hasImage && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={ogImageUrl as string}
-              alt=""
-              width={480}
-              height={630}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-              }}
-            />
-          )}
-          {/* Overlay sutil */}
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background:
-                'linear-gradient(180deg, rgba(10,123,75,0) 60%, rgba(10,123,75,0.55) 100%)',
-            }}
-          />
+          {kind} · Reporte Médico
         </div>
-
-        {/* Lado derecho: contenido */}
         <div
           style={{
-            flex: 1,
+            fontSize: safeTitle.length > 90 ? 56 : 68,
+            fontWeight: 700,
+            lineHeight: 1.05,
+            letterSpacing: -1.5,
             display: 'flex',
-            flexDirection: 'column',
-            padding: '60px 64px',
-            background: '#ffffff',
           }}
         >
-          {/* Header: badge + logo */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: 40,
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                background: '#0A7B4B',
-                color: '#ffffff',
-                padding: '10px 22px',
-                borderRadius: 999,
-                fontSize: 22,
-                fontWeight: 600,
-                letterSpacing: 0.5,
-                textTransform: 'uppercase',
-              }}
-            >
-              {kind}
-            </div>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={logoSrc}
-              alt="Reporte Médico"
-              width={150}
-              height={46}
-              style={{ objectFit: 'contain' }}
-            />
-          </div>
-
-          {/* Tag opcional */}
-          {tagName && (
-            <div
-              style={{
-                fontSize: 22,
-                color: '#00B4A0',
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                letterSpacing: 1.2,
-                marginBottom: 16,
-              }}
-            >
-              {tagName}
-            </div>
-          )}
-
-          {/* Título */}
-          <div
-            style={{
-              fontSize: title.length > 70 ? 46 : 56,
-              fontWeight: 700,
-              color: '#111827',
-              lineHeight: 1.1,
-              letterSpacing: -1,
-              display: 'flex',
-            }}
-          >
-            {title}
-          </div>
-
-          {/* Footer: autor */}
-          <div
-            style={{
-              marginTop: 'auto',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 16,
-              paddingTop: 32,
-              borderTop: '2px solid #E5E7EB',
-              fontSize: 24,
-              color: '#4B5563',
-            }}
-          >
-            <span style={{ color: '#0A7B4B', fontWeight: 600 }}>
-              Por {article.authorName?.trim() || 'Redacción Reporte Médico'}
-            </span>
-            <span>·</span>
-            <span>reportemedico.com</span>
-          </div>
+          {safeTitle}
+        </div>
+        <div
+          style={{
+            marginTop: 'auto',
+            fontSize: 26,
+            opacity: 0.9,
+          }}
+        >
+          reportemedico.com
         </div>
       </div>
     ),
