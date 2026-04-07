@@ -255,6 +255,67 @@ export function uploadImagenArticulo(file: File) {
   return multipartFetch('/media/upload/articulos', file)
 }
 
+/** Foto de galería de noticias (admin) → Cloudinary/Galerias — guarda en BD */
+export async function uploadFotoGaleria(file: File, altText: string, token: string): Promise<Media & { width?: number; height?: number }> {
+  const formData = new FormData()
+  formData.append('file', file)
+  if (altText) formData.append('altText', altText)
+
+  const res = await fetch(`${API_URL}/media/upload/galeria`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData,
+  })
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ message: 'Error al subir imagen' }))
+    throw new Error(error.message || `Error ${res.status}`)
+  }
+
+  return res.json()
+}
+
+export function addGalleryImage(
+  articleId: string,
+  data: { mediaId: string; caption?: string; position?: number },
+  token: string,
+) {
+  return apiFetch<GalleryItem>(`/articles/${articleId}/gallery`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+    token,
+  })
+}
+
+export function removeGalleryImage(articleId: string, mediaId: string, token: string) {
+  return apiFetch(`/articles/${articleId}/gallery/${mediaId}`, { method: 'DELETE', token })
+}
+
+export function reorderGallery(
+  articleId: string,
+  items: { mediaId: string; position: number }[],
+  token: string,
+) {
+  return apiFetch<GalleryItem[]>(`/articles/${articleId}/gallery/reorder`, {
+    method: 'PATCH',
+    body: JSON.stringify({ items }),
+    token,
+  })
+}
+
+export function updateGalleryCaption(
+  articleId: string,
+  mediaId: string,
+  caption: string,
+  token: string,
+) {
+  return apiFetch<GalleryItem>(`/articles/${articleId}/gallery/${mediaId}/caption`, {
+    method: 'PATCH',
+    body: JSON.stringify({ caption }),
+    token,
+  })
+}
+
 // ─── ADMIN ────────────────────────────────────────────
 
 export function getAdminArticleById(id: string, token: string) {
@@ -393,6 +454,20 @@ export function reorderSlotAds(slotId: string, orderedAdIds: string[], token: st
 
 // ─── TYPES ────────────────────────────────────────────
 
+export interface GalleryItem {
+  mediaId: string
+  position: number
+  caption?: string
+  media: {
+    id: string
+    url: string
+    publicId: string
+    altText?: string
+    width?: number
+    height?: number
+  }
+}
+
 export interface Article {
   id: string
   type: 'NEWS' | 'MEDICAL_ARTICLE'
@@ -413,6 +488,7 @@ export interface Article {
   seoMetadata?: SeoMetadata
   sources?: ArticleSource[]
   suggestedSpecialties?: string[]
+  media?: GalleryItem[]
 }
 
 export interface ArticleTag {

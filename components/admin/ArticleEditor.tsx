@@ -22,12 +22,13 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
-import Link from '@tiptap/extension-link'
 import Image from '@tiptap/extension-image'
+import Youtube from '@tiptap/extension-youtube'
 import { createArticle, updateArticle, setArticleStatus, getTagsAdmin, createTag, checkTagExists, RELEVANCE_LIMITS, RELEVANCE_LABELS, type Tag } from '@/lib/api'
-import { ArrowLeft, RefreshCw, Bold, Italic, Link2, List, HelpCircle, Check, X, Maximize2, Minimize2 } from 'lucide-react'
+import { ArrowLeft, RefreshCw, Bold, Italic, Link2, List, HelpCircle, Check, X, Maximize2, Minimize2, Youtube as YoutubeIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import ImageUploader from '@/components/ui/ImageUploader'
+import GalleryUploader from '@/components/admin/GalleryUploader'
 import { analyzeSeo, scoreColor, scoreBg } from '@/lib/seo-analyzer'
 import SeoHelpModal from '@/components/admin/SeoHelpModal'
 
@@ -83,6 +84,9 @@ export default function ArticleEditor({
   const [showLinkInput, setShowLinkInput] = useState(false)
   const [linkUrl, setLinkUrl] = useState('')
   const linkInputRef = useRef<HTMLInputElement>(null)
+  const [showYoutubeInput, setShowYoutubeInput] = useState(false)
+  const [youtubeUrl, setYoutubeUrl] = useState('')
+  const youtubeInputRef = useRef<HTMLInputElement>(null)
 
   const isDirtyRef = useRef(false)
   const [isDirty, setIsDirty] = useState(false)
@@ -97,9 +101,13 @@ export default function ArticleEditor({
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
-      StarterKit,
-      Link.configure({ openOnClick: false }),
+      StarterKit.configure({
+        link: { openOnClick: false },
+      }),
       Image,
+      ...(articleType === 'NEWS'
+        ? [Youtube.configure({ width: 720, height: 405, allowFullscreen: true, nocookie: true, HTMLAttributes: { loading: 'lazy' } })]
+        : []),
     ],
     content: initialData?.content || '',
     editorProps: {
@@ -233,7 +241,15 @@ export default function ArticleEditor({
     try {
       if (mode === 'create' && !currentId) {
         const result = await createArticle(payload, token)
-        setCurrentId((result as any).id)
+        const newId = (result as any).id
+        setCurrentId(newId)
+        // Redirigir a la página de edición para evitar que router.refresh()
+        // remonte el componente (NuevaNoticiaPage es force-dynamic)
+        if (!silent && !publish) {
+          toast.success('Borrador guardado', { id: toastId, duration: 2000 })
+          router.push(`/admin/contenido/${newId}`)
+          return
+        }
       } else {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { type: _t, ...updatePayload } = payload as any
@@ -321,6 +337,14 @@ export default function ArticleEditor({
     else (editor.commands as any).unsetLink()
     setShowLinkInput(false)
     setLinkUrl('')
+  }
+
+  const applyYoutube = () => {
+    if (!editor || !youtubeUrl.trim()) return
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(editor.commands as any).setYoutubeVideo({ src: youtubeUrl.trim() })
+    setShowYoutubeInput(false)
+    setYoutubeUrl('')
   }
 
   const handleBack = () => {
@@ -532,6 +556,36 @@ export default function ArticleEditor({
                 label='"'
                 tooltip="Cita destacada"
               />
+              {articleType === 'NEWS' && (
+                <>
+                  <div className="w-px h-5 bg-[var(--color-border)] mx-1" />
+                  <ToolbarButton
+                    onClick={() => {
+                      setShowYoutubeInput((v) => !v)
+                      setShowLinkInput(false)
+                      setTimeout(() => youtubeInputRef.current?.focus(), 50)
+                    }}
+                    active={showYoutubeInput}
+                    icon={<YoutubeIcon size={14} />}
+                    tooltip="Insertar video de YouTube"
+                  />
+                  {showYoutubeInput && (
+                    <div className="flex items-center gap-1 ml-2">
+                      <input
+                        ref={youtubeInputRef}
+                        type="url"
+                        value={youtubeUrl}
+                        onChange={(e) => setYoutubeUrl(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') applyYoutube(); if (e.key === 'Escape') setShowYoutubeInput(false) }}
+                        placeholder="https://youtube.com/watch?v=..."
+                        className="text-xs px-2 py-1 border border-[var(--color-border)] rounded bg-[var(--color-surface)] focus:outline-none focus:ring-1 focus:ring-primary/30 w-56"
+                      />
+                      <button type="button" onClick={applyYoutube} className="text-primary hover:text-primary-light"><Check size={14} /></button>
+                      <button type="button" onClick={() => setShowYoutubeInput(false)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]"><X size={14} /></button>
+                    </div>
+                  )}
+                </>
+              )}
               <div className="w-px h-5 bg-[var(--color-border)] mx-1" />
               {/* Botón focus con tooltip manual por ser custom */}
               <div className="relative group/tb">
@@ -706,6 +760,23 @@ export default function ArticleEditor({
             label=""
           />
         </SidebarCard>
+
+        {/* Galería de fotos — solo NEWS y en modo edición (necesita articleId) */}
+        {articleType === 'NEWS' && (
+          <SidebarCard title="Galería de Fotos">
+            {currentId ? (
+              <GalleryUploader
+                articleId={currentId}
+                token={token}
+                initialItems={initialData?.media ?? []}
+              />
+            ) : (
+              <p className="text-xs text-[var(--color-text-muted)] text-center py-2">
+                Guardá el artículo primero para agregar fotos a la galería.
+              </p>
+            )}
+          </SidebarCard>
+        )}
 
         {/* Publicación */}
         <SidebarCard title="Publicación">
