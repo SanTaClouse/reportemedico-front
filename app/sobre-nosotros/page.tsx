@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
+import Link from 'next/link'
 import { Newspaper, Globe, Mic2, Smartphone, Mail, Trophy, BarChart3, CheckCircle2, Linkedin } from 'lucide-react'
 import { getCouncilMembers } from '@/lib/api'
 import ScrollReveal from '@/components/ui/ScrollReveal'
@@ -377,6 +378,14 @@ export default async function SobreNosotrosPage() {
               </a>
             </p>
             <p>Av. Simón Bolívar, Edif. Profesional Elam's II, 4to piso, Oficina 4D, Santo Domingo, RD</p>
+            <p className="mt-2">
+              <Link
+                href="/politica-editorial"
+                className="text-[var(--brand-electric)] hover:underline"
+              >
+                Política Editorial
+              </Link>
+            </p>
           </div>
         </div>
       </section>

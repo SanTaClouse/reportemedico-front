@@ -15,6 +15,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/articulos`, priority: 0.9, changeFrequency: 'weekly' },
     { url: `${SITE_URL}/sobre-nosotros`, priority: 0.5, changeFrequency: 'monthly' },
     { url: `${SITE_URL}/ediciones`, priority: 0.5, changeFrequency: 'monthly' },
+    { url: `${SITE_URL}/politica-editorial`, priority: 0.4, changeFrequency: 'yearly' },
   ]
 
   const newsRoutes: MetadataRoute.Sitemap = newsRes.data.map((a) => ({

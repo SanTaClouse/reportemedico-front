@@ -8,6 +8,7 @@ const FOOTER_LINKS = [
   { href: '/guia-medica', label: 'Guía Médica' },
   { href: '/ediciones', label: 'Ediciones' },
   { href: '/sobre-nosotros', label: 'Sobre Nosotros' },
+  { href: '/politica-editorial', label: 'Política Editorial' },
 ]
 
 export default function Footer() {

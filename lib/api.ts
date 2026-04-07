@@ -556,7 +556,7 @@ export interface CouncilMember {
   name: string
   role: string
   photo?: string
-  linkedinUrl?: string
+  profileUrl?: string
   isFeatured: boolean
   isVisible: boolean
   order: number

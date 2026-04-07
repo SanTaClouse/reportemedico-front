@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Linkedin, BookOpen, Users } from 'lucide-react'
+import { BookOpen, Users, ArrowUpRight } from 'lucide-react'
 import { getCouncilMembers } from '@/lib/api'
 import type { CouncilMember } from '@/lib/api'
 import { cldUrl } from '@/lib/cloudinary'
@@ -173,10 +173,18 @@ export default async function ConsejoMedicoPage() {
 }
 
 function MemberCard({ member }: { member: CouncilMember }) {
+  const hasProfile = !!member.profileUrl
+
   const card = (
-    <div className="group flex flex-col items-center text-center gap-3 p-4 rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] hover:border-[var(--brand-gold)] hover:shadow-md transition-all duration-200 cursor-default">
+    <div className={`group flex flex-col items-center text-center gap-3 p-4 rounded-2xl bg-[var(--color-surface)] border transition-all duration-200 ${
+      hasProfile
+        ? 'border-[var(--color-border)] hover:border-[var(--brand-gold)] hover:shadow-md cursor-pointer'
+        : 'border-[var(--color-border)] cursor-default'
+    }`}>
       {/* Foto */}
-      <div className="relative w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden bg-[var(--color-surface-3)] flex-shrink-0 ring-2 ring-[var(--color-border)] group-hover:ring-[var(--brand-gold)] transition-all">
+      <div className={`relative w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden bg-[var(--color-surface-3)] flex-shrink-0 ring-2 transition-all ${
+        hasProfile ? 'ring-[var(--color-border)] group-hover:ring-[var(--brand-gold)]' : 'ring-[var(--color-border)]'
+      }`}>
         {member.photo ? (
           <Image
             src={cldUrl(member.photo, { w: 224, h: 224 })}
@@ -204,24 +212,31 @@ function MemberCard({ member }: { member: CouncilMember }) {
         </p>
       </div>
 
-      {/* LinkedIn */}
-      {member.linkedinUrl && (
-        <Linkedin
-          size={14}
-          strokeWidth={1.5}
-          className="text-[var(--brand-electric)] opacity-0 group-hover:opacity-100 transition-opacity"
-        />
+      {/* CTA Instagram — solo si tiene perfil */}
+      {hasProfile && (
+        <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-primary)] opacity-0 group-hover:opacity-100 transition-opacity">
+          {/* Instagram SVG */}
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+            <circle cx="12" cy="12" r="4"/>
+            <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+          </svg>
+          Ver en Instagram
+          <ArrowUpRight size={10} strokeWidth={2} />
+        </span>
       )}
     </div>
   )
 
-  if (member.linkedinUrl) {
+  if (hasProfile) {
     return (
       <a
-        href={member.linkedinUrl}
+        href={member.profileUrl}
         target="_blank"
         rel="noopener noreferrer"
+        aria-label={`Ver perfil de ${member.name} en Instagram`}
         className="block"
+        title={`Ver perfil de ${member.name} en Instagram`}
       >
         {card}
       </a>

@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { toast } from 'sonner'
 import {
   Plus, Pencil, Trash2, Star, StarOff, Eye, EyeOff,
-  X, Upload, Loader2, Users, GripVertical, Linkedin
+  X, Upload, Loader2, Users, GripVertical
 } from 'lucide-react'
 import {
   createCouncilMember,
@@ -25,7 +25,7 @@ const EMPTY_FORM = {
   name: '',
   role: '',
   photo: '',
-  linkedinUrl: '',
+  profileUrl: '',
   isFeatured: false,
   isVisible: true,
   order: 0,
@@ -53,7 +53,7 @@ export default function ConsejoMedicoClient({ initialMembers, token }: Props) {
       name: m.name,
       role: m.role,
       photo: m.photo ?? '',
-      linkedinUrl: m.linkedinUrl ?? '',
+      profileUrl: m.profileUrl ?? '',
       isFeatured: m.isFeatured,
       isVisible: m.isVisible,
       order: m.order,
@@ -93,7 +93,7 @@ export default function ConsejoMedicoClient({ initialMembers, token }: Props) {
         name: form.name.trim(),
         role: form.role.trim(),
         photo: form.photo || undefined,
-        linkedinUrl: form.linkedinUrl.trim() || undefined,
+        profileUrl: form.profileUrl.trim() || undefined,
         isFeatured: form.isFeatured,
         isVisible: form.isVisible,
         order: form.order,
@@ -293,9 +293,9 @@ export default function ConsejoMedicoClient({ initialMembers, token }: Props) {
                 <p className="text-[10px] text-[var(--color-text-muted)] mt-0.5 leading-snug">{m.role}</p>
               </div>
 
-              {m.linkedinUrl && (
-                <a href={m.linkedinUrl} target="_blank" rel="noopener noreferrer" className="opacity-40 hover:opacity-100 transition-opacity">
-                  <Linkedin size={12} className="text-blue-600" />
+              {m.profileUrl && (
+                <a href={m.profileUrl} target="_blank" rel="noopener noreferrer" className="opacity-40 hover:opacity-100 transition-opacity text-[10px] text-[var(--color-text-muted)] underline">
+                  perfil
                 </a>
               )}
 
@@ -387,16 +387,16 @@ export default function ConsejoMedicoClient({ initialMembers, token }: Props) {
                 />
               </div>
 
-              {/* LinkedIn */}
+              {/* URL de perfil */}
               <div>
                 <label className="block text-xs font-medium text-[var(--color-text-secondary)] mb-1">
                   URL Perfil (opcional)
                 </label>
                 <input
                   type="url"
-                  value={form.linkedinUrl}
-                  onChange={(e) => setForm((f) => ({ ...f, linkedinUrl: e.target.value }))}
-                  placeholder="https://linkedin.com/in/..."
+                  value={form.profileUrl}
+                  onChange={(e) => setForm((f) => ({ ...f, profileUrl: e.target.value }))}
+                  placeholder="https://instagram.com/..."
                   className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30"
                 />
               </div>
