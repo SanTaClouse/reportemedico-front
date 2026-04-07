@@ -58,6 +58,11 @@ export const metadata: Metadata = {
     languages: {
       'es-DO': '/',
     },
+    types: {
+      'application/rss+xml': [
+        { url: '/rss.xml', title: 'Reporte Médico — Últimas noticias' },
+      ],
+    },
   },
   openGraph: {
     siteName: 'Reporte Médico',

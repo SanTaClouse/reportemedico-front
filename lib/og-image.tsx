@@ -22,6 +22,26 @@ function truncate(str: string, max: number): string {
   return str.slice(0, max - 1).trimEnd() + '…'
 }
 
+/**
+ * Convierte una URL de Cloudinary en una variante que Satori (next/og)
+ * pueda decodificar SIEMPRE: JPG forzado, sin f_auto, dimensiones fijas.
+ *
+ * Satori solo soporta PNG y JPEG — si Cloudinary sirve WebP/AVIF (que es lo
+ * default con f_auto), la generación de la OG image falla silenciosamente y
+ * Next.js cae al fallback del padre (que en nuestro caso es solo el logo).
+ */
+function toOgSafeImageUrl(src: string | null | undefined): string | null {
+  if (!src) return null
+  if (!src.includes('res.cloudinary.com') || !src.includes('/upload/')) {
+    // Imagen externa: la pasamos tal cual y confiamos en que sea jpg/png
+    return src
+  }
+  // Eliminar transformaciones previas que pudiéramos haber inyectado
+  const cleaned = src.replace(/\/upload\/(?:[^/]*[cwhgqf]_[^/]*\/)+/, '/upload/')
+  const transform = 'c_fill,g_auto:faces,w_960,h_1260,q_auto:good,f_jpg'
+  return cleaned.replace('/upload/', `/upload/${transform}/`)
+}
+
 interface RenderOptions {
   article: Article
   kind: 'Noticia' | 'Artículo médico'
@@ -35,7 +55,8 @@ export async function renderArticleOgImage({ article, kind }: RenderOptions) {
   const logoSrc = await getLogoDataUri()
   const title = truncate(article.title, 110)
   const tagName = article.tags?.[0]?.tag?.name
-  const hasImage = Boolean(article.featuredImage)
+  const ogImageUrl = toOgSafeImageUrl(article.featuredImage)
+  const hasImage = Boolean(ogImageUrl)
 
   return new ImageResponse(
     (
@@ -62,7 +83,7 @@ export async function renderArticleOgImage({ article, kind }: RenderOptions) {
           {hasImage && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={article.featuredImage as string}
+              src={ogImageUrl as string}
               alt=""
               width={480}
               height={630}
@@ -173,7 +194,7 @@ export async function renderArticleOgImage({ article, kind }: RenderOptions) {
             }}
           >
             <span style={{ color: '#0A7B4B', fontWeight: 600 }}>
-              Por {article.authorName}
+              Por {article.authorName?.trim() || 'Redacción Reporte Médico'}
             </span>
             <span>·</span>
             <span>reportemedico.com</span>

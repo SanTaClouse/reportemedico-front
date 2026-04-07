@@ -29,6 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const url = `/noticias/${params.slug}`
     const tagNames = article.tags?.map(({ tag }) => tag.name) ?? []
     const section = tagNames[0] || 'Salud'
+    const authorDisplayName = article.authorName?.trim() || 'Redacción Reporte Médico'
 
     return {
       title,
@@ -42,7 +43,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         type: 'article',
         publishedTime: article.publishedAt || article.createdAt,
         modifiedTime: article.updatedAt,
-        authors: [article.authorName],
+        authors: [authorDisplayName],
         section,
         tags: tagNames,
       },
@@ -51,7 +52,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         title,
         description,
       },
-      authors: [{ name: article.authorName }],
+      authors: [{ name: authorDisplayName }],
       keywords: tagNames.length > 0 ? tagNames : undefined,
       alternates: {
         canonical: url,
@@ -101,6 +102,10 @@ export default async function NoticiaPage({ params }: Props) {
   const tagNames = article.tags?.map(({ tag }) => tag.name) ?? []
   const plainText = article.content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
   const wordCount = plainText ? plainText.split(' ').length : undefined
+  const authorDisplayName = article.authorName?.trim() || 'Redacción Reporte Médico'
+  const publishedIso = article.publishedAt || article.createdAt
+  const modifiedIso = article.updatedAt || publishedIso
+  const wasUpdated = Boolean(article.updatedAt) && article.updatedAt !== publishedIso
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -117,11 +122,11 @@ export default async function NoticiaPage({ params }: Props) {
           },
         ]
       : undefined,
-    datePublished: article.publishedAt || article.createdAt,
-    dateModified: article.updatedAt || article.publishedAt || article.createdAt,
+    datePublished: publishedIso,
+    dateModified: modifiedIso,
     author: {
       '@type': 'Person',
-      name: article.authorName,
+      name: authorDisplayName,
     },
     publisher: {
       '@type': 'Organization',
@@ -185,10 +190,16 @@ export default async function NoticiaPage({ params }: Props) {
           </p>
         )}
 
-        <div className="flex items-center gap-3 text-sm text-[var(--color-text-muted)] mb-8 pb-6 border-b border-[var(--color-border)]">
-          <span>Por <strong className="text-[var(--color-text-secondary)]">{article.authorName}</strong></span>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[var(--color-text-muted)] mb-8 pb-6 border-b border-[var(--color-border)]">
+          <span>Por <strong className="text-[var(--color-text-secondary)]">{authorDisplayName}</strong></span>
           <span>·</span>
-          <span>{formatDate(article.publishedAt || article.createdAt)}</span>
+          <time dateTime={publishedIso}>Publicado: {formatDate(publishedIso)}</time>
+          {wasUpdated && (
+            <>
+              <span>·</span>
+              <time dateTime={modifiedIso}>Actualizado: {formatDate(modifiedIso)}</time>
+            </>
+          )}
           <span>·</span>
           <span>{minutes} min de lectura</span>
         </div>
