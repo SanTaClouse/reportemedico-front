@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Analytics } from '@vercel/analytics/react'
 import { Playfair_Display, DM_Sans, Source_Serif_4 } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
@@ -150,6 +151,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Footer />
           <AdminFab />
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   )
