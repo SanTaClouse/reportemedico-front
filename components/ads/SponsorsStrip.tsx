@@ -61,7 +61,7 @@ export default function SponsorsStrip({ ads, className = '' }: SponsorsStripProp
           >
             {/* Logo: gris por defecto → color al hover, con transición suave */}
             <div
-              className="relative grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-500 ease-out"
+              className="relative opacity-70 hover:grayscale-0 hover:opacity-100 hover:scale-105 transition-[opacity,filter,transform] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]"
               style={{ width: '180px', height: '68px' }}
             >
               <Image
@@ -70,7 +70,6 @@ export default function SponsorsStrip({ ads, className = '' }: SponsorsStripProp
                 fill
                 sizes="180px"
                 className="object-contain"
-                priority={false}
               />
             </div>
           </a>
