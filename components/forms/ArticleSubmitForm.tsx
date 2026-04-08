@@ -107,6 +107,19 @@ export default function ArticleSubmitForm({ tags }: ArticleSubmitFormProps) {
     }))
   }
 
+  /**
+   * Convierte texto plano del textarea a HTML compatible con TipTap.
+   * Párrafos separados por línea en blanco → <p>...</p>
+   * Saltos de línea simples → <br> dentro del párrafo
+   */
+  const plainToHtml = (text: string): string =>
+    text
+      .split(/\n{2,}/)
+      .map((block) => block.trim())
+      .filter(Boolean)
+      .map((block) => `<p>${block.replace(/\n/g, '<br>')}</p>`)
+      .join('')
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
@@ -117,7 +130,7 @@ export default function ArticleSubmitForm({ tags }: ArticleSubmitFormProps) {
         title: form.title,
         authorName: form.authorName,
         featuredImage: form.featuredImage || undefined,
-        content: form.content,
+        content: plainToHtml(form.content),
         excerpt: form.excerpt || undefined,
         tagIds: form.tagIds.length > 0 ? form.tagIds : undefined,
         suggestedSpecialties: suggestedSpecialties.length > 0 ? suggestedSpecialties : undefined,
@@ -264,7 +277,7 @@ export default function ArticleSubmitForm({ tags }: ArticleSubmitFormProps) {
           placeholder="Escribe aquí el contenido de tu artículo..."
         />
         <p className="text-xs text-[var(--color-text-muted)] mt-1">
-          El editor enriquecido está disponible para médicos registrados.
+          Separá los párrafos con una línea en blanco (Enter dos veces). El formato se preservará al revisarlo.
         </p>
       </div>
 

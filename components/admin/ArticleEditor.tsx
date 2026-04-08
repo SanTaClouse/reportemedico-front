@@ -23,9 +23,9 @@ import { useRouter } from 'next/navigation'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
-import Youtube from '@tiptap/extension-youtube'
-import { createArticle, updateArticle, setArticleStatus, getTagsAdmin, createTag, checkTagExists, RELEVANCE_LIMITS, RELEVANCE_LABELS, type Tag } from '@/lib/api'
-import { ArrowLeft, RefreshCw, Bold, Italic, Link2, List, HelpCircle, Check, X, Maximize2, Minimize2, Youtube as YoutubeIcon } from 'lucide-react'
+import { Youtube } from '@tiptap/extension-youtube'
+import { createArticle, updateArticle, getTagsAdmin, createTag, checkTagExists, RELEVANCE_LIMITS, RELEVANCE_LABELS, type Tag } from '@/lib/api'
+import { ArrowLeft, RefreshCw, Bold, Italic, Link2, List, HelpCircle, Check, X, Maximize2, Minimize2, Video } from 'lucide-react'
 import { toast } from 'sonner'
 import ImageUploader from '@/components/ui/ImageUploader'
 import GalleryUploader from '@/components/admin/GalleryUploader'
@@ -54,7 +54,6 @@ export default function ArticleEditor({
   relevanceCounts = {},
 }: ArticleEditorProps) {
   const router = useRouter()
-  const autosaveRef = useRef<NodeJS.Timeout | null>(null)
   const savedAtRef = useRef<Date | null>(null)
 
   const [form, setForm] = useState({
@@ -105,9 +104,7 @@ export default function ArticleEditor({
         link: { openOnClick: false },
       }),
       Image,
-      ...(articleType === 'NEWS'
-        ? [Youtube.configure({ width: 720, height: 405, allowFullscreen: true, nocookie: true, HTMLAttributes: { loading: 'lazy' } })]
-        : []),
+      Youtube.configure({ width: 720, height: 405, allowFullscreen: true, nocookie: true, HTMLAttributes: { loading: 'lazy' } }),
     ],
     content: initialData?.content || '',
     editorProps: {
@@ -323,7 +320,6 @@ export default function ArticleEditor({
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
       if (!isDirtyRef.current) return
       e.preventDefault()
-      e.returnValue = ''
     }
     window.addEventListener('beforeunload', onBeforeUnload)
     return () => window.removeEventListener('beforeunload', onBeforeUnload)
@@ -556,36 +552,34 @@ export default function ArticleEditor({
                 label='"'
                 tooltip="Cita destacada"
               />
-              {articleType === 'NEWS' && (
-                <>
-                  <div className="w-px h-5 bg-[var(--color-border)] mx-1" />
-                  <ToolbarButton
-                    onClick={() => {
-                      setShowYoutubeInput((v) => !v)
-                      setShowLinkInput(false)
-                      setTimeout(() => youtubeInputRef.current?.focus(), 50)
-                    }}
-                    active={showYoutubeInput}
-                    icon={<YoutubeIcon size={14} />}
-                    tooltip="Insertar video de YouTube"
-                  />
-                  {showYoutubeInput && (
-                    <div className="flex items-center gap-1 ml-2">
-                      <input
-                        ref={youtubeInputRef}
-                        type="url"
-                        value={youtubeUrl}
-                        onChange={(e) => setYoutubeUrl(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === 'Enter') applyYoutube(); if (e.key === 'Escape') setShowYoutubeInput(false) }}
-                        placeholder="https://youtube.com/watch?v=..."
-                        className="text-xs px-2 py-1 border border-[var(--color-border)] rounded bg-[var(--color-surface)] focus:outline-none focus:ring-1 focus:ring-primary/30 w-56"
-                      />
-                      <button type="button" onClick={applyYoutube} className="text-primary hover:text-primary-light"><Check size={14} /></button>
-                      <button type="button" onClick={() => setShowYoutubeInput(false)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]"><X size={14} /></button>
-                    </div>
-                  )}
-                </>
-              )}
+              <>
+                <div className="w-px h-5 bg-[var(--color-border)] mx-1" />
+                <ToolbarButton
+                  onClick={() => {
+                    setShowYoutubeInput((v) => !v)
+                    setShowLinkInput(false)
+                    setTimeout(() => youtubeInputRef.current?.focus(), 50)
+                  }}
+                  active={showYoutubeInput}
+                  icon={<Video size={14} />}
+                  tooltip="Insertar video de YouTube"
+                />
+                {showYoutubeInput && (
+                  <div className="flex items-center gap-1 ml-2">
+                    <input
+                      ref={youtubeInputRef}
+                      type="url"
+                      value={youtubeUrl}
+                      onChange={(e) => setYoutubeUrl(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') applyYoutube(); if (e.key === 'Escape') setShowYoutubeInput(false) }}
+                      placeholder="https://youtube.com/watch?v=..."
+                      className="text-xs px-2 py-1 border border-[var(--color-border)] rounded bg-[var(--color-surface)] focus:outline-none focus:ring-1 focus:ring-primary/30 w-56"
+                    />
+                    <button type="button" onClick={applyYoutube} className="text-primary hover:text-primary-light"><Check size={14} /></button>
+                    <button type="button" onClick={() => setShowYoutubeInput(false)} className="text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]"><X size={14} /></button>
+                  </div>
+                )}
+              </>
               <div className="w-px h-5 bg-[var(--color-border)] mx-1" />
               {/* Botón focus con tooltip manual por ser custom */}
               <div className="relative group/tb">
@@ -761,22 +755,20 @@ export default function ArticleEditor({
           />
         </SidebarCard>
 
-        {/* Galería de fotos — solo NEWS y en modo edición (necesita articleId) */}
-        {articleType === 'NEWS' && (
-          <SidebarCard title="Galería de Fotos">
-            {currentId ? (
-              <GalleryUploader
-                articleId={currentId}
-                token={token}
-                initialItems={initialData?.media ?? []}
-              />
-            ) : (
-              <p className="text-xs text-[var(--color-text-muted)] text-center py-2">
-                Guardá el artículo primero para agregar fotos a la galería.
-              </p>
-            )}
-          </SidebarCard>
-        )}
+        {/* Galería de fotos — disponible para todos los tipos, en modo edición (necesita articleId) */}
+        <SidebarCard title="Galería de Fotos">
+          {currentId ? (
+            <GalleryUploader
+              articleId={currentId}
+              token={token}
+              initialItems={initialData?.media ?? []}
+            />
+          ) : (
+            <p className="text-xs text-[var(--color-text-muted)] text-center py-2">
+              Guardá el artículo primero para agregar fotos a la galería.
+            </p>
+          )}
+        </SidebarCard>
 
         {/* Publicación */}
         <SidebarCard title="Publicación">

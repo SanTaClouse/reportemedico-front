@@ -8,6 +8,7 @@ import { cldUrl } from '@/lib/cloudinary'
 import ArticleBody from '@/components/article/ArticleBody'
 import ArticleShare from '@/components/article/ArticleShare'
 import ArticleSources from '@/components/article/ArticleSources'
+import ArticleGallery from '@/components/article/ArticleGallery'
 import RelatedArticles from '@/components/article/RelatedArticles'
 import TagBadge from '@/components/ui/TagBadge'
 import ViewsCounter from '@/components/article/ViewsCounter'
@@ -233,6 +234,10 @@ export default async function ArticuloPage({ params }: Props) {
 
         {article.sources && article.sources.length > 0 && (
           <ArticleSources sources={article.sources} />
+        )}
+
+        {article.media && article.media.length > 0 && (
+          <ArticleGallery items={article.media} />
         )}
       </div>
 
