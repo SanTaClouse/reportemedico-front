@@ -81,9 +81,9 @@ export default async function OpengraphImage() {
           <img
             src={logoSrc}
             alt="Reporte Médico"
-            width={420}
-            height={140}
-            style={{ objectFit: 'contain', objectPosition: 'left center' }}
+            width={500}
+            height={167}
+            style={{ objectFit: 'contain', objectPosition: 'left center', marginBottom: 90 }}
           />
         ) : (
           <div
@@ -104,7 +104,6 @@ export default async function OpengraphImage() {
           style={{
             display: 'flex',
             flexDirection: 'column',
-            marginTop: 'auto',
           }}
         >
           <div
