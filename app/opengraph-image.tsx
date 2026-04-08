@@ -47,7 +47,7 @@ export default async function OpengraphImage() {
           flexDirection: 'column',
           background:
             'linear-gradient(135deg, #0d256c 0%, #071e61 55%, #09297f 100%)',
-          padding: '30px',
+          padding: '80px',
           position: 'relative',
         }}
       >
@@ -81,9 +81,9 @@ export default async function OpengraphImage() {
           <img
             src={logoSrc}
             alt="Reporte Médico"
-            width={260}
-            height={80}
-            style={{ objectFit: 'contain' }}
+            width={420}
+            height={140}
+            style={{ objectFit: 'contain', objectPosition: 'left center' }}
           />
         ) : (
           <div
