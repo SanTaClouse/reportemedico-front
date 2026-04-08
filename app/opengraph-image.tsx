@@ -13,7 +13,7 @@ async function loadLogo(): Promise<string | null> {
   // Intento 1 — filesystem (rápido en local/standalone)
   try {
     const buffer = await readFile(
-      join(process.cwd(), 'public/media/Logo-Blanco-y-amarillo-sin-fondo-300-100-para-opengraph.png'),
+      join(process.cwd(), 'public/media/Logo-Blanco-y-amarillo-sin-fondo-1000-334-para-opengraph.png'),
     )
     return `data:image/png;base64,${buffer.toString('base64')}`
   } catch (err) {
@@ -21,7 +21,7 @@ async function loadLogo(): Promise<string | null> {
   }
   // Intento 2 — fetch público (caso Vercel donde public/ no está en el bundle)
   try {
-    const res = await fetch(`${SITE_URL}/media/Logo-Blanco-y-amarillo-sin-fondo-300-100-para-opengraph.png`, {
+    const res = await fetch(`${SITE_URL}/media/Logo-Blanco-y-amarillo-sin-fondo-1000-334-para-opengraph.png`, {
       next: { revalidate: 86400 },
       signal: AbortSignal.timeout(5000),
     })
@@ -47,7 +47,7 @@ export default async function OpengraphImage() {
           flexDirection: 'column',
           background:
             'linear-gradient(135deg, #0d256c 0%, #071e61 55%, #09297f 100%)',
-          padding: '80px',
+          padding: '60px',
           position: 'relative',
         }}
       >
@@ -83,7 +83,7 @@ export default async function OpengraphImage() {
             alt="Reporte Médico"
             width={500}
             height={167}
-            style={{ objectFit: 'contain', objectPosition: 'left center', marginBottom: 90 }}
+            style={{ objectFit: 'contain', objectPosition: 'left center', marginBottom: 60 }}
           />
         ) : (
           <div
