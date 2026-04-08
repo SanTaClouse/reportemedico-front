@@ -88,7 +88,9 @@ export default async function HomePage() {
         </ScrollReveal>
       </div>
 
-      <AdSlotRenderer position="banner_home_5" className="max-w-site mx-auto px-4 md:px-6" />
+      <div className="w-full bg-[var(--color-surface-2)] pb-5">
+        <AdSlotRenderer position="banner_home_5" className="max-w-site mx-auto px-4 md:px-6" />
+      </div>
 
       {editions.length > 0 && (
         <div id="sec-ediciones">
@@ -97,6 +99,8 @@ export default async function HomePage() {
           </ScrollReveal>
         </div>
       )}
+
+      <AdSlotRenderer position="banner_home_6" className="max-w-site mx-auto px-4 md:px-6 mt-6" />
 
       <div id="sec-nosotros">
         <ScrollReveal>

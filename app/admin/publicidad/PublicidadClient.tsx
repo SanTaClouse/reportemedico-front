@@ -34,6 +34,8 @@ const HOMEPAGE_LAYOUT: LayoutItem[] = [
   { type: 'section', label: 'PODCAST' },
   { type: 'banner', slotName: 'banner_home_5', label: 'Banner 5' },
   { type: 'section', label: 'EDICIONES IMPRESAS' },
+  { type: 'banner', slotName: 'banner_home_6', label: 'Banner 6' },
+  { type: 'section', label: 'SOBRE NOSOTROS' },
 ]
 
 interface Props {
@@ -393,23 +395,21 @@ export default function PublicidadClient({ initialAds, initialSlots, token }: Pr
                       : 'border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-primary)]/40'
                       }`}
                   >
-                    {/* Header: toggle de modo + estado */}
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-1.5">
-                        {!slot && <span className="text-[10px] text-amber-500 italic">slot no encontrado — corré el seed</span>}
-                        {isAssigning && <Loader2 size={11} className="animate-spin text-[var(--color-primary)]" />}
-                      </div>
+                    {/* Overlay: selector de modo + spinner — no ocupa espacio vertical */}
+                    <div className="absolute top-1.5 right-1.5 z-10 flex items-center gap-1.5">
+                      {isAssigning && <Loader2 size={11} className="animate-spin text-[var(--color-primary)]" />}
+                      {!slot && <span className="text-[10px] text-amber-500 italic bg-[var(--color-surface)]/90 px-1.5 py-0.5 rounded">slot no encontrado — corré el seed</span>}
                       {slot && (
-                        <div className="flex overflow-hidden rounded-md border border-[var(--color-border)] text-[10px] font-semibold select-none">
+                        <div className="flex overflow-hidden rounded-md border border-[var(--color-border)] text-[10px] font-semibold select-none bg-[var(--color-surface)]/90 backdrop-blur">
                           <button
                             onClick={() => handleSetDisplayMode(item.slotName, 'SINGLE')}
-                            className={`px-2.5 py-0.5 transition-colors ${(slot.displayMode ?? 'SINGLE') === 'SINGLE' ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-surface-2)] text-[var(--color-text-muted)] hover:bg-[var(--color-border)]'}`}
+                            className={`px-2.5 py-0.5 transition-colors ${(slot.displayMode ?? 'SINGLE') === 'SINGLE' ? 'bg-[var(--color-primary)] text-white' : 'bg-transparent text-[var(--color-text-muted)] hover:bg-[var(--color-border)]'}`}
                           >
                             Banner
                           </button>
                           <button
                             onClick={() => handleSetDisplayMode(item.slotName, 'STRIP')}
-                            className={`px-2.5 py-0.5 border-l border-[var(--color-border)] transition-colors ${slot.displayMode === 'STRIP' ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-surface-2)] text-[var(--color-text-muted)] hover:bg-[var(--color-border)]'}`}
+                            className={`px-2.5 py-0.5 border-l border-[var(--color-border)] transition-colors ${slot.displayMode === 'STRIP' ? 'bg-[var(--color-primary)] text-white' : 'bg-transparent text-[var(--color-text-muted)] hover:bg-[var(--color-border)]'}`}
                           >
                             Strip
                           </button>
