@@ -27,7 +27,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       article.seoMetadata?.metaDescription ||
       article.excerpt ||
       `${article.title} — Noticia de Reporte Médico.`
-    const url = `/noticias/${params.slug}`
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://reportemedico.com'
+    const url = `${siteUrl}/noticias/${params.slug}`
     const tagNames = article.tags?.map(({ tag }) => tag.name) ?? []
     const section = tagNames[0] || 'Salud'
     const authorDisplayName = article.authorName?.trim() || 'Redacción Reporte Médico'
