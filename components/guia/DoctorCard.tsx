@@ -9,10 +9,11 @@ interface Props {
   doctor: PublicDoctorCard
   source: 'search-card' | 'clinic-page'
   highlightInsurance?: string // slug del seguro filtrado → chip resaltado
+  distanceKm?: number | null  // "a X km" con geolocalización activa (05 §4)
 }
 
 /** Card de médico para listados (programáticas, clínica, búsqueda) — 05 §6 */
-export default function DoctorCard({ doctor, source, highlightInsurance }: Props) {
+export default function DoctorCard({ doctor, source, highlightInsurance, distanceKm }: Props) {
   const fullName = `${doctor.title ?? ''} ${doctor.firstName} ${doctor.lastName}`.trim()
   const mainClinic = doctor.clinics[0]
 
@@ -61,6 +62,11 @@ export default function DoctorCard({ doctor, source, highlightInsurance }: Props
             <MapPin size={11} className="shrink-0" />
             {mainClinic.name}, {mainClinic.city.name}
             {doctor.clinics.length > 1 && ` +${doctor.clinics.length - 1}`}
+            {typeof distanceKm === 'number' && (
+              <span className="ml-1 px-1.5 py-0.5 rounded bg-[var(--color-primary-pale,#e8edf8)] text-[var(--color-primary)] font-semibold">
+                a {distanceKm} km
+              </span>
+            )}
           </p>
         )}
 

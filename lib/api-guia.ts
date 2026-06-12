@@ -340,6 +340,46 @@ export const getCityBySlugPublic = (slug: string) =>
 export const getClinicBySlugPublic = (slug: string) =>
   apiFetch<Clinic>(`/clinics/${slug}`, { next: { revalidate: 3600 } })
 
+export interface SearchResult {
+  items: (PublicDoctorCard & { distanceKm?: number | null })[]
+  total: number
+  page: number
+  limit: number
+}
+
+export interface SuggestItem {
+  type: 'doctor' | 'clinic'
+  slug: string
+  label: string
+  sublabel?: string | null
+  photoUrl?: string | null
+}
+
+export interface SearchFilters {
+  seguro?: string
+  especialidad?: string
+  ciudad?: string
+  q?: string
+  modalidad?: string
+  lat?: string
+  lng?: string
+  page?: string
+}
+
+/** Búsqueda de resultados (SSR) — los params viajan tal cual en la URL (05 §2) */
+export function searchDoctors(filters: SearchFilters) {
+  const qs = new URLSearchParams()
+  for (const [key, value] of Object.entries(filters)) {
+    if (value) qs.set(key, value)
+  }
+  return apiFetch<SearchResult>(`/doctors/search?${qs}`, { cache: 'no-store' })
+}
+
+/** Typeahead del buscador (cliente, debounced) */
+export function suggestDoctors(q: string) {
+  return apiFetch<SuggestItem[]>(`/doctors/suggest?q=${encodeURIComponent(q)}`, { cache: 'no-store' })
+}
+
 /** Registro de clic de WhatsApp (fire-and-forget desde el browser) */
 export function trackWhatsAppClick(doctorId: string, source: 'profile' | 'search-card' | 'clinic-page') {
   return fetch(`${API_URL}/engagement/whatsapp-click`, {
