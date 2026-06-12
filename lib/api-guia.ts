@@ -273,11 +273,82 @@ export const removeDoctorBenefit = (id: string, benefitId: string, token: string
 
 // ─── MÉDICOS — PÚBLICO ────────────────────────────────
 
+/** Card pública (sin plan ni campos internos — el plan es invisible al paciente) */
+export interface PublicDoctorCard {
+  id: string
+  slug: string
+  title?: string | null
+  firstName: string
+  lastName: string
+  photoUrl?: string | null
+  isVerified: boolean
+  telehealth: boolean
+  languages: string[]
+  phonePublic?: string | null
+  excerpt?: string | null
+  specialties: { slug: string; name: string }[]
+  clinics: {
+    slug: string
+    name: string
+    address: string
+    latitude: number
+    longitude: number
+    schedule?: string | null
+    city: { slug: string; name: string }
+  }[]
+  insurances: { slug: string; name: string }[]
+}
+
+export type PublicDoctorProfile = Omit<Doctor, 'phoneInternal' | 'planNotes' | 'auth0Sub' | 'email' | 'plan'> & {
+  related: PublicDoctorCard[]
+}
+
+export interface SpecialtyArticle {
+  id: string
+  title: string
+  slug: string
+  excerpt?: string | null
+  featuredImage?: string | null
+  publishedAt?: string | null
+  type: 'NEWS' | 'MEDICAL_ARTICLE'
+  authorName: string
+}
+
 export const getDoctorBySlug = (slug: string) =>
-  apiFetch<Doctor>(`/doctors/slug/${slug}`, { next: { revalidate: 3600 } })
+  apiFetch<PublicDoctorProfile>(`/doctors/slug/${slug}`, { next: { revalidate: 3600 } })
 
 export const getIndexableCombinations = () =>
   apiFetch<IndexableCombinations>('/doctors/indexable', { next: { revalidate: 600 } })
+
+export function getPublicDoctors(filters: { specialty?: string; city?: string; clinic?: string }) {
+  const qs = new URLSearchParams()
+  if (filters.specialty) qs.set('specialty', filters.specialty)
+  if (filters.city) qs.set('city', filters.city)
+  if (filters.clinic) qs.set('clinic', filters.clinic)
+  return apiFetch<PublicDoctorCard[]>(`/doctors/public-list?${qs}`, { next: { revalidate: 3600 } })
+}
+
+export const getSpecialtyBySlug = (slug: string) =>
+  apiFetch<Specialty>(`/specialties/${slug}`, { next: { revalidate: 3600 } })
+
+export const getSpecialtyArticles = (slug: string, limit = 4) =>
+  apiFetch<SpecialtyArticle[]>(`/specialties/${slug}/articles?limit=${limit}`, { next: { revalidate: 600 } })
+
+export const getCityBySlugPublic = (slug: string) =>
+  apiFetch<City & { clinics: Clinic[] }>(`/cities/${slug}`, { next: { revalidate: 3600 } })
+
+export const getClinicBySlugPublic = (slug: string) =>
+  apiFetch<Clinic>(`/clinics/${slug}`, { next: { revalidate: 3600 } })
+
+/** Registro de clic de WhatsApp (fire-and-forget desde el browser) */
+export function trackWhatsAppClick(doctorId: string, source: 'profile' | 'search-card' | 'clinic-page') {
+  return fetch(`${API_URL}/engagement/whatsapp-click`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ doctorId, source }),
+    keepalive: true,
+  }).catch(() => undefined)
+}
 
 // ─── MEDIA ────────────────────────────────────────────
 

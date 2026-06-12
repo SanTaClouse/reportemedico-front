@@ -1,12 +1,17 @@
 import type { MetadataRoute } from 'next'
 import { getNews, getMedicalArticles } from '@/lib/api'
+import { getIndexableCombinations, getPublicDoctors } from '@/lib/api-guia'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://reportemedico.com'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [newsRes, medicalRes] = await Promise.all([
+  const [newsRes, medicalRes, combos, publishedDoctors] = await Promise.all([
     getNews(1).catch(() => ({ data: [] })),
     getMedicalArticles(1).catch(() => ({ data: [] })),
+    // UMBRAL P7: el sitemap SOLO incluye combinaciones con ≥1 médico publicado.
+    // getIndexableCombinations() es la única fuente de verdad (03 §1).
+    getIndexableCombinations().catch(() => ({ specialties: [], cities: [], clinics: [], pairs: [] })),
+    getPublicDoctors({}).catch(() => []),
   ])
 
   const staticRoutes: MetadataRoute.Sitemap = [
@@ -32,5 +37,47 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency: 'monthly',
   }))
 
-  return [...staticRoutes, ...newsRoutes, ...medicalRoutes]
+  // ─── Guía Médica (V2) — solo entidades indexables según P7 ───
+
+  const hasGuide = publishedDoctors.length > 0
+
+  const guideRoutes: MetadataRoute.Sitemap = hasGuide
+    ? [{ url: `${SITE_URL}/guia-medica`, priority: 0.9, changeFrequency: 'daily' as const }]
+    : []
+
+  const doctorRoutes: MetadataRoute.Sitemap = publishedDoctors.map((d) => ({
+    url: `${SITE_URL}/medico/${d.slug}`,
+    priority: 0.8,
+    changeFrequency: 'weekly',
+  }))
+
+  const specialtyRoutes: MetadataRoute.Sitemap = combos.specialties.map((s) => ({
+    url: `${SITE_URL}/guia-medica/${s.slug}`,
+    priority: 0.7,
+    changeFrequency: 'weekly',
+  }))
+
+  const cityRoutes: MetadataRoute.Sitemap = combos.cities.map((c) => ({
+    url: `${SITE_URL}/guia-medica/ciudad/${c.slug}`,
+    priority: 0.6,
+    changeFrequency: 'weekly',
+  }))
+
+  // La búsqueda real: "cardiólogo en santo domingo" — la página más valiosa
+  const pairRoutes: MetadataRoute.Sitemap = combos.pairs.map((p) => ({
+    url: `${SITE_URL}/guia-medica/${p.specialtySlug}/${p.citySlug}`,
+    priority: 0.8,
+    changeFrequency: 'weekly',
+  }))
+
+  const clinicRoutes: MetadataRoute.Sitemap = combos.clinics.map((c) => ({
+    url: `${SITE_URL}/clinica/${c.slug}`,
+    priority: 0.6,
+    changeFrequency: 'weekly',
+  }))
+
+  return [
+    ...staticRoutes, ...newsRoutes, ...medicalRoutes,
+    ...guideRoutes, ...doctorRoutes, ...specialtyRoutes, ...cityRoutes, ...pairRoutes, ...clinicRoutes,
+  ]
 }
