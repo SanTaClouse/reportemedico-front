@@ -191,7 +191,7 @@ function SubscribeModal({ onClose }: { onClose: () => void }) {
       await subscribeNewsletter(email.trim(), name.trim() || undefined)
       setSuccess(true)
     } catch {
-      setError('No se pudo completar la suscripción. Intentá de nuevo.')
+      setError('No se pudo completar la suscripción. Intenta de nuevo.')
     } finally {
       setLoading(false)
     }
