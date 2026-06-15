@@ -12,13 +12,18 @@ export default async function MiCuentaPage() {
   const user = session?.user
 
   let doctor: Doctor | null = null
+  let claimCandidate: Doctor | null = null
   try {
     const { accessToken } = await auth0.getAccessToken()
     const res = await fetch(`${API_URL}/doctors/me`, {
       headers: { Authorization: `Bearer ${accessToken}` },
       cache: 'no-store',
     })
-    if (res.ok) doctor = (await res.json()).doctor
+    if (res.ok) {
+      const body = await res.json()
+      doctor = body.doctor
+      claimCandidate = body.claimCandidate ?? null
+    }
   } catch {
     // sin perfil / backend no disponible: el cliente muestra el onboarding
   }
@@ -35,6 +40,7 @@ export default async function MiCuentaPage() {
       userEmail={user?.email ?? null}
       userPicture={(user?.picture as string) ?? null}
       initialDoctor={doctor}
+      claimCandidate={claimCandidate}
       specialties={specialties}
       clinics={clinics}
       insurances={insurances}

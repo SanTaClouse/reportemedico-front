@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { LogOut, BadgeCheck, Clock, Eye, Loader2, Send, Save } from 'lucide-react'
+import { LogOut, BadgeCheck, Clock, Eye, Loader2, Send, Save, FileText } from 'lucide-react'
 import { toast } from 'sonner'
 import DoctorProfileForm, { type ProfileFormData } from '@/components/guia/DoctorProfileForm'
 import type { Doctor, Specialty, Clinic, Insurance } from '@/lib/api-guia'
@@ -11,17 +11,38 @@ interface Props {
   userEmail: string | null
   userPicture: string | null
   initialDoctor: Doctor | null
+  claimCandidate: Doctor | null
   specialties: Specialty[]
   clinics: Clinic[]
   insurances: Insurance[]
 }
 
 export default function MiCuentaClient({
-  userName, userEmail, userPicture, initialDoctor, specialties, clinics, insurances,
+  userName, userEmail, userPicture, initialDoctor, claimCandidate, specialties, clinics, insurances,
 }: Props) {
   const [doctor, setDoctor] = useState<Doctor | null>(initialDoctor)
+  const [candidateDismissed, setCandidateDismissed] = useState(false)
+  const [claiming, setClaiming] = useState(false)
   const [saving, setSaving] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+
+  const showCandidate = !doctor && claimCandidate && !candidateDismissed
+
+  const claimByEmail = async () => {
+    setClaiming(true)
+    const toastId = toast.loading('Vinculando tu perfil...')
+    try {
+      const res = await fetch('/api/mi-cuenta/claim-email', { method: 'POST' })
+      const body = await res.json()
+      if (!res.ok) throw new Error(body.message || 'No se pudo vincular el perfil')
+      setDoctor(body)
+      toast.success('¡Perfil vinculado a tu cuenta!', { id: toastId })
+    } catch (err) {
+      toast.error((err as Error).message, { id: toastId })
+    } finally {
+      setClaiming(false)
+    }
+  }
 
   const status = doctor?.status ?? null
   const isEditable = !doctor || status === 'DRAFT' || status === 'PUBLISHED' || status === 'INACTIVE'
@@ -94,8 +115,38 @@ export default function MiCuentaClient({
       {/* Banner de estado */}
       <StatusBanner doctor={doctor} />
 
-      {/* Formulario / contenido según estado */}
-      {status === 'PENDING' ? (
+      {/* B2: encontramos un perfil sin dueño con tu email */}
+      {showCandidate && claimCandidate ? (
+        <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-primary,#001450)]/30 p-6">
+          <p className="font-display font-bold text-lg text-[var(--color-text-primary)] mb-1">
+            Encontramos tu perfil en Reporte Médico
+          </p>
+          <p className="text-sm text-[var(--color-text-muted)] mb-4">
+            Ya existe un perfil a nombre de{' '}
+            <strong>
+              {claimCandidate.title} {claimCandidate.firstName} {claimCandidate.lastName}
+            </strong>
+            {claimCandidate.specialties?.[0] && <> ({claimCandidate.specialties[0].specialty.name})</>}. ¿Eres tú?
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={claimByEmail}
+              disabled={claiming}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--color-accent,#F0B414)] text-[var(--color-primary,#001450)] rounded-xl text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-50"
+            >
+              {claiming ? <Loader2 size={16} className="animate-spin" /> : null}
+              Sí, soy yo
+            </button>
+            <button
+              onClick={() => setCandidateDismissed(true)}
+              disabled={claiming}
+              className="px-5 py-2.5 border border-[var(--color-border)] rounded-xl text-sm font-semibold text-[var(--color-text-secondary)] hover:border-[var(--color-primary,#001450)]/40 transition-colors"
+            >
+              No, crear un perfil nuevo
+            </button>
+          </div>
+        </div>
+      ) : status === 'PENDING' ? (
         <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-6 text-center">
           <Clock size={28} className="mx-auto text-amber-500 mb-3" strokeWidth={1.5} />
           <p className="font-semibold text-[var(--color-text-primary)]">Tu perfil está en revisión</p>
@@ -151,6 +202,19 @@ export default function MiCuentaClient({
             />
           )}
         </>
+      )}
+
+      {/* Acceso a artículos (cuando ya hay perfil) */}
+      {doctor && (
+        <a
+          href="/mi-cuenta/articulos"
+          className="mt-5 flex items-center justify-between gap-3 bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-4 hover:border-[var(--color-primary,#001450)]/40 transition-colors"
+        >
+          <span className="flex items-center gap-2.5 text-sm font-medium text-[var(--color-text-primary)]">
+            <FileText size={17} className="text-[var(--color-primary,#001450)]" /> Enviar artículos a la revista
+          </span>
+          <span className="text-xs text-[var(--color-text-muted)]">Sin recargar tus datos →</span>
+        </a>
       )}
     </div>
   )

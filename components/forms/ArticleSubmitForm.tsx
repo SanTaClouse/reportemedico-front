@@ -271,6 +271,20 @@ export default function ArticleSubmitForm({ tags }: ArticleSubmitFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Captación de médicos a la Guía Médica (06 §6bis) */}
+      <a
+        href="/registro-medicos"
+        className="block rounded-xl border border-[var(--brand-gold)]/40 bg-[var(--brand-gold)]/5 p-4 hover:bg-[var(--brand-gold)]/10 transition-colors"
+      >
+        <p className="text-sm font-semibold text-[var(--color-text-primary)]">
+          ¿Eres médico? Crea tu perfil GRATIS en la Guía Médica
+        </p>
+        <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">
+          Envía artículos sin recargar tus datos, aparece en las búsquedas de pacientes y obtén tu
+          página profesional. <span className="text-[var(--color-primary)] font-medium">Registrarme →</span>
+        </p>
+      </a>
+
       {/* Título */}
       <div>
         <label className={labelClass}>Título *</label>

@@ -57,6 +57,14 @@ export default function Footer() {
                 </svg>
               </a>
             </div>
+
+            {/* CTA médicos */}
+            <Link
+              href="/registro-medicos"
+              className="inline-flex items-center gap-1.5 mt-5 px-3 py-2 rounded-lg border border-[var(--brand-gold)]/40 text-[var(--brand-gold)] text-xs font-semibold hover:bg-[var(--brand-gold)]/10 transition-colors"
+            >
+              ¿Eres médico? Súmate gratis →
+            </Link>
           </div>
 
           {/* Nav */}
@@ -85,7 +93,7 @@ export default function Footer() {
             </p>
             <div className="text-sm text-white/60 space-y-1.5">
               <p>Tel: (829) 558-3999</p>
-              <p>info@reportemedico.com</p>
+              <p>administracion@reportemedico.com</p>
               <p>Av. Simón Bolívar, Edif. Elam's II<br />4to piso, Of. 4D — Santo Domingo, RD</p>
             </div>
           </div>
