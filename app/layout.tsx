@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Analytics } from '@vercel/analytics/react'
 import { Playfair_Display, DM_Sans, Source_Serif_4 } from 'next/font/google'
 import './globals.css'
+import { UserProvider } from '@auth0/nextjs-auth0/client'
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
 import ScrollToTop from '@/components/providers/ScrollToTop'
 import Navbar from '@/components/layout/Navbar'
@@ -150,11 +151,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
         />
         <ThemeProvider attribute="data-theme" defaultTheme="light">
-          <ScrollToTop />
-          <Navbar />
-          <main>{children}</main>
-          <Footer />
-          <AdminFab />
+          {/* Sesión de médicos (Auth0). profileUrl apunta al SDK montado en /api/auth-medico */}
+          <UserProvider profileUrl="/api/auth-medico/me">
+            <ScrollToTop />
+            <Navbar />
+            <main>{children}</main>
+            <Footer />
+            <AdminFab />
+          </UserProvider>
         </ThemeProvider>
         <Analytics />
       </body>

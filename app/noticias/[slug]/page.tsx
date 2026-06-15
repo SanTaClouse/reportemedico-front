@@ -241,10 +241,11 @@ export default async function NoticiaPage({ params }: Props) {
           <ArticleSources sources={article.sources} />
         )}
 
-        {/* Galería de fotos */}
-        {article.media && article.media.length > 0 && (
-          <ArticleGallery items={article.media} />
-        )}
+        {/* Galería de fotos — excluye la portada para no mostrarla dos veces */}
+        {(() => {
+          const gallery = (article.media ?? []).filter((m) => m.media.url !== article.featuredImage)
+          return gallery.length > 0 ? <ArticleGallery items={gallery} /> : null
+        })()}
       </div>
 
       {/* View counter (client side) */}

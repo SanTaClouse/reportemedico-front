@@ -8,6 +8,7 @@ import {
   uploadFotoMedico,
   type Doctor, type DoctorInput, type Specialty, type Clinic, type Insurance,
 } from '@/lib/api-guia'
+import { cldUrl } from '@/lib/cloudinary'
 
 interface Props {
   specialties: Specialty[]
@@ -126,7 +127,7 @@ export default function DoctorForm({
           <div className="shrink-0">
             <div className="w-24 h-24 rounded-xl overflow-hidden bg-[var(--color-surface-2)] border border-[var(--color-border)] flex items-center justify-center relative">
               {form.photoUrl ? (
-                <NextImage src={form.photoUrl} alt="Foto del médico" fill className="object-cover" sizes="96px" />
+                <NextImage src={cldUrl(form.photoUrl, { w: 192, h: 192 })} alt="Foto del médico" fill className="object-cover" sizes="96px" />
               ) : (
                 <span className="font-display text-xl text-[var(--color-text-muted)]">
                   {(form.firstName[0] ?? '') + (form.lastName[0] ?? '') || '—'}

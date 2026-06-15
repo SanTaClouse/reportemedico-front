@@ -237,9 +237,11 @@ export default async function ArticuloPage({ params }: Props) {
           <ArticleSources sources={article.sources} />
         )}
 
-        {article.media && article.media.length > 0 && (
-          <ArticleGallery items={article.media} />
-        )}
+        {/* Galería de fotos — excluye la portada para no mostrarla dos veces */}
+        {(() => {
+          const gallery = (article.media ?? []).filter((m) => m.media.url !== article.featuredImage)
+          return gallery.length > 0 ? <ArticleGallery items={gallery} /> : null
+        })()}
       </div>
 
       <ViewsCounter slug={article.slug} />

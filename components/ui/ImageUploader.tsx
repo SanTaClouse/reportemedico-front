@@ -3,6 +3,8 @@
 import { useRef, useState } from 'react'
 import { Upload, X, Loader2 } from 'lucide-react'
 import { uploadImagenNoticia, uploadImagenArticulo } from '@/lib/api'
+import { isHeic, prepareImageForUpload } from '@/lib/image-process'
+import { cldUrl } from '@/lib/cloudinary'
 
 interface ImageUploaderProps {
   value: string
@@ -11,49 +13,6 @@ interface ImageUploaderProps {
   token?: string
   label?: string
   aspectRatio?: 'video' | 'square'
-}
-
-const HEIC_TYPES = ['image/heic', 'image/heif']
-
-/** Detecta HEIC/HEIF también por extensión (iPhone suele enviar type vacío) */
-function isHeic(file: File) {
-  if (HEIC_TYPES.includes(file.type.toLowerCase())) return true
-  return /\.(heic|heif)$/i.test(file.name)
-}
-
-/** Convierte HEIC/HEIF → JPEG usando heic2any (carga diferida para no aumentar bundle inicial) */
-async function convertHeic(file: File): Promise<File> {
-  const heic2any = (await import('heic2any')).default
-  const blob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 }) as Blob
-  return new File([blob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), { type: 'image/jpeg' })
-}
-
-/** Comprime la imagen en el browser usando Canvas antes de subir */
-async function compressImage(file: File, maxWidth = 1920, quality = 0.85): Promise<File> {
-  return new Promise((resolve) => {
-    const img = new window.Image()
-    const url = URL.createObjectURL(file)
-    img.onload = () => {
-      URL.revokeObjectURL(url)
-      const scale = Math.min(1, maxWidth / img.width)
-      const canvas = document.createElement('canvas')
-      canvas.width = Math.round(img.width * scale)
-      canvas.height = Math.round(img.height * scale)
-      const ctx = canvas.getContext('2d')!
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-      canvas.toBlob(
-        (blob) => {
-          if (!blob) { resolve(file); return }
-          if (blob.size >= file.size) { resolve(file); return }
-          resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' }))
-        },
-        'image/jpeg',
-        quality,
-      )
-    }
-    img.onerror = () => { URL.revokeObjectURL(url); resolve(file) }
-    img.src = url
-  })
 }
 
 export default function ImageUploader({
@@ -69,6 +28,8 @@ export default function ImageUploader({
   const [error, setError] = useState('')
 
   const aspectClass = aspectRatio === 'video' ? 'aspect-video' : 'aspect-square'
+  // Preview con el MISMO encuadre (recorte + foco en la cara) que verá el público
+  const previewDims = aspectRatio === 'video' ? { w: 640, h: 360 } : { w: 480, h: 480 }
 
   const handleFile = async (file: File) => {
     const isImage = file.type.startsWith('image/') || isHeic(file)
@@ -85,21 +46,10 @@ export default function ImageUploader({
     setUploading(true)
 
     try {
-      let toUpload = file
+      // 1) Convertir HEIC → JPEG y comprimir si hace falta
+      const toUpload = await prepareImageForUpload(file, setUploadProgress)
 
-      // 1) Convertir HEIC/HEIF → JPEG
-      if (isHeic(file)) {
-        setUploadProgress('Convirtiendo HEIC a JPEG...')
-        toUpload = await convertHeic(file)
-      }
-
-      // 2) Comprimir si supera 1 MB
-      if (toUpload.size > 1 * 1024 * 1024) {
-        setUploadProgress('Optimizando imagen...')
-        toUpload = await compressImage(toUpload)
-      }
-
-      // 3) Subir
+      // 2) Subir
       setUploadProgress('Subiendo a Cloudinary...')
       const result = token
         ? await uploadImagenNoticia(toUpload, token)
@@ -131,7 +81,7 @@ export default function ImageUploader({
       {value ? (
         <div className={`relative w-full ${aspectClass} rounded-xl overflow-hidden bg-[var(--color-surface-2)]`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={value} alt="Preview" className="w-full h-full object-cover" />
+          <img src={cldUrl(value, previewDims) || value} alt="Preview" className="w-full h-full object-cover" />
 
           <div className="absolute inset-0 bg-black/0 hover:bg-black/40 transition-colors flex items-center justify-center gap-2 opacity-0 hover:opacity-100">
             <label className="cursor-pointer bg-white/90 text-gray-800 rounded-lg px-3 py-1.5 text-xs font-medium hover:bg-white transition-colors flex items-center gap-1.5">

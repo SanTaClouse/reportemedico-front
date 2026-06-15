@@ -27,8 +27,7 @@ import { Youtube } from '@tiptap/extension-youtube'
 import { createArticle, updateArticle, getTagsAdmin, createTag, checkTagExists, RELEVANCE_LIMITS, RELEVANCE_LABELS, type Tag } from '@/lib/api'
 import { ArrowLeft, RefreshCw, Bold, Italic, Link2, List, HelpCircle, Check, X, Maximize2, Minimize2, Video } from 'lucide-react'
 import { toast } from 'sonner'
-import ImageUploader from '@/components/ui/ImageUploader'
-import GalleryUploader from '@/components/admin/GalleryUploader'
+import PhotosUploader from '@/components/admin/PhotosUploader'
 import { analyzeSeo, scoreColor, scoreBg } from '@/lib/seo-analyzer'
 import SeoHelpModal from '@/components/admin/SeoHelpModal'
 
@@ -225,6 +224,28 @@ export default function ArticleEditor({
       }
     } : {}),
   }), [form, editor, articleType, mode])
+
+  // Crea el borrador si todavía no existe (sin navegar) y devuelve su ID.
+  // Lo usa PhotosUploader para poder asociar fotos a la galería en un solo paso.
+  const ensureArticleId = useCallback(async (): Promise<string | null> => {
+    if (currentId) return currentId
+    if (!form.title.trim()) {
+      toast.warning('Escribe un título antes de subir fotos')
+      return null
+    }
+    try {
+      const result = await createArticle(getPayload(), token)
+      const newId = (result as any).id
+      setCurrentId(newId)
+      isDirtyRef.current = false
+      setIsDirty(false)
+      try { localStorage.removeItem(lsKey) } catch { /* no-op */ }
+      return newId
+    } catch (err: any) {
+      toast.error(`No se pudo crear el borrador: ${err.message}`)
+      return null
+    }
+  }, [currentId, form.title, getPayload, token, lsKey])
 
   // silent=true: autosave silencioso (sin toast, sin bloquear botones)
   const save = useCallback(async (publish = false, silent = false) => {
@@ -745,29 +766,16 @@ export default function ArticleEditor({
 
       {/* SIDEBAR — 1/3 */}
       {!focusMode && <div className="space-y-5 pb-20">
-        {/* Imagen principal */}
-        <SidebarCard title="Imagen Principal">
-          <ImageUploader
-            value={form.featuredImage}
-            onChange={(url) => setForm((p) => ({ ...p, featuredImage: url }))}
+        {/* Fotos — portada + galería en una sola zona de subida múltiple */}
+        <SidebarCard title="Fotos">
+          <PhotosUploader
+            featuredImage={form.featuredImage}
+            onFeaturedChange={(url) => setForm((p) => ({ ...p, featuredImage: url }))}
+            articleId={currentId}
             token={token}
-            label=""
+            initialItems={initialData?.media ?? []}
+            ensureArticleId={ensureArticleId}
           />
-        </SidebarCard>
-
-        {/* Galería de fotos — disponible para todos los tipos, en modo edición (necesita articleId) */}
-        <SidebarCard title="Galería de Fotos">
-          {currentId ? (
-            <GalleryUploader
-              articleId={currentId}
-              token={token}
-              initialItems={initialData?.media ?? []}
-            />
-          ) : (
-            <p className="text-xs text-[var(--color-text-muted)] text-center py-2">
-              Guardá el artículo primero para agregar fotos a la galería.
-            </p>
-          )}
         </SidebarCard>
 
         {/* Publicación */}

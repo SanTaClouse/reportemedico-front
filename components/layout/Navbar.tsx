@@ -5,8 +5,9 @@ import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState, useEffect, useRef } from 'react'
 import { useSearch } from '@/lib/hooks/useSearch'
-import { Menu, X, Sun, Moon, Search, Loader2, Check } from 'lucide-react'
+import { Menu, X, Sun, Moon, Search, Loader2, Check, UserCircle } from 'lucide-react'
 import { useTheme } from 'next-themes'
+import { useUser } from '@auth0/nextjs-auth0/client'
 import { subscribeNewsletter } from '@/lib/api'
 
 const NAV_LINKS = [
@@ -290,6 +291,7 @@ function SubscribeModal({ onClose }: { onClose: () => void }) {
 export default function Navbar() {
   const pathname = usePathname()
   const { theme, setTheme } = useTheme()
+  const { user } = useUser() // sesión de médico (Auth0); undefined si no está logueado
   const [menuOpen, setMenuOpen] = useState(false)
   const [progress, setProgress] = useState(0)
   const [subscribeOpen, setSubscribeOpen] = useState(false)
@@ -401,6 +403,22 @@ export default function Navbar() {
           <div className="flex items-center gap-3">
             <SearchBar />
 
+            {/* Médico logueado → acceso a su cuenta */}
+            {user && (
+              <Link
+                href="/mi-cuenta"
+                className="hidden md:inline-flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-full border border-[var(--brand-navy)]/20 hover:border-[var(--brand-navy)]/40 hover:bg-[var(--color-surface-2)] transition-colors"
+              >
+                {user.picture ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={user.picture as string} alt="" className="w-6 h-6 rounded-full" />
+                ) : (
+                  <UserCircle size={20} className="text-[var(--brand-navy)]" strokeWidth={1.5} />
+                )}
+                <span className="text-sm font-body font-medium text-[var(--brand-navy)]">Mi cuenta</span>
+              </Link>
+            )}
+
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               className="p-2 rounded-full text-[var(--color-text-muted)] hover:text-[var(--brand-navy)] hover:bg-[var(--color-surface-2)] transition-colors"
@@ -441,6 +459,17 @@ export default function Navbar() {
                 </Link>
               </li>
             ))}
+            {user && (
+              <li>
+                <Link
+                  href="/mi-cuenta"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-2 px-6 py-3 text-sm font-medium text-[var(--brand-gold)] hover:bg-white/5"
+                >
+                  <UserCircle size={18} strokeWidth={1.5} /> Mi cuenta
+                </Link>
+              </li>
+            )}
             <li className="px-4 pt-2 pb-3">
               <button
                 onClick={() => { setMenuOpen(false); setSubscribeOpen(true) }}
