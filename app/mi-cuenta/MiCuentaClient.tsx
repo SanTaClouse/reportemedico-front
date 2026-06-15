@@ -115,6 +115,7 @@ export default function MiCuentaClient({
           {isEditable && (
             <DoctorProfileForm
               initial={doctor}
+              defaultPhoto={userPicture}
               specialties={specialties}
               clinics={clinics}
               insurances={insurances}

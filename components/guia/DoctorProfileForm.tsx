@@ -1,7 +1,9 @@
 'use client'
 
-import { useState, type ReactNode } from 'react'
-import { Plus, X, GripVertical, Monitor } from 'lucide-react'
+import { useState, useRef, type ReactNode } from 'react'
+import NextImage from 'next/image'
+import { Plus, X, GripVertical, Monitor, Upload, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 import type { Doctor, Specialty, Clinic, Insurance } from '@/lib/api-guia'
 
 export interface ProfileFormData {
@@ -12,6 +14,7 @@ export interface ProfileFormData {
   languages: string[]
   bio?: string
   telehealth: boolean
+  photoUrl?: string
   specialtyIds: string[]
   clinics: { clinicId: string; schedule?: string }[]
   insuranceIds: string[]
@@ -22,6 +25,8 @@ export interface ProfileFormData {
 
 interface Props {
   initial: Doctor | null
+  /** Foto de Auth0/Google: default hasta que el médico suba la suya */
+  defaultPhoto?: string | null
   specialties: Specialty[]
   clinics: Clinic[]
   insurances: Insurance[]
@@ -37,7 +42,7 @@ const sectionClass = 'bg-[var(--color-surface)] rounded-2xl border border-[var(-
 const COMMON_LANGUAGES = ['Español', 'Inglés', 'Francés', 'Criollo haitiano', 'Italiano', 'Portugués']
 
 export default function DoctorProfileForm({
-  initial, specialties, clinics, insurances, saving, renderActions,
+  initial, defaultPhoto, specialties, clinics, insurances, saving, renderActions,
 }: Props) {
   const [form, setForm] = useState({
     title: initial?.title ?? 'Dr.',
@@ -50,6 +55,29 @@ export default function DoctorProfileForm({
     phoneOffice: initial?.phoneOffice ?? '',
     instagram: initial?.instagram ?? '',
   })
+  // Foto: la cargada por el médico, o la de Auth0/Google como default
+  const [photoUrl, setPhotoUrl] = useState<string>(initial?.photoUrl ?? defaultPhoto ?? '')
+  const [uploadingPhoto, setUploadingPhoto] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  const handlePhotoUpload = async (file: File | undefined) => {
+    if (!file) return
+    setUploadingPhoto(true)
+    const toastId = toast.loading('Subiendo tu foto...')
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await fetch('/api/mi-cuenta/foto', { method: 'POST', body: fd })
+      const body = await res.json()
+      if (!res.ok || !body.url) throw new Error(body.message || 'No se pudo subir la foto')
+      setPhotoUrl(body.url)
+      toast.success('Foto actualizada — recuerda guardar', { id: toastId })
+    } catch (err) {
+      toast.error((err as Error).message, { id: toastId })
+    } finally {
+      setUploadingPhoto(false)
+    }
+  }
   const [languages, setLanguages] = useState<string[]>(initial?.languages ?? ['Español'])
   const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>(
     initial?.specialties?.map((s) => s.specialty.id) ?? [],
@@ -76,6 +104,7 @@ export default function DoctorProfileForm({
     languages,
     bio: form.bio.trim() || undefined,
     telehealth: form.telehealth,
+    photoUrl: photoUrl || undefined,
     specialtyIds: selectedSpecialties,
     clinics: clinicRows.filter((r) => r.clinicId).map((r) => ({ clinicId: r.clinicId, schedule: r.schedule.trim() || undefined })),
     insuranceIds: selectedInsurances,
@@ -89,6 +118,37 @@ export default function DoctorProfileForm({
       {/* Datos personales */}
       <section className={sectionClass}>
         <h2 className="font-semibold text-sm text-[var(--color-text-primary)]">Datos personales</h2>
+
+        {/* Foto de perfil */}
+        <div className="flex items-center gap-4">
+          <div className="w-20 h-20 rounded-xl overflow-hidden bg-[var(--color-primary,#001450)] border border-[var(--color-border)] flex items-center justify-center relative shrink-0">
+            {photoUrl ? (
+              <NextImage src={photoUrl} alt="Tu foto de perfil" fill className="object-cover" sizes="80px" unoptimized={photoUrl.includes('googleusercontent')} />
+            ) : (
+              <span className="font-display text-xl font-bold text-white">
+                {(form.firstName[0] ?? '') + (form.lastName[0] ?? '') || '—'}
+              </span>
+            )}
+          </div>
+          <div>
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              disabled={uploadingPhoto}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[var(--color-primary,#001450)] border border-[var(--color-primary,#001450)]/30 rounded-lg hover:bg-[var(--color-primary-pale,#e8edf8)] transition-colors disabled:opacity-50"
+            >
+              {uploadingPhoto ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
+              {photoUrl ? 'Cambiar foto' : 'Subir foto'}
+            </button>
+            <p className="text-[11px] text-[var(--color-text-muted)] mt-1">
+              {defaultPhoto && photoUrl === defaultPhoto
+                ? 'Estamos usando tu foto de Google. Puedes subir otra.'
+                : 'JPG o PNG, preferentemente cuadrada.'}
+            </p>
+            <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => handlePhotoUpload(e.target.files?.[0])} />
+          </div>
+        </div>
+
         <div className="grid grid-cols-6 gap-3">
           <div className="col-span-2 sm:col-span-1">
             <label className={labelClass}>Título</label>

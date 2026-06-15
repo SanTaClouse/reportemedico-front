@@ -23,6 +23,11 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'picsum.photos',
       },
+      {
+        // Fotos de perfil de Google/Auth0 (default del médico hasta que suba la suya)
+        protocol: 'https',
+        hostname: '**.googleusercontent.com',
+      },
     ],
   },
 }
