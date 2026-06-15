@@ -142,8 +142,12 @@ export default function ArticleSubmitForm({ tags }: ArticleSubmitFormProps) {
         suggestedSpecialties: suggestedSpecialties.length > 0 ? suggestedSpecialties : undefined,
         sources: form.sources.filter((s) => s.title).map((s, i) => ({ ...s, order: i })),
       })
-      // Si dejó email, lo damos por avisado en el paso post-envío
-      if (form.authorEmail) setEmailInput(form.authorEmail)
+      // Si ya dejó email en el form, queda suscrito y avisado desde el backend:
+      // mostramos la confirmación directamente, sin volver a pedírselo.
+      if (form.authorEmail) {
+        setEmailInput(form.authorEmail)
+        setEmailSubmitted(true)
+      }
       setSubmitted(true)
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch (err: unknown) {
