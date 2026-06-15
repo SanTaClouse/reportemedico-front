@@ -340,6 +340,40 @@ export const getCityBySlugPublic = (slug: string) =>
 export const getClinicBySlugPublic = (slug: string) =>
   apiFetch<Clinic>(`/clinics/${slug}`, { next: { revalidate: 3600 } })
 
+// ─── Textos editoriales de programáticas (03 §7 fase 2 / 07 §6) ──────────────
+
+export interface ProgrammaticPair {
+  specialtyId: string
+  specialtyName: string
+  specialtySlug: string
+  cityId: string
+  cityName: string
+  citySlug: string
+  doctorCount: number
+  introText: string | null
+}
+
+/** Público: texto editorial de una combinación esp × ciudad (null si no hay) */
+export const getProgrammaticIntro = (specialtySlug: string, citySlug: string) =>
+  apiFetch<{ introText: string | null }>(`/programmatic-content/${specialtySlug}/${citySlug}`, {
+    next: { revalidate: 3600 },
+  })
+
+/** Admin: combinaciones indexables con conteo + introText */
+export const getProgrammaticPairs = (token: string) =>
+  apiFetch<ProgrammaticPair[]>('/programmatic-content', { token, cache: 'no-store' })
+
+/** Admin: guarda (o borra si va vacío) el texto editorial de una combinación */
+export const saveProgrammaticIntro = (
+  data: { specialtyId: string; cityId: string; introText: string },
+  token: string,
+) =>
+  apiFetch<{ introText: string | null }>('/programmatic-content', {
+    method: 'PUT',
+    body: JSON.stringify(data),
+    token,
+  })
+
 export interface SearchResult {
   items: (PublicDoctorCard & { distanceKm?: number | null })[]
   total: number

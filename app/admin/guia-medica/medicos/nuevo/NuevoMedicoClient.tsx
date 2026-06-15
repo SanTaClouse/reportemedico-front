@@ -42,7 +42,7 @@ export default function NuevoMedicoClient({ specialties, clinics, insurances, to
       </Link>
       <h1 className="font-display text-2xl font-bold text-[var(--color-text-primary)] mb-1">Nuevo médico</h1>
       <p className="text-sm text-[var(--color-text-muted)] mb-6">
-        El perfil se crea como <strong>borrador</strong>. Desde su ficha lo publicás, le activás el plan y generás el link de invitación para que el médico reclame su cuenta.
+        El perfil se crea como <strong>borrador</strong>. Desde su ficha lo publicas, le activas el plan y generas el link de invitación para que el médico reclame su cuenta.
       </p>
       <DoctorForm
         specialties={specialties}

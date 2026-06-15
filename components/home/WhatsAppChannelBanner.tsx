@@ -33,10 +33,10 @@ export default function WhatsAppChannelBanner() {
                 Canal oficial
               </span>
               <h2 className="font-display font-bold text-white text-2xl md:text-3xl leading-tight mb-2">
-                Seguinos en WhatsApp
+                Síguenos en WhatsApp
               </h2>
               <p className="text-white/85 text-sm md:text-base font-body leading-relaxed max-w-xl md:max-w-2xl">
-                Recibí las noticias de salud más importantes de República Dominicana
+                Recibe las noticias de salud más importantes de República Dominicana
                 directo en tu teléfono. Sin spam, solo lo esencial.
               </p>
             </div>

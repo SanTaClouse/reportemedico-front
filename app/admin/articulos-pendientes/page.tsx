@@ -4,7 +4,7 @@ import { cookies } from 'next/headers'
 import Link from 'next/link'
 import { getAdminArticles } from '@/lib/api'
 import { formatDateShort } from '@/lib/utils'
-import { Clock, Sparkles, Mail } from 'lucide-react'
+import { Clock, Sparkles, Mail, Phone, Instagram } from 'lucide-react'
 import SuggestedSpecialtiesReview from '@/components/admin/SuggestedSpecialtiesReview'
 
 export default async function ArticulosPendientesPage() {
@@ -67,14 +67,33 @@ export default async function ArticulosPendientesPage() {
                       Por <strong>{article.authorName}</strong> ·{' '}
                       Enviado el {formatDateShort(article.createdAt)}
                     </p>
-                    {article.authorEmail && (
-                      <a
-                        href={`mailto:${article.authorEmail}`}
-                        className="inline-flex items-center gap-1.5 mt-1.5 text-xs font-medium text-[var(--color-primary)] hover:underline"
-                      >
-                        <Mail size={12} strokeWidth={1.5} />
-                        {article.authorEmail}
-                      </a>
+                    {(article.authorEmail || article.authorPhone || article.authorInstagram) && (
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1.5">
+                        {article.authorEmail && (
+                          <a
+                            href={`mailto:${article.authorEmail}`}
+                            className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--color-primary)] hover:underline"
+                          >
+                            <Mail size={12} strokeWidth={1.5} />
+                            {article.authorEmail}
+                          </a>
+                        )}
+                        {article.authorPhone && (
+                          <a
+                            href={`tel:${article.authorPhone.replace(/[^\d+]/g, '')}`}
+                            className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-primary)]"
+                          >
+                            <Phone size={12} strokeWidth={1.5} />
+                            {article.authorPhone}
+                          </a>
+                        )}
+                        {article.authorInstagram && (
+                          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--color-text-secondary)]">
+                            <Instagram size={12} strokeWidth={1.5} />
+                            {article.authorInstagram}
+                          </span>
+                        )}
+                      </div>
                     )}
                     {article.excerpt && (
                       <p className="text-sm text-[var(--color-text-muted)] mt-1 line-clamp-2">

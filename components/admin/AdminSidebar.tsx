@@ -37,6 +37,7 @@ const GUIA_NAV_ITEMS = [
   { href: '/admin/guia-medica/medicos', label: 'Médicos', icon: Stethoscope },
   { href: '/admin/guia-medica/pendientes', label: 'Aprobaciones', icon: ClipboardList, badgeKey: 'doctors' as const },
   { href: '/admin/guia-medica/catalogos', label: 'Catálogos', icon: FolderTree },
+  { href: '/admin/guia-medica/textos', label: 'Textos SEO', icon: FileText },
 ]
 
 interface AdminSidebarProps {

@@ -478,6 +478,8 @@ export interface Article {
   featuredImage?: string
   authorName: string
   authorEmail?: string
+  authorPhone?: string
+  authorInstagram?: string
   status: 'DRAFT' | 'PENDING' | 'PUBLISHED' | 'ARCHIVED'
   relevance: 1 | 2 | 3 | 4 | 5 | null
   viewsCount: number
@@ -694,6 +696,8 @@ export interface SubmitArticleData {
   suggestedSpecialties?: string[]
   sources?: { title: string; url?: string; order?: number }[]
   authorEmail?: string
+  authorPhone?: string
+  authorInstagram?: string
 }
 
 // ─── SUBSCRIBERS ──────────────────────────────────────

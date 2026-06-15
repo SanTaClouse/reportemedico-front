@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!doctors.length) notFound()
 
   const title = `Médicos en ${city.name} — Guía Médica`
-  const description = `${doctors.length} médicos especialistas verificados en ${city.name}. Filtrá por seguro (ARS), especialidad y clínica. Guía Médica de Reporte Médico.`
+  const description = `${doctors.length} médicos especialistas verificados en ${city.name}. Filtra por seguro (ARS), especialidad y clínica. Guía Médica de Reporte Médico.`
   const url = `${SITE_URL}/guia-medica/ciudad/${params.ciudad}`
   return {
     title,

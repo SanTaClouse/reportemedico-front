@@ -35,7 +35,7 @@ export default function PendientesClient({ initialDoctors, token }: Props) {
 
   const handleQuickApprove = (doc: Doctor) => {
     toast.warning(
-      `¿Aprobar y publicar a ${doc.title ?? ''} ${doc.firstName} ${doc.lastName}? Revisá antes que los datos estén completos.`,
+      `¿Aprobar y publicar a ${doc.title ?? ''} ${doc.firstName} ${doc.lastName}? Revisa antes que los datos estén completos.`,
       {
         action: {
           label: 'Publicar',
@@ -61,7 +61,7 @@ export default function PendientesClient({ initialDoctors, token }: Props) {
         Aprobaciones de la Guía Médica
       </h1>
       <p className="text-sm text-[var(--color-text-muted)] mb-6">
-        Médicos que enviaron su perfil y esperan revisión. Revisá los datos, normalizá la clínica si hace falta, pulí la bio y publicá.
+        Médicos que enviaron su perfil y esperan revisión. Revisa los datos, normaliza la clínica si hace falta, pule la bio y publica.
       </p>
 
       {doctors.length === 0 ? (

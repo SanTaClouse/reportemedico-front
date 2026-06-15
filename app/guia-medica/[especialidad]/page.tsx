@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!doctors.length) notFound()
 
   const title = `${specialty.name} en República Dominicana — Guía Médica`
-  const description = `${doctors.length} especialistas en ${specialty.name} verificados en República Dominicana. Filtrá por seguro (ARS), clínica y ubicación. Guía Médica de Reporte Médico.`
+  const description = `${doctors.length} especialistas en ${specialty.name} verificados en República Dominicana. Filtra por seguro (ARS), clínica y ubicación. Guía Médica de Reporte Médico.`
   const url = `${SITE_URL}/guia-medica/${params.especialidad}`
   return {
     title,

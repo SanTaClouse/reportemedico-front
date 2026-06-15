@@ -79,7 +79,7 @@ export default function GuiaSearchForm({ insurances, specialties, cities, curren
     e.preventDefault()
     const params = buildSearch()
     if (!params.size) {
-      toast.info('Elegí al menos un filtro o escribí un nombre')
+      toast.info('Elige al menos un filtro o escribe un nombre')
       return
     }
     router.push(`/guia-medica?${params}`)
@@ -88,7 +88,7 @@ export default function GuiaSearchForm({ insurances, specialties, cities, curren
   // Geolocalización SOLO al hacer clic — nunca al cargar (05 §4)
   const handleNearMe = () => {
     if (!('geolocation' in navigator)) {
-      toast.error('Tu navegador no soporta geolocalización — elegí tu ciudad')
+      toast.error('Tu navegador no soporta geolocalización — elige tu ciudad')
       return
     }
     setLocating(true)
@@ -103,7 +103,7 @@ export default function GuiaSearchForm({ insurances, specialties, cities, curren
       },
       () => {
         setLocating(false)
-        toast.error('Activá la ubicación o elegí tu ciudad en el filtro')
+        toast.error('Activa la ubicación o elige tu ciudad en el filtro')
       },
       { timeout: 8000 },
     )

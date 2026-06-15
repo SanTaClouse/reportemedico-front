@@ -26,9 +26,9 @@ export default function MedicalArticlesBanner({
           {heading}
         </h2>
         <p className="text-white/75 text-xs md:text-base max-w-xl mb-4 md:mb-6 font-body leading-relaxed">
-          <span className="hidden md:inline">Si sos médico o profesional de la salud, podés publicar gratuitamente en Reporte Médico. </span>
-          Enviá tu artículo, lo revisamos y publicamos en menos de 24 horas.
-          <span className="hidden md:inline"> Llegá a miles de lectores que confían en nuestra plataforma cada día.</span>
+          <span className="hidden md:inline">Si eres médico o profesional de la salud, puedes publicar gratuitamente en Reporte Médico. </span>
+          Envía tu artículo, lo revisamos y publicamos en menos de 24 horas.
+          <span className="hidden md:inline"> Llega a miles de lectores que confían en nuestra plataforma cada día.</span>
         </p>
         <Link
           href="/articulos/nuevo"

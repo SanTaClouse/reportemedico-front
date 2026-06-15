@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import {
   getSpecialtyBySlug, getCityBySlugPublic, getPublicDoctors, getIndexableCombinations,
+  getProgrammaticIntro,
 } from '@/lib/api-guia'
 import ProgrammaticListing from '@/components/guia/ProgrammaticListing'
 
@@ -33,7 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   // La búsqueda real: "cardiólogo en santo domingo" (03 §1)
   const title = `${specialty.name} en ${city.name} — Guía Médica`
-  const description = `${doctors.length} especialista${doctors.length === 1 ? '' : 's'} en ${specialty.name} verificados en ${city.name}. Filtrá por seguro (ARS), clínica y ubicación. Guía Médica de Reporte Médico.`
+  const description = `${doctors.length} especialista${doctors.length === 1 ? '' : 's'} en ${specialty.name} verificados en ${city.name}. Filtra por seguro (ARS), clínica y ubicación. Guía Médica de Reporte Médico.`
   const url = `${SITE_URL}/guia-medica/${params.especialidad}/${params.ciudad}`
   return {
     title,
@@ -62,7 +63,10 @@ export default async function EspecialidadCiudadPage({ params }: Props) {
   // sin placeholder ni "próximamente" (03 §1)
   if (!doctors.length) notFound()
 
-  const combos = await getIndexableCombinations().catch(() => ({ pairs: [], specialties: [], cities: [] as { slug: string; name: string }[], clinics: [] }))
+  const [combos, editorial] = await Promise.all([
+    getIndexableCombinations().catch(() => ({ pairs: [], specialties: [], cities: [] as { slug: string; name: string }[], clinics: [] })),
+    getProgrammaticIntro(params.especialidad, params.ciudad).catch(() => ({ introText: null })),
+  ])
   const cityNames = new Map(combos.cities.map((c) => [c.slug, c.name]))
   const chips = combos.pairs
     .filter((p) => p.specialtySlug === params.especialidad && p.citySlug !== params.ciudad)
@@ -73,12 +77,16 @@ export default async function EspecialidadCiudadPage({ params }: Props) {
 
   const clinicNames = [...new Set(doctors.flatMap((d) => d.clinics.filter((c) => c.city.slug === params.ciudad).map((c) => c.name)))].slice(0, 5)
   const insuranceNames = [...new Set(doctors.flatMap((d) => d.insurances.map((i) => i.name)))].slice(0, 6)
-  const intro = [
-    `${doctors.length} especialista${doctors.length === 1 ? '' : 's'} en ${specialty.name} en ${city.name}.`,
-    clinicNames.length ? `Atienden en ${clinicNames.join(', ')}.` : '',
-    insuranceNames.length ? `Aceptan ${insuranceNames.join(', ')}.` : '',
-    'Contacto directo por WhatsApp, sin intermediarios.',
-  ].filter(Boolean).join(' ')
+  // Fase 2 (07 §6): si el admin escribió un texto editorial, manda; si no, la
+  // plantilla con datos reales (única de facto porque los datos difieren)
+  const intro =
+    editorial.introText ??
+    [
+      `${doctors.length} especialista${doctors.length === 1 ? '' : 's'} en ${specialty.name} en ${city.name}.`,
+      clinicNames.length ? `Atienden en ${clinicNames.join(', ')}.` : '',
+      insuranceNames.length ? `Aceptan ${insuranceNames.join(', ')}.` : '',
+      'Contacto directo por WhatsApp, sin intermediarios.',
+    ].filter(Boolean).join(' ')
 
   const jsonLd = {
     '@context': 'https://schema.org',

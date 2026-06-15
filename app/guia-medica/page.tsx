@@ -37,7 +37,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   }
   const title = 'Guía Médica de República Dominicana'
   const description =
-    'Encontrá médicos especialistas en República Dominicana: filtrá por tu seguro (ARS), especialidad y ciudad. Perfiles verificados con contacto directo por WhatsApp.'
+    'Encuentra médicos especialistas en República Dominicana: filtra por tu seguro (ARS), especialidad y ciudad. Perfiles verificados con contacto directo por WhatsApp.'
   return {
     title,
     description,
@@ -113,7 +113,7 @@ async function HomeView({
           Guía Médica de República Dominicana
         </h1>
         <p className="text-sm md:text-base text-[var(--color-text-secondary)] mb-6">
-          Encontrá tu especialista por seguro, especialidad y ciudad — contacto directo por WhatsApp.
+          Encuentra tu especialista por seguro, especialidad y ciudad — contacto directo por WhatsApp.
         </p>
         <div className="text-left bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-4 md:p-5 shadow-sm">
           <GuiaSearchForm insurances={insurances} specialties={specialties} cities={cities} />

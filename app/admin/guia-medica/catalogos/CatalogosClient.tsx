@@ -469,7 +469,7 @@ function ClinicsTab({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!form.name.trim() || !form.address.trim() || !form.cityId || !hasCoords) {
-      toast.error('Completá nombre, dirección, ciudad y ubicación')
+      toast.error('Completa nombre, dirección, ciudad y ubicación')
       return
     }
     setBusy(true)

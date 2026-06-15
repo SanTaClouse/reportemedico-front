@@ -22,6 +22,9 @@ export default function ArticleSubmitForm({ tags }: ArticleSubmitFormProps) {
   const [form, setForm] = useState({
     title: '',
     authorName: '',
+    authorEmail: '',
+    authorPhone: '',
+    authorInstagram: '',
     featuredImage: '',
     content: '',
     excerpt: '',
@@ -129,6 +132,9 @@ export default function ArticleSubmitForm({ tags }: ArticleSubmitFormProps) {
       await submitArticle({
         title: form.title,
         authorName: form.authorName,
+        authorEmail: form.authorEmail || undefined,
+        authorPhone: form.authorPhone || undefined,
+        authorInstagram: form.authorInstagram || undefined,
         featuredImage: form.featuredImage || undefined,
         content: plainToHtml(form.content),
         excerpt: form.excerpt || undefined,
@@ -136,6 +142,8 @@ export default function ArticleSubmitForm({ tags }: ArticleSubmitFormProps) {
         suggestedSpecialties: suggestedSpecialties.length > 0 ? suggestedSpecialties : undefined,
         sources: form.sources.filter((s) => s.title).map((s, i) => ({ ...s, order: i })),
       })
+      // Si dejó email, lo damos por avisado en el paso post-envío
+      if (form.authorEmail) setEmailInput(form.authorEmail)
       setSubmitted(true)
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch (err: unknown) {
@@ -253,6 +261,48 @@ export default function ArticleSubmitForm({ tags }: ArticleSubmitFormProps) {
         />
       </div>
 
+      {/* Datos de contacto (uso interno del equipo editorial) */}
+      <div className="space-y-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-2)] p-4">
+        <div>
+          <label className={labelClass}>Email</label>
+          <input
+            type="email"
+            value={form.authorEmail}
+            onChange={(e) => setForm((p) => ({ ...p, authorEmail: e.target.value }))}
+            className={inputClass}
+            placeholder="tu@email.com"
+          />
+          <p className="text-xs text-[var(--color-text-muted)] mt-1">
+            Te avisamos a este correo cuando tu artículo sea aprobado y publicado.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className={labelClass}>Teléfono de contacto</label>
+            <input
+              type="tel"
+              value={form.authorPhone}
+              onChange={(e) => setForm((p) => ({ ...p, authorPhone: e.target.value }))}
+              className={inputClass}
+              placeholder="(809) 000-0000"
+            />
+          </div>
+          <div>
+            <label className={labelClass}>Instagram (opcional)</label>
+            <input
+              type="text"
+              value={form.authorInstagram}
+              onChange={(e) => setForm((p) => ({ ...p, authorInstagram: e.target.value }))}
+              className={inputClass}
+              placeholder="@usuario"
+            />
+          </div>
+        </div>
+        <p className="text-xs text-[var(--color-text-muted)]">
+          El teléfono y el Instagram son solo para que nuestro equipo editorial pueda contactarte — no se publican.
+        </p>
+      </div>
+
       {/* Resumen */}
       <div>
         <label className={labelClass}>Resumen (opcional)</label>
@@ -277,7 +327,7 @@ export default function ArticleSubmitForm({ tags }: ArticleSubmitFormProps) {
           placeholder="Escribe aquí el contenido de tu artículo..."
         />
         <p className="text-xs text-[var(--color-text-muted)] mt-1">
-          Separá los párrafos con una línea en blanco (Enter dos veces). El formato se preservará al revisarlo.
+          Separa los párrafos con una línea en blanco (Enter dos veces). El formato se preservará al revisarlo.
         </p>
       </div>
 

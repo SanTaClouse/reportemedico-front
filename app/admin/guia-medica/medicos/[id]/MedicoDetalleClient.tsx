@@ -111,7 +111,7 @@ export default function MedicoDetalleClient({ initialDoctor, specialties, clinic
   const handleVerification = async () => {
     const newValue = !doctor.isVerified
     if (newValue && !doctor.exequatur) {
-      toast.error('Cargá el exequátur antes de verificar — el badge significa "exequátur verificado"')
+      toast.error('Carga el exequátur antes de verificar — el badge significa "exequátur verificado"')
       return
     }
     const toastId = toast.loading(newValue ? 'Activando badge...' : 'Quitando badge...')
@@ -249,7 +249,7 @@ export default function MedicoDetalleClient({ initialDoctor, specialties, clinic
             </div>
             {doctor.status === 'PENDING' && (
               <p className="text-[11px] text-amber-700 bg-amber-50 rounded-lg px-2.5 py-1.5">
-                Pendiente de aprobación — publicalo cuando hayas revisado los datos.
+                Pendiente de aprobación — publícalo cuando hayas revisado los datos.
               </p>
             )}
           </div>
@@ -308,7 +308,7 @@ export default function MedicoDetalleClient({ initialDoctor, specialties, clinic
                 Reclamo de cuenta
               </h3>
               <p className="text-[11px] text-[var(--color-text-secondary)]">
-                Este perfil aún no fue reclamado. Generá el link y envialo por WhatsApp para que el médico tome control de su perfil.
+                Este perfil aún no fue reclamado. Genera el link y envíalo por WhatsApp para que el médico tome control de su perfil.
               </p>
               <button
                 onClick={handleClaimToken}
