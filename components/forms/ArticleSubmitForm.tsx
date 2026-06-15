@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { Tag } from '@/lib/api'
 import { submitArticle, checkTagExists, subscribeNewsletter } from '@/lib/api'
 import { CheckCircle, Plus, Check, X, Loader2, Clock, Mail } from 'lucide-react'
@@ -9,6 +9,11 @@ import ImageUploader from '@/components/ui/ImageUploader'
 interface ArticleSubmitFormProps {
   tags: Tag[]
 }
+
+// Solo los datos de contacto se recuerdan en el dispositivo (no el artículo).
+// Provisional hasta F5: con cuenta de médico, estos datos vienen del perfil.
+const CONTACT_STORAGE_KEY = 'rm_author_contact'
+type ContactData = { authorName: string; authorEmail: string; authorPhone: string; authorInstagram: string }
 
 export default function ArticleSubmitForm({ tags }: ArticleSubmitFormProps) {
   const [submitted, setSubmitted] = useState(false)
@@ -31,6 +36,22 @@ export default function ArticleSubmitForm({ tags }: ArticleSubmitFormProps) {
     tagIds: [] as string[],
     sources: [] as { title: string; url: string }[],
   })
+
+  // Recordar en este dispositivo: precarga automática de los datos de contacto
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(CONTACT_STORAGE_KEY)
+      if (!saved) return
+      const c = JSON.parse(saved) as Partial<ContactData>
+      setForm((prev) => ({
+        ...prev,
+        authorName: c.authorName ?? prev.authorName,
+        authorEmail: c.authorEmail ?? prev.authorEmail,
+        authorPhone: c.authorPhone ?? prev.authorPhone,
+        authorInstagram: c.authorInstagram ?? prev.authorInstagram,
+      }))
+    } catch { /* localStorage no disponible / dato corrupto: ignorar */ }
+  }, [])
 
   const [suggestedSpecialties, setSuggestedSpecialties] = useState<string[]>([])
   const [showNewTagInput, setShowNewTagInput] = useState(false)
@@ -142,6 +163,17 @@ export default function ArticleSubmitForm({ tags }: ArticleSubmitFormProps) {
         suggestedSpecialties: suggestedSpecialties.length > 0 ? suggestedSpecialties : undefined,
         sources: form.sources.filter((s) => s.title).map((s, i) => ({ ...s, order: i })),
       })
+      // Recordar los datos de contacto en este dispositivo para el próximo envío
+      try {
+        const contact: ContactData = {
+          authorName: form.authorName,
+          authorEmail: form.authorEmail,
+          authorPhone: form.authorPhone,
+          authorInstagram: form.authorInstagram,
+        }
+        localStorage.setItem(CONTACT_STORAGE_KEY, JSON.stringify(contact))
+      } catch { /* ignorar */ }
+
       // Si ya dejó email en el form, queda suscrito y avisado desde el backend:
       // mostramos la confirmación directamente, sin volver a pedírselo.
       if (form.authorEmail) {
@@ -258,6 +290,7 @@ export default function ArticleSubmitForm({ tags }: ArticleSubmitFormProps) {
         <input
           type="text"
           required
+          autoComplete="name"
           value={form.authorName}
           onChange={(e) => setForm((p) => ({ ...p, authorName: e.target.value }))}
           className={inputClass}
@@ -271,6 +304,7 @@ export default function ArticleSubmitForm({ tags }: ArticleSubmitFormProps) {
           <label className={labelClass}>Email</label>
           <input
             type="email"
+            autoComplete="email"
             value={form.authorEmail}
             onChange={(e) => setForm((p) => ({ ...p, authorEmail: e.target.value }))}
             className={inputClass}
@@ -285,6 +319,7 @@ export default function ArticleSubmitForm({ tags }: ArticleSubmitFormProps) {
             <label className={labelClass}>Teléfono de contacto</label>
             <input
               type="tel"
+              autoComplete="tel"
               value={form.authorPhone}
               onChange={(e) => setForm((p) => ({ ...p, authorPhone: e.target.value }))}
               className={inputClass}
@@ -295,6 +330,7 @@ export default function ArticleSubmitForm({ tags }: ArticleSubmitFormProps) {
             <label className={labelClass}>Instagram (opcional)</label>
             <input
               type="text"
+              autoComplete="username"
               value={form.authorInstagram}
               onChange={(e) => setForm((p) => ({ ...p, authorInstagram: e.target.value }))}
               className={inputClass}
