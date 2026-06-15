@@ -29,11 +29,11 @@ export default function RelatedArticles({ articles, showDoctorCta = false }: Rel
           </div>
           <div className="flex-1 text-center sm:text-left">
             <p className="font-display font-bold text-lg text-[var(--color-text-primary)] mb-1">
-              ¿Sos médico o profesional de la salud?
+              ¿Eres médico o profesional de la salud?
             </p>
             <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed">
-              Tu experiencia clínica vale. Publicá tu artículo en Reporte Médico de forma gratuita —
-              lo revisamos y lo publicamos en menos de 24 horas para que llegue a miles de lectores en República Dominicana.
+              Tu experiencia clínica vale. Publica tu artículo en Reporte Médico de forma gratuita —
+              lo revisaremos y lo publicaremos en menos de 24 horas para que llegue a miles de lectores en República Dominicana.
             </p>
           </div>
           <Link

@@ -27,7 +27,7 @@ export default function EdicionesImpresasBanner({
                 </h2>
                 <p className="text-white/75 text-xs md:text-base max-w-xl mb-4 md:mb-6 font-body leading-relaxed">
                     <span className="hidden md:inline">Conocé nuestras ediciones impresas, la revista número uno de salud de República Dominicana.
-                    </span>Aquí publicamos la plataforma que marca la diferencia en la comunicación de salud del país:
+                    </span>La plataforma que marca la diferencia en la comunicación de salud del país:
                     <span className="hidden md:inline"> reportajes, entrevistas y análisis con el rigor que nuestros lectores merecen.</span>
                 </p>
                 <Link
