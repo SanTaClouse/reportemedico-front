@@ -335,7 +335,7 @@ export default function EdicionesClient({ editions: initial, token }: Props) {
               </span>
               <Code2 size={18} strokeWidth={1.5} className="text-[var(--color-primary)]" />
               <label className="text-sm font-semibold text-[var(--color-text-primary)]">
-                Pegá el código embed de Issuu
+                Pega el código embed de Issuu
               </label>
             </div>
             <p className="text-xs text-[var(--color-text-muted)]">

@@ -372,7 +372,7 @@ export default function PodcastClient({ episodes: initial, token }: Props) {
                 {showUrlInfo && (
                   <div className="absolute right-0 top-7 w-64 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-4 shadow-xl z-20">
                     <div className="flex items-center justify-between mb-2">
-                      <p className="text-xs font-semibold text-[var(--color-text-primary)]">Podés pegar cualquiera de estos:</p>
+                      <p className="text-xs font-semibold text-[var(--color-text-primary)]">Puedes pegar cualquiera de estos:</p>
                       <button type="button" onClick={() => setShowUrlInfo(false)}>
                         <X size={13} className="text-[var(--color-text-muted)]" />
                       </button>
@@ -406,7 +406,7 @@ export default function PodcastClient({ episodes: initial, token }: Props) {
                 required
                 value={form.youtubeUrl}
                 onChange={(e) => handleYoutubeUrlChange(e.target.value)}
-                placeholder="Pegá la URL del video aquí…"
+                placeholder="Pega la URL del video aquí…"
                 className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 bg-[var(--color-surface)] pr-10"
               />
               {titleStatus === 'fetching' && (
@@ -435,7 +435,7 @@ export default function PodcastClient({ episodes: initial, token }: Props) {
               </div>
             ) : form.youtubeUrl ? (
               <p className="text-xs text-amber-600 dark:text-amber-400">
-                No se pudo extraer un ID válido. Revisá el formato de la URL.
+                No se pudo extraer un ID válido. Revisa el formato de la URL.
               </p>
             ) : null}
           </div>

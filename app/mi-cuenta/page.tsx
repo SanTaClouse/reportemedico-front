@@ -84,7 +84,7 @@ export default async function MiCuentaPage() {
       </div>
 
       <p className="text-sm text-[var(--color-text-muted)] mt-6">
-        Próximamente acá vas a completar tu perfil profesional y enviar artículos sin recargar tus datos.{' '}
+        Próximamente aquí vas a completar tu perfil profesional y enviar artículos sin recargar tus datos.{' '}
         <Link href="/registro-medicos" className="text-[var(--color-primary)] hover:underline">
           Ver beneficios
         </Link>

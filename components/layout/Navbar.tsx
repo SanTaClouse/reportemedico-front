@@ -277,7 +277,7 @@ function SubscribeModal({ onClose }: { onClose: () => void }) {
                 {loading ? <Loader2 size={15} className="animate-spin" /> : 'Suscribirme'}
               </button>
               <p className="text-[10px] text-[var(--color-text-muted)] text-center">
-                Sin spam. Podés darte de baja en cualquier momento.
+                Sin spam. Puedes darte de baja en cualquier momento.
               </p>
             </form>
           )}

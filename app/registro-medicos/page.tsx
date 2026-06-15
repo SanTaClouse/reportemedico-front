@@ -3,18 +3,18 @@ import Link from 'next/link'
 import { Stethoscope, Check, MessageCircle } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Registrate como médico — Guía Médica',
+  title: 'Regístrate como médico — Guía Médica',
   description:
-    'Creá tu perfil profesional gratis en la Guía Médica de Reporte Médico: aparecé en las búsquedas de pacientes, recibí contactos por WhatsApp y publicá artículos sin recargar tus datos.',
+    'Crea tu perfil profesional gratis en la Guía Médica de Reporte Médico: aparece en las búsquedas de pacientes, recibe contactos por WhatsApp y publica artículos sin recargar tus datos.',
   alternates: { canonical: '/registro-medicos' },
   robots: { index: true, follow: true },
 }
 
 const FREE_BENEFITS = [
   'Tu página profesional con SEO local (te encuentran en Google)',
-  'Aparecés en las búsquedas por seguro, especialidad y ciudad',
+  'Apareces en las búsquedas por seguro, especialidad y ciudad',
   'Contacto directo de pacientes por WhatsApp',
-  'Enviás artículos sin volver a cargar tus datos',
+  'Envías artículos sin volver a cargar tus datos',
 ]
 
 const PREMIUM_BENEFITS = [
@@ -36,11 +36,11 @@ export default function RegistroMedicosPage() {
           <Stethoscope size={26} className="text-[var(--color-accent,#F0B414)]" strokeWidth={1.5} />
         </div>
         <h1 className="font-display font-bold text-3xl md:text-4xl text-[var(--color-text-primary)] mb-3">
-          Sumate a la Guía Médica
+          Súmate a la Guía Médica
         </h1>
         <p className="text-[var(--color-text-secondary)] text-base max-w-xl mx-auto">
-          Creá tu perfil profesional <strong>gratis</strong> y conectá con los pacientes que están
-          buscando un especialista como vos en República Dominicana.
+          Crea tu perfil profesional <strong>gratis</strong> y conecta con los pacientes que están
+          buscando un especialista como tú en República Dominicana.
         </p>
         <Link
           href={SIGNUP_URL}
@@ -88,9 +88,9 @@ export default function RegistroMedicosPage() {
       </div>
 
       <p className="text-center text-sm text-[var(--color-text-muted)] mt-8">
-        ¿Ya tenés cuenta?{' '}
+        ¿Ya tienes cuenta?{' '}
         <Link href={SIGNUP_URL} className="text-[var(--color-primary)] font-medium hover:underline">
-          Iniciá sesión
+          Inicia sesión
         </Link>
       </p>
     </div>

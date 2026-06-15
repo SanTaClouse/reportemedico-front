@@ -130,7 +130,7 @@ export default function MedicosClient({ initialData }: { initialData: DoctorList
         ))}
         {items.length === 0 && (
           <li className="px-4 py-10 text-center text-sm text-[var(--color-text-muted)]">
-            No hay médicos con este filtro. Creá el primero con &ldquo;Nuevo médico&rdquo;.
+            No hay médicos con este filtro. Crea el primero con &ldquo;Nuevo médico&rdquo;.
           </li>
         )}
       </ul>

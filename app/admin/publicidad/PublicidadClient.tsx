@@ -116,7 +116,7 @@ export default function PublicidadClient({ initialAds, initialSlots, token }: Pr
   const handleSaveAd = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!adForm.title || !adForm.imageUrl || !adForm.link) {
-      toast.error('Completá todos los campos requeridos')
+      toast.error('Completa todos los campos requeridos')
       return
     }
     setSavingAd(true)
