@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import type { Tag } from '@/lib/api'
 import { submitArticle, checkTagExists, subscribeNewsletter } from '@/lib/api'
-import { CheckCircle, Plus, Check, X, Loader2, Clock, Mail } from 'lucide-react'
+import { CheckCircle, Plus, Check, X, Loader2, Clock, Mail, Stethoscope } from 'lucide-react'
+import { useUser } from '@auth0/nextjs-auth0/client'
 import ImageUploader from '@/components/ui/ImageUploader'
 
 interface ArticleSubmitFormProps {
@@ -16,6 +17,7 @@ const CONTACT_STORAGE_KEY = 'rm_author_contact'
 type ContactData = { authorName: string; authorEmail: string; authorPhone: string; authorInstagram: string }
 
 export default function ArticleSubmitForm({ tags }: ArticleSubmitFormProps) {
+  const { user } = useUser() // médico logueado (Auth0): debe publicar desde su cuenta
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -261,6 +263,31 @@ export default function ArticleSubmitForm({ tags }: ArticleSubmitFormProps) {
             </>
           )}
         </div>
+      </div>
+    )
+  }
+
+  // Médico logueado: NO usa el form anónimo (que recarga datos y muestra el
+  // CTA de registro). Se lo manda a publicar desde su cuenta, con autoría del perfil.
+  if (user) {
+    return (
+      <div className="rounded-2xl border border-[var(--brand-gold)]/40 bg-[var(--brand-gold)]/5 p-6 text-center max-w-md mx-auto">
+        <div className="w-12 h-12 rounded-xl bg-[var(--brand-navy)] flex items-center justify-center mx-auto mb-3">
+          <Stethoscope size={22} className="text-[var(--brand-gold)]" strokeWidth={1.5} />
+        </div>
+        <p className="font-display font-bold text-lg text-[var(--color-text-primary)] mb-1">
+          Publica desde tu cuenta
+        </p>
+        <p className="text-sm text-[var(--color-text-secondary)] mb-5">
+          Estás conectado como médico. Envía tu artículo desde tu perfil y tus datos de autor
+          (nombre y foto) se completan solos — sin recargar nada.
+        </p>
+        <a
+          href="/mi-cuenta/articulos"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--brand-gold)] text-[var(--brand-navy)] rounded-xl text-sm font-bold hover:opacity-90 transition-opacity"
+        >
+          Escribir un artículo
+        </a>
       </div>
     )
   }

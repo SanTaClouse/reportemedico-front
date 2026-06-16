@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { LogOut, BadgeCheck, Clock, Eye, Loader2, Send, Save, FileText } from 'lucide-react'
+import { LogOut, BadgeCheck, Clock, Eye, Loader2, Send, Save, PenLine } from 'lucide-react'
 import { toast } from 'sonner'
 import DoctorProfileForm, { type ProfileFormData } from '@/components/guia/DoctorProfileForm'
 import type { Doctor, Specialty, Clinic, Insurance } from '@/lib/api-guia'
@@ -115,6 +115,29 @@ export default function MiCuentaClient({
       {/* Banner de estado */}
       <StatusBanner doctor={doctor} />
 
+      {/* Mis artículos — destacado para incentivar publicaciones (cuando ya hay perfil) */}
+      {doctor && !showCandidate && (
+        <a
+          href="/mi-cuenta/articulos"
+          className="group block mb-5 rounded-2xl border border-[var(--color-accent,#F0B414)]/50 bg-gradient-to-r from-[var(--color-accent,#F0B414)]/12 to-transparent p-5 hover:border-[var(--color-accent,#F0B414)] transition-colors"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-[var(--color-primary,#001450)] flex items-center justify-center shrink-0">
+              <PenLine size={22} className="text-[var(--color-accent,#F0B414)]" strokeWidth={1.5} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-display font-bold text-[var(--color-text-primary)]">Comparte tu conocimiento</p>
+              <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">
+                Publica artículos médicos en Reporte Médico y llega a miles de lectores. Tus datos de autor se completan solos.
+              </p>
+            </div>
+            <span className="hidden sm:inline-flex items-center gap-1 text-sm font-bold text-[var(--color-primary,#001450)] shrink-0 group-hover:translate-x-0.5 transition-transform">
+              Escribir →
+            </span>
+          </div>
+        </a>
+      )}
+
       {/* B2: encontramos un perfil sin dueño con tu email */}
       {showCandidate && claimCandidate ? (
         <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-primary,#001450)]/30 p-6">
@@ -204,18 +227,6 @@ export default function MiCuentaClient({
         </>
       )}
 
-      {/* Acceso a artículos (cuando ya hay perfil) */}
-      {doctor && (
-        <a
-          href="/mi-cuenta/articulos"
-          className="mt-5 flex items-center justify-between gap-3 bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-4 hover:border-[var(--color-primary,#001450)]/40 transition-colors"
-        >
-          <span className="flex items-center gap-2.5 text-sm font-medium text-[var(--color-text-primary)]">
-            <FileText size={17} className="text-[var(--color-primary,#001450)]" /> Enviar artículos a la revista
-          </span>
-          <span className="text-xs text-[var(--color-text-muted)]">Sin recargar tus datos →</span>
-        </a>
-      )}
     </div>
   )
 }
