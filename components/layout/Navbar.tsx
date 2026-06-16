@@ -384,19 +384,37 @@ export default function Navbar() {
 
           {/* Desktop nav */}
           <ul className="hidden md:flex items-center gap-6">
-            {NAV_LINKS.map(({ href, label }) => (
-              <li key={href}>
-                <Link
-                  href={href}
-                  className={`text-sm font-body font-medium transition-colors hover:text-[var(--brand-navy)] ${pathname === href
-                      ? 'text-[var(--brand-navy)] border-b-2 border-[var(--brand-gold)] pb-0.5'
-                      : 'text-[var(--color-text-secondary)]'
-                    }`}
-                >
-                  {label}
-                </Link>
-              </li>
-            ))}
+            {NAV_LINKS.map(({ href, label }) => {
+              const isActive = pathname === href
+              // Guía Médica resaltada: pill navy con texto blanco
+              if (href === '/guia-medica') {
+                return (
+                  <li key={href}>
+                    <Link
+                      href={href}
+                      className={`text-sm font-body font-semibold px-3 py-1.5 rounded-full bg-[var(--brand-navy)] text-white hover:opacity-90 transition-opacity ${
+                        isActive ? 'ring-2 ring-[var(--brand-gold)]/60 ring-offset-1' : ''
+                      }`}
+                    >
+                      {label}
+                    </Link>
+                  </li>
+                )
+              }
+              return (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    className={`text-sm font-body font-medium transition-colors hover:text-[var(--brand-navy)] ${isActive
+                        ? 'text-[var(--brand-navy)] border-b-2 border-[var(--brand-gold)] pb-0.5'
+                        : 'text-[var(--color-text-secondary)]'
+                      }`}
+                  >
+                    {label}
+                  </Link>
+                </li>
+              )
+            })}
           </ul>
 
           {/* Actions */}
@@ -445,20 +463,26 @@ export default function Navbar() {
       {menuOpen && (
         <div className="md:hidden bg-[var(--brand-navy)]">
           <ul className="flex flex-col py-2">
-            {NAV_LINKS.map(({ href, label }) => (
-              <li key={href}>
-                <Link
-                  href={href}
-                  onClick={() => setMenuOpen(false)}
-                  className={`block px-6 py-3 text-sm font-medium transition-colors ${pathname === href
-                      ? 'text-[var(--brand-gold)] bg-white/10'
-                      : 'text-white/80 hover:text-[var(--brand-gold)] hover:bg-white/5'
+            {NAV_LINKS.map(({ href, label }) => {
+              const isGuia = href === '/guia-medica'
+              return (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    onClick={() => setMenuOpen(false)}
+                    className={`block px-6 py-3 text-sm transition-colors ${
+                      isGuia
+                        ? 'font-bold text-[var(--brand-gold)] bg-white/5'
+                        : pathname === href
+                          ? 'font-medium text-[var(--brand-gold)] bg-white/10'
+                          : 'font-medium text-white/80 hover:text-[var(--brand-gold)] hover:bg-white/5'
                     }`}
-                >
-                  {label}
-                </Link>
-              </li>
-            ))}
+                  >
+                    {label}
+                  </Link>
+                </li>
+              )
+            })}
             {user && (
               <li>
                 <Link
