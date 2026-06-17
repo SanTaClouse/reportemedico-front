@@ -4,16 +4,17 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import NextImage from 'next/image'
-import { ClipboardList, Eye, CheckCircle2, AlertTriangle, Mail } from 'lucide-react'
+import { ClipboardList, Eye, CheckCircle2, AlertTriangle, Mail, ShieldAlert } from 'lucide-react'
 import { toast } from 'sonner'
 import { setDoctorStatus, type Doctor } from '@/lib/api-guia'
 
 interface Props {
   initialDoctors: Doctor[]
+  reverifyDoctors: Doctor[]
   token: string
 }
 
-export default function PendientesClient({ initialDoctors, token }: Props) {
+export default function PendientesClient({ initialDoctors, reverifyDoctors, token }: Props) {
   const router = useRouter()
   const [doctors, setDoctors] = useState(initialDoctors)
 
@@ -69,6 +70,42 @@ export default function PendientesClient({ initialDoctors, token }: Props) {
       <p className="text-xs text-[var(--color-primary)] bg-[var(--color-primary-pale,#e8edf8)] rounded-lg px-3 py-2 mb-6 inline-flex items-center gap-1.5">
         <Mail size={13} /> Al publicar un médico, si tiene email cargado, recibe automáticamente un correo de bienvenida.
       </p>
+
+      {/* Re-verificaciones: médicos publicados que editaron su identidad (06 §7) */}
+      {reverifyDoctors.length > 0 && (
+        <div className="mb-8">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-amber-800 mb-1">
+            <ShieldAlert size={16} /> Re-verificaciones pendientes ({reverifyDoctors.length})
+          </h2>
+          <p className="text-xs text-[var(--color-text-muted)] mb-3">
+            Estos médicos editaron su nombre, título o exequátur desde su cuenta. Siguen publicados, pero su sello ✓ está en pausa. Revisa la ficha, confirma el exequátur y reactiva el badge.
+          </p>
+          <ul className="space-y-2">
+            {reverifyDoctors.map((doc) => (
+              <li
+                key={doc.id}
+                className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl p-3"
+              >
+                <ShieldAlert size={18} className="text-amber-600 shrink-0" strokeWidth={1.5} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-[var(--color-text-primary)]">
+                    {doc.title} {doc.firstName} {doc.lastName}
+                  </p>
+                  <p className="text-[11px] text-[var(--color-text-muted)]">
+                    Exequátur {doc.exequatur || '—'} · editado el {new Date(doc.updatedAt).toLocaleDateString('es-DO')}
+                  </p>
+                </div>
+                <Link
+                  href={`/admin/guia-medica/medicos/${doc.id}`}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 text-white rounded-lg text-xs font-medium hover:bg-amber-700 transition-colors shrink-0"
+                >
+                  <Eye size={13} /> Re-verificar
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {doctors.length === 0 ? (
         <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-12 text-center">

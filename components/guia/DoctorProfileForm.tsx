@@ -2,7 +2,7 @@
 
 import { useState, useRef, type ReactNode } from 'react'
 import NextImage from 'next/image'
-import { Plus, X, GripVertical, Monitor, Upload, Loader2 } from 'lucide-react'
+import { Plus, X, GripVertical, Monitor, Upload, Loader2, ShieldAlert } from 'lucide-react'
 import { toast } from 'sonner'
 import type { Doctor, Specialty, Clinic, Insurance } from '@/lib/api-guia'
 
@@ -88,6 +88,9 @@ export default function DoctorProfileForm({
   const [selectedInsurances, setSelectedInsurances] = useState<string[]>(
     initial?.insurances?.map((i) => i.insurance.id) ?? [],
   )
+
+  // Si el perfil ya está publicado y verificado, editar la identidad pausa el sello ✓ (06 §7)
+  const verifiedPublished = initial?.status === 'PUBLISHED' && initial?.isVerified
 
   const toggleSpecialty = (id: string) =>
     setSelectedSpecialties((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]))
@@ -177,6 +180,15 @@ export default function DoctorProfileForm({
             </label>
           </div>
         </div>
+
+        {verifiedPublished && (
+          <p className="flex items-start gap-1.5 text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-2">
+            <ShieldAlert size={14} className="shrink-0 mt-px" />
+            <span>
+              Si cambias tu <strong>nombre, título o exequátur</strong>, tu sello ✓ verificado se pausa hasta que nuestro equipo confirme los datos de nuevo. Tu perfil sigue publicado mientras tanto.
+            </span>
+          </p>
+        )}
 
         <div>
           <label className={labelClass}>Idiomas</label>

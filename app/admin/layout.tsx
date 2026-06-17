@@ -10,15 +10,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const [pendingSpecialties, pendingDoctors] = token
     ? await Promise.all([
         getPendingSpecialties(token).catch(() => []),
-        getPendingDoctorsCount(token).catch(() => ({ count: 0 })),
+        getPendingDoctorsCount(token).catch(() => ({ count: 0, reverifyCount: 0 })),
       ])
-    : [[], { count: 0 }]
+    : [[], { count: 0, reverifyCount: 0 }]
 
   return (
     <div className="flex min-h-screen bg-[var(--color-surface-2)]">
       <AdminSidebar
         pendingTagsBadge={pendingSpecialties.length > 0}
-        pendingDoctorsCount={pendingDoctors.count}
+        pendingDoctorsCount={pendingDoctors.count + (pendingDoctors.reverifyCount ?? 0)}
       />
       <main className="flex-1 overflow-auto">
         {children}

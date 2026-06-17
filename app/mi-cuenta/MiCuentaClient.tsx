@@ -59,8 +59,15 @@ export default function MiCuentaClient({
       })
       const body = await res.json()
       if (!res.ok) throw new Error(body.message || 'No se pudo guardar')
+      const triggeredReverify = body.needsReverify && !doctor?.needsReverify
       setDoctor(body)
       toast.success('Perfil guardado', { id: toastId })
+      if (triggeredReverify) {
+        toast.info(
+          'Cambiaste un dato de identidad, así que tu sello verificado quedó en pausa. Nuestro equipo lo confirma de nuevo en breve. Tu perfil sigue publicado.',
+          { duration: 8000 },
+        )
+      }
       return true
     } catch (err) {
       toast.error((err as Error).message, { id: toastId })

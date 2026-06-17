@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
-  ArrowLeft, BadgeCheck, Link2, Copy, Loader2, Plus, Trash2, CheckCircle2, Circle, ExternalLink,
+  ArrowLeft, BadgeCheck, Link2, Copy, Loader2, Plus, Trash2, CheckCircle2, Circle, ExternalLink, ShieldAlert,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import DoctorForm from '@/components/admin/guia/DoctorForm'
@@ -119,7 +119,7 @@ export default function MedicoDetalleClient({ initialDoctor, specialties, clinic
     const toastId = toast.loading(newValue ? 'Activando badge...' : 'Quitando badge...')
     try {
       const updated = await setDoctorVerification(doctor.id, newValue, undefined, token)
-      setDoctor((prev) => ({ ...prev, isVerified: updated.isVerified }))
+      setDoctor((prev) => ({ ...prev, isVerified: updated.isVerified, needsReverify: updated.needsReverify }))
       toast.success(newValue ? 'Badge ✓ Verificado activado' : 'Badge quitado', { id: toastId })
     } catch (err) {
       toast.error((err as Error).message, { id: toastId })
@@ -266,6 +266,14 @@ export default function MedicoDetalleClient({ initialDoctor, specialties, clinic
           {/* Verificación */}
           <div className={panelClass}>
             <h3 className="font-semibold text-xs uppercase tracking-wide text-[var(--color-text-muted)]">Verificación</h3>
+            {doctor.needsReverify && (
+              <p className="flex items-start gap-1.5 text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-2">
+                <ShieldAlert size={14} className="shrink-0 mt-px" />
+                <span>
+                  El médico editó su <strong>identidad</strong> (nombre, título o exequátur) desde su cuenta. Su perfil sigue publicado, pero el sello se pausó. Confirma el exequátur y reactiva el badge para re-verificarlo.
+                </span>
+              </p>
+            )}
             <p className="text-xs text-[var(--color-text-secondary)]">
               Exequátur: {doctor.exequatur ? <strong>{doctor.exequatur}</strong> : <em>sin cargar</em>}
             </p>

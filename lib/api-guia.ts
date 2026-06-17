@@ -102,6 +102,7 @@ export interface Doctor {
   videoUrl?: string | null
   exequatur?: string | null
   isVerified: boolean
+  needsReverify: boolean
   languages: string[]
   telehealth: boolean
   emailOptOut: boolean
@@ -231,7 +232,11 @@ export const getDoctorAdmin = (id: string, token: string) =>
   apiFetch<Doctor>(`/doctors/${id}`, { token, cache: 'no-store' })
 
 export const getPendingDoctorsCount = (token: string) =>
-  apiFetch<{ count: number }>('/doctors/pending-count', { token, cache: 'no-store' })
+  apiFetch<{ count: number; reverifyCount: number }>('/doctors/pending-count', { token, cache: 'no-store' })
+
+/** Médicos publicados que editaron su identidad y esperan re-verificación (06 §7) */
+export const getReverifyDoctors = (token: string) =>
+  apiFetch<Doctor[]>('/doctors/reverify', { token, cache: 'no-store' })
 
 export interface EngagementRow {
   id: string
@@ -316,7 +321,10 @@ export interface PublicDoctorCard {
   insurances: { slug: string; name: string }[]
 }
 
-export type PublicDoctorProfile = Omit<Doctor, 'phoneInternal' | 'planNotes' | 'auth0Sub' | 'email' | 'plan'> & {
+export type PublicDoctorProfile = Omit<
+  Doctor,
+  'phoneInternal' | 'planNotes' | 'auth0Sub' | 'email' | 'plan' | 'needsReverify'
+> & {
   related: PublicDoctorCard[]
 }
 
