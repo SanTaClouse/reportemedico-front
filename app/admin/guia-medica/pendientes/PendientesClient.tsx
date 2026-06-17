@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import NextImage from 'next/image'
-import { ClipboardList, Eye, CheckCircle2, AlertTriangle } from 'lucide-react'
+import { ClipboardList, Eye, CheckCircle2, AlertTriangle, Mail } from 'lucide-react'
 import { toast } from 'sonner'
 import { setDoctorStatus, type Doctor } from '@/lib/api-guia'
 
@@ -34,8 +34,11 @@ export default function PendientesClient({ initialDoctors, token }: Props) {
   }
 
   const handleQuickApprove = (doc: Doctor) => {
+    const emailNote = doc.email
+      ? `Se le enviará un correo de bienvenida a ${doc.email}.`
+      : 'Este médico no tiene email cargado: no recibirá aviso.'
     toast.warning(
-      `¿Aprobar y publicar a ${doc.title ?? ''} ${doc.firstName} ${doc.lastName}? Revisa antes que los datos estén completos.`,
+      `¿Aprobar y publicar a ${doc.title ?? ''} ${doc.firstName} ${doc.lastName}? Revisa que los datos estén completos. ${emailNote}`,
       {
         action: {
           label: 'Publicar',
@@ -60,8 +63,11 @@ export default function PendientesClient({ initialDoctors, token }: Props) {
       <h1 className="font-display text-2xl font-bold text-[var(--color-text-primary)] mb-1">
         Aprobaciones de la Guía Médica
       </h1>
-      <p className="text-sm text-[var(--color-text-muted)] mb-6">
+      <p className="text-sm text-[var(--color-text-muted)] mb-3">
         Médicos que enviaron su perfil y esperan revisión. Revisa los datos, normaliza la clínica si hace falta, pule la bio y publica.
+      </p>
+      <p className="text-xs text-[var(--color-primary)] bg-[var(--color-primary-pale,#e8edf8)] rounded-lg px-3 py-2 mb-6 inline-flex items-center gap-1.5">
+        <Mail size={13} /> Al publicar un médico, si tiene email cargado, recibe automáticamente un correo de bienvenida.
       </p>
 
       {doctors.length === 0 ? (

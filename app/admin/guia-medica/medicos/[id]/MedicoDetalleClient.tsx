@@ -60,7 +60,9 @@ export default function MedicoDetalleClient({ initialDoctor, specialties, clinic
     if (status === doctor.status) return
     const confirmMsg =
       status === 'PUBLISHED'
-        ? '¿Publicar este perfil? Quedará visible en la guía y entrará al sitemap.'
+        ? `¿Publicar este perfil? Quedará visible en la guía y entrará al sitemap.${
+            doctor.email ? ` Se le enviará un correo de bienvenida a ${doctor.email}.` : ' (Sin email cargado: no recibirá aviso.)'
+          }`
         : status === 'INACTIVE'
           ? '¿Desactivar este perfil? Su página devolverá 404 y saldrá del sitemap.'
           : `¿Cambiar el estado a ${DOCTOR_STATUS_LABELS[status]}?`
@@ -250,6 +252,13 @@ export default function MedicoDetalleClient({ initialDoctor, specialties, clinic
             {doctor.status === 'PENDING' && (
               <p className="text-[11px] text-amber-700 bg-amber-50 rounded-lg px-2.5 py-1.5">
                 Pendiente de aprobación — publícalo cuando hayas revisado los datos.
+              </p>
+            )}
+            {doctor.status !== 'PUBLISHED' && (
+              <p className="text-[11px] text-[var(--color-primary)] bg-[var(--color-primary-pale,#e8edf8)] rounded-lg px-2.5 py-1.5">
+                {doctor.email
+                  ? <>Al publicarlo se le enviará un correo de bienvenida a <strong>{doctor.email}</strong>.</>
+                  : <>Sin email cargado: no recibirá correo de bienvenida al publicarlo.</>}
               </p>
             )}
           </div>
