@@ -2,7 +2,8 @@
 
 import { useState, useRef, useCallback } from 'react'
 import Image from 'next/image'
-import { Trash2, Upload, Loader2, Star, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react'
+import dynamic from 'next/dynamic'
+import { Trash2, Upload, Loader2, Star, ChevronLeft, ChevronRight, RefreshCw, Crop } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   uploadFotoGaleria,
@@ -12,8 +13,10 @@ import {
   updateGalleryCaption,
   type GalleryItem,
 } from '@/lib/api'
-import { cldUrl } from '@/lib/cloudinary'
+import { cldUrl, baseImageUrl, setImageCrop, type CropRegion } from '@/lib/cloudinary'
 import { prepareImageForUpload } from '@/lib/image-process'
+
+const ImageCropModal = dynamic(() => import('./ImageCropModal'), { ssr: false })
 
 interface PhotosUploaderProps {
   /** URL de la portada (featuredImage del artículo, controlada por el editor) */
@@ -46,13 +49,16 @@ export default function PhotosUploader({
   const [items, setItems] = useState<GalleryItem[]>(initialItems)
   const [uploading, setUploading] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
+  const [cropping, setCropping] = useState(false)
   const dropInputRef = useRef<HTMLInputElement>(null)
   const coverInputRef = useRef<HTMLInputElement>(null)
 
   // La portada puede ser una foto de la galería (flujo nuevo) o una URL legada
   // que no está en items. En ambos casos se muestra como tapa y se excluye del grid.
-  const coverItem = items.find((i) => i.media.url === featuredImage) ?? null
-  const galleryItems = items.filter((i) => i.media.url !== featuredImage)
+  // Se compara por URL base porque la portada puede llevar un recuadre (#crop=...).
+  const coverBase = baseImageUrl(featuredImage)
+  const coverItem = items.find((i) => baseImageUrl(i.media.url) === coverBase) ?? null
+  const galleryItems = items.filter((i) => baseImageUrl(i.media.url) !== coverBase)
 
   /** Sube una tanda de archivos a la galería. La primera se vuelve portada si no hay. */
   const uploadFiles = useCallback(
@@ -148,7 +154,7 @@ export default function PhotosUploader({
       await removeGalleryImage(articleId, item.mediaId, token)
       const updated = items.filter((i) => i.mediaId !== item.mediaId)
       setItems(updated)
-      if (item.media.url === featuredImage) onFeaturedChange('')
+      if (baseImageUrl(item.media.url) === coverBase) onFeaturedChange('')
       toast.success('Foto eliminada')
     } catch (err) {
       toast.error(`Error al eliminar: ${(err as Error).message}`)
@@ -193,6 +199,8 @@ export default function PhotosUploader({
     'w-full mt-1 px-2 py-1 text-[11px] border border-[var(--color-border)] rounded bg-[var(--color-surface)] focus:outline-none focus:ring-1 focus:ring-primary/30 text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)]'
   const overlayBtn =
     'p-1.5 rounded-md bg-white/90 hover:bg-white text-[var(--color-text-primary)] shadow-sm transition-colors disabled:opacity-50'
+  const coverActionBtn =
+    'flex items-center justify-center gap-1.5 px-2.5 py-1.5 text-xs font-medium border border-[var(--color-border)] rounded-lg text-[var(--color-text-secondary)] hover:border-primary hover:text-primary transition-colors disabled:opacity-50'
 
   return (
     <div className="space-y-3">
@@ -233,30 +241,34 @@ export default function PhotosUploader({
         )}
       </div>
 
-      {/* Grid de fotos: portada + galería */}
+      {/* Portada + galería */}
       {(featuredImage || galleryItems.length > 0) && (
-        <div className="grid grid-cols-3 gap-2">
-          {/* Tapa */}
+        <div className="space-y-3">
+          {/* Tapa — a todo el ancho, en 16:9 (mismo aspecto que el recuadre) */}
           {featuredImage && (
-            <div className="col-span-3 sm:col-span-1">
-              <div className="group relative aspect-square rounded-lg overflow-hidden bg-[var(--color-surface-2)] ring-2 ring-primary">
+            <div className="space-y-2">
+              <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-[var(--color-surface-2)] ring-2 ring-primary">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={cldUrl(featuredImage, { w: 480, h: 480 }) || featuredImage}
+                  src={cldUrl(featuredImage, { w: 640, h: 360 }) || featuredImage}
                   alt="Portada"
                   className="w-full h-full object-cover"
                 />
                 <span className="absolute top-1.5 left-1.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-primary text-white text-[10px] font-semibold">
                   <Star size={10} className="fill-white" /> Portada
                 </span>
-                <div className="absolute inset-0 flex items-end justify-center gap-1.5 p-2 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button type="button" onClick={() => coverInputRef.current?.click()} disabled={uploading} className={overlayBtn} title="Cambiar portada">
-                    <RefreshCw size={14} />
-                  </button>
-                  <button type="button" onClick={clearCover} className={`${overlayBtn} text-red-600`} title="Quitar portada">
-                    <Trash2 size={14} />
-                  </button>
-                </div>
+              </div>
+              {/* Acciones de la portada — siempre visibles (también en táctil) */}
+              <div className="flex items-center gap-1.5">
+                <button type="button" onClick={() => setCropping(true)} className={coverActionBtn} title="Recuadrar la portada manualmente">
+                  <Crop size={13} /> Recuadrar
+                </button>
+                <button type="button" onClick={() => coverInputRef.current?.click()} disabled={uploading} className={coverActionBtn} title="Cambiar la imagen de portada">
+                  <RefreshCw size={13} /> Cambiar
+                </button>
+                <button type="button" onClick={clearCover} className={`${coverActionBtn} ml-auto !text-red-600`} title="Quitar portada">
+                  <Trash2 size={13} />
+                </button>
               </div>
               <input
                 ref={coverInputRef}
@@ -269,6 +281,8 @@ export default function PhotosUploader({
           )}
 
           {/* Galería (sin la portada) */}
+          {galleryItems.length > 0 && (
+          <div className="grid grid-cols-3 gap-2">
           {galleryItems.map((item, index) => (
             <div key={item.mediaId}>
               <div className="group relative aspect-square rounded-lg overflow-hidden bg-[var(--color-surface-2)] border border-[var(--color-border)]">
@@ -315,6 +329,8 @@ export default function PhotosUploader({
               />
             </div>
           ))}
+          </div>
+          )}
         </div>
       )}
 
@@ -322,6 +338,19 @@ export default function PhotosUploader({
         <p className="text-[11px] text-[var(--color-text-muted)] text-center leading-snug">
           Al subir la primera foto se guarda el borrador automáticamente (necesita un título).
         </p>
+      )}
+
+      {cropping && featuredImage && (
+        <ImageCropModal
+          imageUrl={baseImageUrl(featuredImage)}
+          aspect={16 / 9}
+          title="Recuadrar portada"
+          onSave={(crop: CropRegion | null) => {
+            onFeaturedChange(setImageCrop(featuredImage, crop))
+            setCropping(false)
+          }}
+          onClose={() => setCropping(false)}
+        />
       )}
     </div>
   )

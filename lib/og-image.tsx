@@ -2,6 +2,7 @@ import { ImageResponse } from 'next/og'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import type { Article } from './api'
+import { baseImageUrl, getImageCrop } from './cloudinary'
 
 export const OG_SIZE = { width: 1200, height: 630 }
 export const OG_CONTENT_TYPE = 'image/png'
@@ -67,13 +68,18 @@ function truncate(str: string, max: number): string {
  */
 function toOgSafeImageUrl(src: string | null | undefined): string | null {
   if (!src) return null
-  if (!src.includes('res.cloudinary.com') || !src.includes('/upload/')) {
+  const crop = getImageCrop(src)
+  const base = baseImageUrl(src)
+  if (!base.includes('res.cloudinary.com') || !base.includes('/upload/')) {
     // Imagen externa: la pasamos tal cual y confiamos en que sea jpg/png
-    return src
+    return base
   }
   // Eliminar transformaciones previas que pudiéramos haber inyectado
-  const cleaned = src.replace(/\/upload\/(?:[^/]*[cwhgqf]_[^/]*\/)+/, '/upload/')
-  const transform = 'c_fill,g_auto:faces,w_960,h_1260,q_auto:good,f_jpg'
+  const cleaned = base.replace(/\/upload\/(?:[^/]*[cwhgqf]_[^/]*\/)+/, '/upload/')
+  // Honrar el recuadre manual (#crop) si existe; si no, encuadre automático en la cara
+  const transform = crop
+    ? `c_crop,x_${crop.x},y_${crop.y},w_${crop.w},h_${crop.h}/c_fill,w_960,h_1260,q_auto:good,f_jpg`
+    : 'c_fill,g_auto:faces,w_960,h_1260,q_auto:good,f_jpg'
   return cleaned.replace('/upload/', `/upload/${transform}/`)
 }
 

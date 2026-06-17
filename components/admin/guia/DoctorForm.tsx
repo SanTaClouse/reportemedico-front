@@ -2,13 +2,16 @@
 
 import { useState, useRef } from 'react'
 import NextImage from 'next/image'
-import { Loader2, Check, Plus, X, Upload, GripVertical } from 'lucide-react'
+import dynamic from 'next/dynamic'
+import { Loader2, Check, Plus, X, Upload, GripVertical, Crop } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   uploadFotoMedico,
   type Doctor, type DoctorInput, type Specialty, type Clinic, type Insurance,
 } from '@/lib/api-guia'
-import { cldUrl } from '@/lib/cloudinary'
+import { cldUrl, baseImageUrl, setImageCrop, type CropRegion } from '@/lib/cloudinary'
+
+const ImageCropModal = dynamic(() => import('@/components/admin/ImageCropModal'), { ssr: false })
 
 interface Props {
   specialties: Specialty[]
@@ -57,6 +60,7 @@ export default function DoctorForm({
     initial?.insurances?.map((i) => i.insurance.id) ?? [],
   )
   const [uploading, setUploading] = useState(false)
+  const [cropping, setCropping] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const toggleSpecialty = (id: string) => {
@@ -143,6 +147,16 @@ export default function DoctorForm({
               {uploading ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
               Foto
             </button>
+            {form.photoUrl && (
+              <button
+                type="button"
+                onClick={() => setCropping(true)}
+                className="mt-1.5 w-24 flex items-center justify-center gap-1.5 px-2 py-1.5 text-xs font-medium text-[var(--color-text-secondary)] border border-[var(--color-border)] rounded-lg hover:border-primary hover:text-primary transition-colors"
+                title="Recuadrar la foto manualmente"
+              >
+                <Crop size={12} /> Recuadrar
+              </button>
+            )}
             <input
               ref={fileRef}
               type="file"
@@ -376,6 +390,19 @@ export default function DoctorForm({
         {busy ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
         {submitLabel}
       </button>
+
+      {cropping && form.photoUrl && (
+        <ImageCropModal
+          imageUrl={baseImageUrl(form.photoUrl)}
+          aspect={1}
+          title="Recuadrar foto del médico"
+          onSave={(crop: CropRegion | null) => {
+            setForm((f) => ({ ...f, photoUrl: setImageCrop(f.photoUrl, crop) }))
+            setCropping(false)
+          }}
+          onClose={() => setCropping(false)}
+        />
+      )}
     </form>
   )
 }

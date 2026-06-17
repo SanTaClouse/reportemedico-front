@@ -94,7 +94,7 @@ export default async function MedicoPage({ params }: Props) {
     '@context': 'https://schema.org',
     '@type': 'Physician',
     name: fullName,
-    ...(doctor.photoUrl ? { image: doctor.photoUrl } : {}),
+    ...(doctor.photoUrl ? { image: cldUrl(doctor.photoUrl, { w: 1200, h: 630 }) } : {}),
     ...(doctor.bio ? { description: doctor.bio.slice(0, 300) } : {}),
     medicalSpecialty: doctor.specialties
       .map((s) => s.specialty.schemaOrgValue)

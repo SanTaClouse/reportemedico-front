@@ -4,7 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { getArticleBySlug, getNews, getRelatedByTag } from '@/lib/api'
 import { formatDate, readingTime } from '@/lib/utils'
-import { cldUrl } from '@/lib/cloudinary'
+import { cldUrl, baseImageUrl } from '@/lib/cloudinary'
 import ArticleBody from '@/components/article/ArticleBody'
 import ArticleShare from '@/components/article/ArticleShare'
 import ArticleSources from '@/components/article/ArticleSources'
@@ -118,7 +118,7 @@ export default async function NoticiaPage({ params }: Props) {
       ? [
           {
             '@type': 'ImageObject',
-            url: article.featuredImage,
+            url: cldUrl(article.featuredImage, { w: 1200, h: 630 }),
             width: 1200,
             height: 630,
           },
@@ -243,7 +243,8 @@ export default async function NoticiaPage({ params }: Props) {
 
         {/* Galería de fotos — excluye la portada para no mostrarla dos veces */}
         {(() => {
-          const gallery = (article.media ?? []).filter((m) => m.media.url !== article.featuredImage)
+          const coverBase = baseImageUrl(article.featuredImage)
+          const gallery = (article.media ?? []).filter((m) => baseImageUrl(m.media.url) !== coverBase)
           return gallery.length > 0 ? <ArticleGallery items={gallery} /> : null
         })()}
       </div>
