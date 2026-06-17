@@ -17,6 +17,7 @@ import {
   Stethoscope,
   ClipboardList,
   FolderTree,
+  Activity,
 } from 'lucide-react'
 
 const BASE_NAV_ITEMS = [
@@ -38,6 +39,7 @@ const GUIA_NAV_ITEMS = [
   { href: '/admin/guia-medica/pendientes', label: 'Aprobaciones', icon: ClipboardList, badgeKey: 'doctors' as const },
   { href: '/admin/guia-medica/catalogos', label: 'Catálogos', icon: FolderTree },
   { href: '/admin/guia-medica/textos', label: 'Textos SEO', icon: FileText },
+  { href: '/admin/guia-medica/actividad', label: 'Actividad', icon: Activity },
 ]
 
 interface AdminSidebarProps {

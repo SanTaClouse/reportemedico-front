@@ -233,6 +233,23 @@ export const getDoctorAdmin = (id: string, token: string) =>
 export const getPendingDoctorsCount = (token: string) =>
   apiFetch<{ count: number }>('/doctors/pending-count', { token, cache: 'no-store' })
 
+export interface EngagementRow {
+  id: string
+  slug: string
+  name: string
+  plan: DoctorPlan
+  status: DoctorStatus
+  lastSession: string | null
+  sessions30d: number
+  sessionsTotal: number
+  whatsappClicks30d: number
+  whatsappClicksTotal: number
+  articles: number
+}
+
+export const getEngagement = (token: string) =>
+  apiFetch<EngagementRow[]>('/doctors/engagement', { token, cache: 'no-store' })
+
 export const createDoctor = (data: DoctorInput, token: string) =>
   apiFetch<Doctor>('/doctors', { method: 'POST', body: JSON.stringify(data), token })
 
