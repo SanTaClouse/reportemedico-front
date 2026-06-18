@@ -317,9 +317,9 @@ export default async function SobreNosotrosPage() {
               </p>
               <p className="inline-flex items-center gap-1.5 text-xs text-[var(--color-text-muted)] bg-[var(--color-surface-2)] px-3 py-1.5 rounded-full">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
-                  <circle cx="12" cy="12" r="4"/>
-                  <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                  <circle cx="12" cy="12" r="4" />
+                  <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
                 </svg>
                 Toca en un médico para acceder a su perfil de Instagram
               </p>
@@ -356,9 +356,9 @@ export default async function SobreNosotrosPage() {
                           className="inline-flex items-center gap-1 mt-1.5 text-xs text-[var(--color-primary)] hover:underline"
                         >
                           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
-                            <circle cx="12" cy="12" r="4"/>
-                            <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                            <circle cx="12" cy="12" r="4" />
+                            <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
                           </svg>
                           Ver en Instagram
                           <ArrowUpRight size={10} strokeWidth={2} />
@@ -387,7 +387,7 @@ export default async function SobreNosotrosPage() {
                 href="mailto:info@reportemedico.com"
                 className="text-[var(--brand-electric)] hover:underline"
               >
-                info@reportemedico.com
+                administracion@reportemedico.com
               </a>
             </p>
             <p>Av. Simón Bolívar, Edif. Profesional Elam's II, 4to piso, Oficina 4D, Santo Domingo, RD</p>
