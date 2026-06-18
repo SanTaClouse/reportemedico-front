@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   ArrowLeft, BadgeCheck, Link2, Copy, Loader2, Plus, Trash2, CheckCircle2, Circle, ExternalLink, ShieldAlert,
+  GitMerge,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import DoctorForm from '@/components/admin/guia/DoctorForm'
@@ -21,6 +22,7 @@ interface Props {
   specialties: Specialty[]
   clinics: Clinic[]
   insurances: Insurance[]
+  duplicates: Doctor[]
   token: string
 }
 
@@ -28,7 +30,7 @@ const panelClass = 'bg-[var(--color-surface)] rounded-xl border border-[var(--co
 const STATUS_OPTIONS: DoctorStatus[] = ['DRAFT', 'PENDING', 'PUBLISHED', 'INACTIVE']
 const BENEFIT_TYPES: BenefitType[] = ['REVISTA_DIGITAL', 'REVISTA_IMPRESA', 'FOTOGRAFIA', 'VIDEO', 'PODCAST', 'EVENTO']
 
-export default function MedicoDetalleClient({ initialDoctor, specialties, clinics, insurances, token }: Props) {
+export default function MedicoDetalleClient({ initialDoctor, specialties, clinics, insurances, duplicates, token }: Props) {
   const router = useRouter()
   const [doctor, setDoctor] = useState(initialDoctor)
   const [busy, setBusy] = useState(false)
@@ -231,6 +233,40 @@ export default function MedicoDetalleClient({ initialDoctor, specialties, clinic
 
         {/* ─── Columna lateral: estado, plan, verificación, invitación, beneficios ─── */}
         <div className="space-y-4">
+          {/* Posibles duplicados (07 §2) */}
+          {duplicates.length > 0 && (
+            <div className="bg-amber-50 rounded-xl border border-amber-200 p-4 space-y-2.5">
+              <h3 className="flex items-center gap-1.5 font-semibold text-xs uppercase tracking-wide text-amber-800">
+                <GitMerge size={14} /> Posibles duplicados ({duplicates.length})
+              </h3>
+              <p className="text-[11px] text-amber-700">
+                Mismo nombre o exequátur. Si es la misma persona, fusiona los perfiles en uno.
+              </p>
+              <ul className="space-y-1.5">
+                {duplicates.map((dup) => (
+                  <li key={dup.id} className="flex items-center gap-2 bg-white/70 rounded-lg p-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-[var(--color-text-primary)] truncate">
+                        {dup.title} {dup.firstName} {dup.lastName}
+                      </p>
+                      <p className="text-[10px] text-[var(--color-text-muted)] truncate">
+                        {DOCTOR_STATUS_LABELS[dup.status]}
+                        {dup.exequatur && ` · Exeq. ${dup.exequatur}`}
+                        {dup.auth0Sub && ' · con cuenta'}
+                      </p>
+                    </div>
+                    <Link
+                      href={`/admin/guia-medica/medicos/fusionar?a=${doctor.id}&b=${dup.id}`}
+                      className="flex items-center gap-1 px-2.5 py-1 bg-amber-600 text-white rounded-lg text-[11px] font-medium hover:bg-amber-700 transition-colors shrink-0"
+                    >
+                      <GitMerge size={12} /> Fusionar
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {/* Estado */}
           <div className={panelClass}>
             <h3 className="font-semibold text-xs uppercase tracking-wide text-[var(--color-text-muted)]">Estado</h3>

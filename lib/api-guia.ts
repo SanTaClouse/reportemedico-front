@@ -238,6 +238,23 @@ export const getPendingDoctorsCount = (token: string) =>
 export const getReverifyDoctors = (token: string) =>
   apiFetch<Doctor[]>('/doctors/reverify', { token, cache: 'no-store' })
 
+/** Posibles duplicados de un médico: mismo nombre o exequátur (07 §2) */
+export const getDoctorDuplicates = (id: string, token: string) =>
+  apiFetch<Doctor[]>(`/doctors/${id}/duplicates`, { token, cache: 'no-store' })
+
+/** Fusiona el duplicado (sourceId) dentro del destino (targetId) — 07 §2 */
+export const mergeDoctors = (
+  targetId: string,
+  sourceId: string,
+  fromSource: string[],
+  token: string,
+) =>
+  apiFetch<Doctor>('/doctors/merge', {
+    method: 'POST',
+    body: JSON.stringify({ targetId, sourceId, fromSource }),
+    token,
+  })
+
 export interface EngagementRow {
   id: string
   slug: string
