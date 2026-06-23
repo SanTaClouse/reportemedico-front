@@ -8,7 +8,7 @@ import { useSearch } from '@/lib/hooks/useSearch'
 import { Menu, X, Sun, Moon, Search, Loader2, Check, UserCircle } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useUser } from '@auth0/nextjs-auth0/client'
-import { subscribeNewsletter } from '@/lib/api'
+import { subscribeNewsletter, getTags, type Tag } from '@/lib/api'
 
 const NAV_LINKS = [
   { href: '/', label: 'Inicio' },
@@ -172,11 +172,17 @@ function SearchBar() {
 }
 
 function SubscribeModal({ onClose }: { onClose: () => void }) {
+  const [step, setStep] = useState<'form' | 'interests' | 'done'>('form')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
+
+  // Temas de interés (opcional, paso 2)
+  const [tags, setTags] = useState<Tag[]>([])
+  const [tagQuery, setTagQuery] = useState('')
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [savingInterests, setSavingInterests] = useState(false)
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
@@ -184,19 +190,50 @@ function SubscribeModal({ onClose }: { onClose: () => void }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
+  // Precargamos los temas para que estén listos en el paso 2
+  useEffect(() => {
+    getTags().then(setTags).catch(() => setTags([]))
+  }, [])
+
+  // Paso 1: guarda la suscripción de una (así el digest funciona aunque omita los temas)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
     try {
       await subscribeNewsletter(email.trim(), name.trim() || undefined)
-      setSuccess(true)
+      setStep('interests')
     } catch {
       setError('No se pudo completar la suscripción. Intenta de nuevo.')
     } finally {
       setLoading(false)
     }
   }
+
+  // Paso 2 (opcional): suma los temas elegidos a la suscripción ya creada
+  const saveInterests = async () => {
+    setSavingInterests(true)
+    try {
+      await subscribeNewsletter(email.trim(), name.trim() || undefined, [...selected])
+    } catch {
+      // Si falla, igual ya está suscripto; no bloqueamos el cierre
+    } finally {
+      setSavingInterests(false)
+      setStep('done')
+    }
+  }
+
+  const toggleTag = (id: string) =>
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+
+  const filteredTags = tagQuery.trim()
+    ? tags.filter((t) => t.name.toLowerCase().includes(tagQuery.trim().toLowerCase()))
+    : tags
 
   return (
     <div
@@ -213,10 +250,12 @@ function SubscribeModal({ onClose }: { onClose: () => void }) {
         <div className="bg-[var(--brand-navy)] px-6 py-5 flex items-start justify-between">
           <div>
             <h2 className="font-display font-bold text-lg text-white leading-tight">
-              Suscríbete a Reporte Médico
+              {step === 'interests' ? 'Casi listo: elige tus temas' : 'Suscríbete a Reporte Médico'}
             </h2>
             <p className="text-xs text-white/70 mt-1">
-              Recibe las últimas noticias de salud en tu correo
+              {step === 'interests'
+                ? 'Así te enviamos solo lo que te interesa (opcional)'
+                : 'Recibe las últimas noticias de salud en tu correo'}
             </p>
           </div>
           <button onClick={onClose} aria-label="Cerrar" className="text-white/60 hover:text-white transition-colors ml-4 shrink-0 mt-0.5">
@@ -226,14 +265,16 @@ function SubscribeModal({ onClose }: { onClose: () => void }) {
 
         {/* Body */}
         <div className="px-6 py-6">
-          {success ? (
+          {step === 'done' ? (
             <div className="flex flex-col items-center text-center py-4 gap-3">
               <div className="w-14 h-14 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center">
                 <Check size={28} strokeWidth={2} className="text-[var(--color-primary)]" />
               </div>
               <p className="font-semibold text-[var(--color-text-primary)]">¡Gracias por suscribirte!</p>
               <p className="text-sm text-[var(--color-text-secondary)]">
-                Te enviaremos las noticias más importantes de salud de República Dominicana.
+                {selected.size > 0
+                  ? 'Te enviaremos las noticias de los temas que elegiste.'
+                  : 'Te enviaremos las noticias más importantes de salud de República Dominicana.'}
               </p>
               <button
                 onClick={onClose}
@@ -241,6 +282,59 @@ function SubscribeModal({ onClose }: { onClose: () => void }) {
               >
                 Cerrar
               </button>
+            </div>
+          ) : step === 'interests' ? (
+            <div className="space-y-4">
+              <p className="text-sm text-[var(--color-text-secondary)]">
+                ¿Sobre qué temas quieres recibir noticias? Elige los que te interesen — o sáltalo, ya quedaste suscripto.
+              </p>
+              {tags.length > 8 && (
+                <input
+                  type="text"
+                  value={tagQuery}
+                  onChange={(e) => setTagQuery(e.target.value)}
+                  placeholder="Buscar tema…"
+                  className="w-full px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg bg-[var(--color-surface)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-navy)]/30"
+                />
+              )}
+              <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto">
+                {filteredTags.map((t) => {
+                  const on = selected.has(t.id)
+                  return (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => toggleTag(t.id)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                        on
+                          ? 'bg-[var(--brand-navy)] text-white border-[var(--brand-navy)]'
+                          : 'border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--brand-navy)]/40'
+                      }`}
+                    >
+                      {t.name}
+                    </button>
+                  )
+                })}
+                {filteredTags.length === 0 && (
+                  <p className="text-xs text-[var(--color-text-muted)] py-2">No encontramos ese tema.</p>
+                )}
+              </div>
+              <div className="flex items-center gap-3 pt-1">
+                <button
+                  onClick={saveInterests}
+                  disabled={savingInterests || selected.size === 0}
+                  className="flex-1 py-2.5 bg-[var(--brand-navy)] text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {savingInterests ? <Loader2 size={15} className="animate-spin" /> : `Guardar mis temas${selected.size > 0 ? ` (${selected.size})` : ''}`}
+                </button>
+                <button
+                  onClick={() => setStep('done')}
+                  disabled={savingInterests}
+                  className="px-4 py-2.5 text-sm font-medium text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
+                >
+                  Omitir
+                </button>
+              </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">

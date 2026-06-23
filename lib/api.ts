@@ -719,10 +719,10 @@ export interface SubscriberStats {
   unsubscribed: number
 }
 
-export function subscribeNewsletter(email: string, name?: string) {
+export function subscribeNewsletter(email: string, name?: string, tagIds?: string[]) {
   return apiFetch<Subscriber>('/subscribers', {
     method: 'POST',
-    body: JSON.stringify({ email, name }),
+    body: JSON.stringify({ email, name, ...(tagIds?.length ? { tagIds } : {}) }),
   })
 }
 
