@@ -820,6 +820,14 @@ export function unsubscribeNewsletter(s: string, t: string) {
   })
 }
 
+/** Opt-out del digest de médicos (público, desde el link del email) */
+export function optOutDoctorDigest(d: string, t: string) {
+  return apiFetch<{ ok: boolean }>('/subscribers/doctor-digest/optout', {
+    method: 'POST',
+    body: JSON.stringify({ d, t }),
+  })
+}
+
 // ─── Envío de una noticia por correo (segmentado, 08 §1) ──────────────────────
 
 export interface ArticleAudienceRecipient {

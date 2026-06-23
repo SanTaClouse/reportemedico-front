@@ -272,6 +272,34 @@ export interface EngagementRow {
 export const getEngagement = (token: string) =>
   apiFetch<EngagementRow[]>('/doctors/engagement', { token, cache: 'no-store' })
 
+// ─── Digest de noticias por especialidad para médicos (08 §1) ────────────────
+
+export interface DoctorDigestPreview {
+  articlePool: number
+  eligibleDoctors: number
+  willReceive: number
+  lastSentAt: string | null
+  lastSend: { sentAt: string; recipients: number; auto: boolean } | null
+}
+
+export interface DoctorDigestResult {
+  eligible: number
+  targeted?: number
+  sent: number
+  failed: number
+  skipped?: boolean
+}
+
+export const getDoctorDigestPreview = (token: string) =>
+  apiFetch<DoctorDigestPreview>('/subscribers/doctor-digest/preview', { token, cache: 'no-store' })
+
+export const sendDoctorDigest = (token: string) =>
+  apiFetch<DoctorDigestResult>('/subscribers/doctor-digest/send', {
+    method: 'POST',
+    token,
+    signal: AbortSignal.timeout(300000),
+  })
+
 export const createDoctor = (data: DoctorInput, token: string) =>
   apiFetch<Doctor>('/doctors', { method: 'POST', body: JSON.stringify(data), token })
 
