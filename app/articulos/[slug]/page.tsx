@@ -12,6 +12,7 @@ import ArticleGallery from '@/components/article/ArticleGallery'
 import RelatedArticles from '@/components/article/RelatedArticles'
 import TagBadge from '@/components/ui/TagBadge'
 import ViewsCounter from '@/components/article/ViewsCounter'
+import TopicSubscribe from '@/components/article/TopicSubscribe'
 
 export const revalidate = 600
 
@@ -244,6 +245,9 @@ export default async function ArticuloPage({ params }: Props) {
           return gallery.length > 0 ? <ArticleGallery items={gallery} /> : null
         })()}
       </div>
+
+      {/* Captura de intereses por tema (Fase C) */}
+      <TopicSubscribe tags={article.tags?.map(({ tag }) => ({ id: tag.id, name: tag.name })) ?? []} />
 
       <ViewsCounter slug={article.slug} />
       {relatedArticles.length > 0 && <RelatedArticles articles={relatedArticles} showDoctorCta />}

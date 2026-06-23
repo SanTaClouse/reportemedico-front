@@ -12,6 +12,7 @@ import ArticleGallery from '@/components/article/ArticleGallery'
 import RelatedArticles from '@/components/article/RelatedArticles'
 import TagBadge from '@/components/ui/TagBadge'
 import ViewsCounter from '@/components/article/ViewsCounter'
+import TopicSubscribe from '@/components/article/TopicSubscribe'
 
 export const revalidate = 600
 
@@ -248,6 +249,9 @@ export default async function NoticiaPage({ params }: Props) {
           return gallery.length > 0 ? <ArticleGallery items={gallery} /> : null
         })()}
       </div>
+
+      {/* Captura de intereses por tema (Fase C) */}
+      <TopicSubscribe tags={article.tags?.map(({ tag }) => ({ id: tag.id, name: tag.name })) ?? []} />
 
       {/* View counter (client side) */}
       <ViewsCounter slug={article.slug} />
