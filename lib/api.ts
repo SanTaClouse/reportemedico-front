@@ -745,11 +745,28 @@ export interface DigestArticle {
   featuredImage: string | null
 }
 
+export interface NewsletterSchedule {
+  id: string
+  enabled: boolean
+  dayOfWeek: number // 0=domingo … 6=sábado
+  hour: number
+  updatedAt: string
+}
+
+export interface NewsletterLastSend {
+  sentAt: string
+  recipients: number
+  articleTitles: string[]
+  auto: boolean
+}
+
 export interface NewsletterPreview {
   articles: DigestArticle[]
   recipientCount: number
-  days: number
   lastSentAt: string | null
+  lastSend: NewsletterLastSend | null
+  schedule: NewsletterSchedule
+  nextRunAt: string | null
 }
 
 export interface NewsletterSendResult {
@@ -757,6 +774,7 @@ export interface NewsletterSendResult {
   sent: number
   failed: number
   articles: number
+  skipped?: boolean
 }
 
 export function getNewsletterPreview(token: string) {
@@ -776,6 +794,22 @@ export function sendNewsletter(token: string) {
 /** Elimina un suscriptor (limpieza de duplicados) */
 export function deleteSubscriber(id: string, token: string) {
   return apiFetch<{ ok: boolean }>(`/subscribers/${id}`, { method: 'DELETE', token })
+}
+
+/** Programación del digest semanal automático */
+export function getNewsletterSchedule(token: string) {
+  return apiFetch<NewsletterSchedule>('/subscribers/newsletter/schedule', { token, cache: 'no-store' })
+}
+
+export function updateNewsletterSchedule(
+  dto: { enabled?: boolean; dayOfWeek?: number; hour?: number },
+  token: string,
+) {
+  return apiFetch<NewsletterSchedule>('/subscribers/newsletter/schedule', {
+    method: 'PUT',
+    body: JSON.stringify(dto),
+    token,
+  })
 }
 
 /** Baja del digest (público, desde el link del email) */

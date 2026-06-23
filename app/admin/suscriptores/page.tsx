@@ -25,7 +25,14 @@ export default async function SuscriptoresPage({
     getSubscriberStats(token).catch(() => ({
       total: 0, fromArticles: 0, fromNewsletter: 0, active: 0, unsubscribed: 0,
     })),
-    getNewsletterPreview(token).catch(() => ({ articles: [], recipientCount: 0, days: 14, lastSentAt: null })),
+    getNewsletterPreview(token).catch(() => ({
+      articles: [],
+      recipientCount: 0,
+      lastSentAt: null,
+      lastSend: null,
+      schedule: { id: '', enabled: false, dayOfWeek: 1, hour: 9, updatedAt: '' },
+      nextRunAt: null,
+    })),
   ])
 
   const subscribers = subscribersRes.data as Subscriber[]
