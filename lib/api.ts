@@ -779,3 +779,44 @@ export function unsubscribeNewsletter(s: string, t: string) {
     body: JSON.stringify({ s, t }),
   })
 }
+
+// ─── Envío de una noticia por correo (segmentado, 08 §1) ──────────────────────
+
+export interface ArticleAudienceRecipient {
+  id: string
+  email: string
+  name: string | null
+  interested: boolean
+}
+
+export interface ArticleAudience {
+  article: { id: string; title: string; slug: string; type: 'NEWS' | 'MEDICAL_ARTICLE'; status: string }
+  tags: string[]
+  interestedCount: number
+  totalActive: number
+  recipients: ArticleAudienceRecipient[]
+}
+
+export interface ArticleEmailResult {
+  total: number
+  sent: number
+  failed: number
+}
+
+export function getArticleAudience(articleId: string, token: string) {
+  return apiFetch<ArticleAudience>(`/subscribers/article/${articleId}/audience`, { token, cache: 'no-store' })
+}
+
+/** Envía la noticia a interesados (sin subscriberIds) o a una selección manual */
+export function sendArticleEmail(
+  articleId: string,
+  body: { audience?: 'interested'; subscriberIds?: string[] },
+  token: string,
+) {
+  return apiFetch<ArticleEmailResult>(`/subscribers/article/${articleId}/send`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+    token,
+    signal: AbortSignal.timeout(300000),
+  })
+}

@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { getAdminArticleById, getTags, getRelevanceCounts } from '@/lib/api'
 import dynamicImport from 'next/dynamic'
 import { EditorSkeleton } from '@/components/admin/EditorSkeleton'
+import ArticleEmailSender from '@/components/admin/ArticleEmailSender'
 import { Mail } from 'lucide-react'
 
 const ArticleEditor = dynamicImport(
@@ -66,7 +67,7 @@ export default async function EditarArticuloPage({ params }: Props) {
               Notificar al autor manualmente
             </p>
             <p className="text-xs text-orange-700 dark:text-orange-400 mt-0.5">
-              Este artículo fue archivado. Si querés, podés notificarle al autor.
+              Este artículo fue archivado. Si quieres, puedes notificarle al autor.
             </p>
             <a
               href={`mailto:${authorEmail}?subject=Actualización sobre tu artículo - Reporte Médico`}
@@ -77,6 +78,11 @@ export default async function EditarArticuloPage({ params }: Props) {
             </a>
           </div>
         </div>
+      )}
+
+      {/* Envío de la noticia por correo a suscriptores (08 §1) */}
+      {(article as any).status === 'PUBLISHED' && (
+        <ArticleEmailSender articleId={params.id} token={token} />
       )}
 
       <ArticleEditor
