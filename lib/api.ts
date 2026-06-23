@@ -749,6 +749,7 @@ export interface NewsletterPreview {
   articles: DigestArticle[]
   recipientCount: number
   days: number
+  lastSentAt: string | null
 }
 
 export interface NewsletterSendResult {
@@ -770,6 +771,11 @@ export function sendNewsletter(token: string) {
     token,
     signal: AbortSignal.timeout(300000),
   })
+}
+
+/** Elimina un suscriptor (limpieza de duplicados) */
+export function deleteSubscriber(id: string, token: string) {
+  return apiFetch<{ ok: boolean }>(`/subscribers/${id}`, { method: 'DELETE', token })
 }
 
 /** Baja del digest (público, desde el link del email) */

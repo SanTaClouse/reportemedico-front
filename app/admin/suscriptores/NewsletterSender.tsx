@@ -1,8 +1,17 @@
 'use client'
 
 import { useState } from 'react'
-import { Send, Loader2, CheckCircle2, AlertTriangle, Newspaper, ExternalLink } from 'lucide-react'
+import { Send, Loader2, CheckCircle2, AlertTriangle, Newspaper, ExternalLink, Clock } from 'lucide-react'
 import { sendNewsletter, type NewsletterPreview, type NewsletterSendResult } from '@/lib/api'
+
+const COOLDOWN_DAYS = 7
+const DAY = 24 * 60 * 60 * 1000
+
+function sinceLabel(days: number): string {
+  if (days <= 0) return 'hoy'
+  if (days === 1) return 'ayer'
+  return `hace ${days} días`
+}
 
 export default function NewsletterSender({
   initialPreview,
@@ -15,9 +24,16 @@ export default function NewsletterSender({
   const [sending, setSending] = useState(false)
   const [result, setResult] = useState<NewsletterSendResult | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [override, setOverride] = useState(false)
 
-  const { articles, recipientCount, days } = initialPreview
+  const { articles, recipientCount, days, lastSentAt } = initialPreview
   const canSend = articles.length > 0 && recipientCount > 0
+
+  // Freno de frecuencia: tras un envío reciente, el botón queda bloqueado unos
+  // días (cuida la entregabilidad). El admin puede forzarlo si de verdad hace falta.
+  const daysSinceLast = lastSentAt ? Math.floor((Date.now() - new Date(lastSentAt).getTime()) / DAY) : null
+  const inCooldown = daysSinceLast !== null && daysSinceLast < COOLDOWN_DAYS
+  const blocked = inCooldown && !override
 
   const handleSend = async () => {
     setSending(true)
@@ -58,6 +74,12 @@ export default function NewsletterSender({
               Se enviará a los <strong>{recipientCount}</strong> suscriptores activos un resumen con las
               publicaciones de los últimos {days} días. Cada correo incluye su enlace de baja.
             </p>
+
+            {daysSinceLast !== null && (
+              <p className="inline-flex items-center gap-1.5 text-xs text-[var(--color-text-muted)]">
+                <Clock size={13} /> Último newsletter enviado {sinceLabel(daysSinceLast)}.
+              </p>
+            )}
 
             {articles.length === 0 ? (
               <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
@@ -106,7 +128,26 @@ export default function NewsletterSender({
               </p>
             )}
 
-            {canSend && (
+            {canSend && blocked && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3.5 space-y-2">
+                <p className="flex items-start gap-2 text-sm text-amber-800">
+                  <Clock size={16} className="shrink-0 mt-px" />
+                  <span>
+                    Ya enviaste un newsletter {sinceLabel(daysSinceLast!)}. Para no saturar a tus suscriptores
+                    (y cuidar que tus correos no caigan en spam), conviene esperar al menos {COOLDOWN_DAYS} días
+                    entre envíos. Lo ideal es agrupar varias noticias en un solo digest.
+                  </span>
+                </p>
+                <button
+                  onClick={() => setOverride(true)}
+                  className="text-xs font-semibold text-amber-800 underline hover:text-amber-900"
+                >
+                  Necesito enviarlo igual
+                </button>
+              </div>
+            )}
+
+            {canSend && !blocked && (
               <div className="flex items-center gap-3 flex-wrap">
                 {!confirming ? (
                   <button

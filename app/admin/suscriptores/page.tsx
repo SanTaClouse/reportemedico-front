@@ -4,8 +4,8 @@ import { cookies } from 'next/headers'
 import { getAdminSubscribers, getSubscriberStats, getNewsletterPreview } from '@/lib/api'
 import type { Subscriber } from '@/lib/api'
 import { Mail, Users, FileText, Rss } from 'lucide-react'
-import { formatDateShort } from '@/lib/utils'
 import NewsletterSender from './NewsletterSender'
+import SubscribersTable from './SubscribersTable'
 
 export default async function SuscriptoresPage({
   searchParams,
@@ -25,7 +25,7 @@ export default async function SuscriptoresPage({
     getSubscriberStats(token).catch(() => ({
       total: 0, fromArticles: 0, fromNewsletter: 0, active: 0, unsubscribed: 0,
     })),
-    getNewsletterPreview(token).catch(() => ({ articles: [], recipientCount: 0, days: 14 })),
+    getNewsletterPreview(token).catch(() => ({ articles: [], recipientCount: 0, days: 14, lastSentAt: null })),
   ])
 
   const subscribers = subscribersRes.data as Subscriber[]
@@ -86,76 +86,7 @@ export default async function SuscriptoresPage({
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface-2)]">
-                    <th className="px-5 py-3 text-left text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">
-                      Email
-                    </th>
-                    <th className="px-5 py-3 text-left text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">
-                      Nombre
-                    </th>
-                    <th className="px-5 py-3 text-left text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">
-                      Origen
-                    </th>
-                    <th className="px-5 py-3 text-left text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">
-                      Intereses
-                    </th>
-                    <th className="px-5 py-3 text-left text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">
-                      Registrado
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[var(--color-border)]">
-                  {subscribers.map((s) => (
-                    <tr key={s.id} className="hover:bg-[var(--color-surface-2)] transition-colors">
-                      <td className="px-5 py-3.5 font-medium text-[var(--color-text-primary)]">
-                        {s.email}
-                      </td>
-                      <td className="px-5 py-3.5 text-[var(--color-text-secondary)]">
-                        {s.name ?? <span className="text-[var(--color-text-muted)]">—</span>}
-                      </td>
-                      <td className="px-5 py-3.5">
-                        {s.source === 'ARTICLE_SUBMISSION' ? (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
-                            <FileText size={10} /> Artículo
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                            <Rss size={10} /> Newsletter
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-5 py-3.5">
-                        {s.tags && s.tags.length > 0 ? (
-                          <div className="flex flex-wrap gap-1">
-                            {s.tags.slice(0, 3).map(({ tag }) => (
-                              <span
-                                key={tag.id}
-                                className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--color-surface-2)] border border-[var(--color-border)] text-[var(--color-text-secondary)]"
-                              >
-                                {tag.name}
-                              </span>
-                            ))}
-                            {s.tags.length > 3 && (
-                              <span className="text-[10px] text-[var(--color-text-muted)]">
-                                +{s.tags.length - 3}
-                              </span>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-[var(--color-text-muted)]">—</span>
-                        )}
-                      </td>
-                      <td className="px-5 py-3.5 text-[var(--color-text-muted)] text-xs">
-                        {formatDateShort(s.createdAt)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <SubscribersTable subscribers={subscribers} token={token} />
 
             {/* Pagination */}
             {meta.totalPages > 1 && (
