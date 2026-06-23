@@ -7,6 +7,14 @@ import { baseImageUrl, getImageCrop } from './cloudinary'
 export const OG_SIZE = { width: 1200, height: 630 }
 export const OG_CONTENT_TYPE = 'image/png'
 
+// Cache-Control para las OG images. Sin esto, el crawler de WhatsApp/Facebook
+// pega contra un render de Satori en frío (incl. el backend dormido en Render),
+// excede su timeout y cachea "sin imagen" → la preview no se mantiene.
+// Con esto el CDN sirve la imagen al instante en cada re-crawl.
+const OG_HEADERS = {
+  'cache-control': 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800',
+}
+
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://reportemedico.com'
 const LOGO_PUBLIC_PATH = '/media/logo-completo-claro.png'
 // Logo blanco+amarillo sin fondo: se lee sobre fondos oscuros (panel verde de la story card)
@@ -402,7 +410,7 @@ function renderFallbackCard(title: string, kind: 'Noticia' | 'Artículo médico'
         </div>
       </div>
     ),
-    { ...OG_SIZE },
+    { ...OG_SIZE, headers: OG_HEADERS },
   )
 }
 
