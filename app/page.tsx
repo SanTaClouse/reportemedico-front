@@ -6,6 +6,7 @@ import ActualidadSection from '@/components/home/ActualidadSection'
 import MedicalArticlesSection from '@/components/home/MedicalArticlesSection'
 import PodcastSection from '@/components/home/PodcastSection'
 import EditionsSection from '@/components/home/EditionsSection'
+import GuiaMedicaBanner from '@/components/home/GuiaMedicaBanner'
 import AboutSection from '@/components/home/AboutSection'
 import WhatsAppChannelBanner from '@/components/home/WhatsAppChannelBanner'
 import ScrollReveal from '@/components/ui/ScrollReveal'
@@ -58,6 +59,12 @@ export default async function HomePage() {
             </ScrollReveal>
           </div>
         )}
+
+        <div id="sec-guia">
+          <ScrollReveal delay={80}>
+            <GuiaMedicaBanner />
+          </ScrollReveal>
+        </div>
 
         <AdSlotRenderer position="banner_home_2" />
 

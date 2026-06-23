@@ -392,3 +392,33 @@ html {
   .autofill-check,
   .autofill-thumb-pop { animation: none; }
 }
+
+/* ─── Guía Médica banner — efectos ─── */
+
+/* Flotación suave del ícono */
+@keyframes guia-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+.guia-float { animation: guia-float 4.5s ease-in-out infinite; }
+
+/* Barrido de brillo en el CTA al pasar el cursor */
+@keyframes guia-cta-shine {
+  to { transform: translateX(320%) skewX(-20deg); }
+}
+.guia-cta { position: relative; overflow: hidden; }
+.guia-cta::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 45%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  transform: translateX(-150%) skewX(-20deg);
+  pointer-events: none;
+}
+.guia-cta:hover::after { animation: guia-cta-shine 0.85s ease forwards; }
+
+@media (prefers-reduced-motion: reduce) {
+  .guia-float { animation: none; }
+  .guia-cta:hover::after { animation: none; }
+}

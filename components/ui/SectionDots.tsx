@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 
 const SECTIONS = [
   { id: 'sec-destacadas', label: 'Destacadas' },
+  { id: 'sec-guia', label: 'Guía Médica' },
   { id: 'sec-actualidad', label: 'Actualidad' },
   { id: 'sec-articulos', label: 'Artículos Médicos' },
   { id: 'sec-podcast', label: 'Podcast' },
