@@ -1,10 +1,11 @@
 export const dynamic = 'force-dynamic'
 
 import { cookies } from 'next/headers'
-import { getAdminSubscribers, getSubscriberStats } from '@/lib/api'
+import { getAdminSubscribers, getSubscriberStats, getNewsletterPreview } from '@/lib/api'
 import type { Subscriber } from '@/lib/api'
 import { Mail, Users, FileText, Rss } from 'lucide-react'
 import { formatDateShort } from '@/lib/utils'
+import NewsletterSender from './NewsletterSender'
 
 export default async function SuscriptoresPage({
   searchParams,
@@ -16,12 +17,15 @@ export default async function SuscriptoresPage({
   const cookieStore = cookies()
   const token = cookieStore.get('rm_token')?.value || ''
 
-  const [subscribersRes, stats] = await Promise.all([
+  const [subscribersRes, stats, preview] = await Promise.all([
     getAdminSubscribers({ page: String(page), limit: '25' }, token).catch(() => ({
       data: [],
       meta: { total: 0, page: 1, limit: 25, totalPages: 0 },
     })),
-    getSubscriberStats(token).catch(() => ({ total: 0, fromArticles: 0, fromNewsletter: 0 })),
+    getSubscriberStats(token).catch(() => ({
+      total: 0, fromArticles: 0, fromNewsletter: 0, active: 0, unsubscribed: 0,
+    })),
+    getNewsletterPreview(token).catch(() => ({ articles: [], recipientCount: 0, days: 14 })),
   ])
 
   const subscribers = subscribersRes.data as Subscriber[]
@@ -60,6 +64,9 @@ export default async function SuscriptoresPage({
           color="teal"
         />
       </div>
+
+      {/* Envío del newsletter */}
+      <NewsletterSender initialPreview={preview} token={token} />
 
       {/* Table */}
       <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl overflow-hidden">

@@ -715,6 +715,8 @@ export interface SubscriberStats {
   total: number
   fromArticles: number
   fromNewsletter: number
+  active: number
+  unsubscribed: number
 }
 
 export function subscribeNewsletter(email: string, name?: string) {
@@ -731,4 +733,49 @@ export function getAdminSubscribers(params: { page?: string; limit?: string }, t
 
 export function getSubscriberStats(token: string) {
   return apiFetch<SubscriberStats>('/subscribers/stats', { token, cache: 'no-store' })
+}
+
+// ─── Newsletter / digest (08 §1) ──────────────────────────────────────────────
+
+export interface DigestArticle {
+  type: 'NEWS' | 'MEDICAL_ARTICLE'
+  title: string
+  slug: string
+  excerpt: string | null
+  featuredImage: string | null
+}
+
+export interface NewsletterPreview {
+  articles: DigestArticle[]
+  recipientCount: number
+  days: number
+}
+
+export interface NewsletterSendResult {
+  total: number
+  sent: number
+  failed: number
+  articles: number
+}
+
+export function getNewsletterPreview(token: string) {
+  return apiFetch<NewsletterPreview>('/subscribers/newsletter/preview', { token, cache: 'no-store' })
+}
+
+/** Envío del digest — timeout largo: itera todos los suscriptores en el server */
+export function sendNewsletter(token: string) {
+  return apiFetch<NewsletterSendResult>('/subscribers/newsletter/send', {
+    method: 'POST',
+    body: JSON.stringify({}),
+    token,
+    signal: AbortSignal.timeout(300000),
+  })
+}
+
+/** Baja del digest (público, desde el link del email) */
+export function unsubscribeNewsletter(s: string, t: string) {
+  return apiFetch<{ email: string }>('/subscribers/unsubscribe', {
+    method: 'POST',
+    body: JSON.stringify({ s, t }),
+  })
 }
