@@ -223,7 +223,7 @@ export default async function ArticuloPage({ params }: Props) {
       )}
 
       <div className="relative max-w-article mx-auto">
-        <ArticleShare title={article.title} url={articleUrl} />
+        <ArticleShare title={article.title} url={articleUrl} slug={article.slug} />
         <ArticleBody html={article.content} />
 
         {article.tags && article.tags.length > 0 && (

@@ -224,7 +224,7 @@ export default async function NoticiaPage({ params }: Props) {
 
       {/* Share + body */}
       <div className="relative max-w-article mx-auto">
-        <ArticleShare title={article.title} url={articleUrl} />
+        <ArticleShare title={article.title} url={articleUrl} slug={article.slug} />
 
         <ArticleBody html={article.content} />
 

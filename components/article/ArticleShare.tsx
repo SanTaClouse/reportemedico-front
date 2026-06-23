@@ -1,22 +1,20 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Share2, Copy, Check } from 'lucide-react'
+import { useState } from 'react'
+import { Share2, Copy, Check, Instagram, Loader2 } from 'lucide-react'
 import { getShareUrls, copyToClipboard } from '@/lib/share'
 
 interface ArticleShareProps {
   title: string
   url: string
+  /** Slug del artículo, para generar la story card vertical (/api/story-card) */
+  slug: string
 }
 
-export default function ArticleShare({ title, url }: ArticleShareProps) {
+export default function ArticleShare({ title, url, slug }: ArticleShareProps) {
   const [copied, setCopied] = useState(false)
-  const [canShare, setCanShare] = useState(false)
+  const [storyBusy, setStoryBusy] = useState(false)
   const shareUrls = getShareUrls(title, url)
-
-  useEffect(() => {
-    setCanShare(typeof navigator !== 'undefined' && !!navigator.share)
-  }, [])
 
   const handleCopy = async () => {
     await copyToClipboard(url)
@@ -24,8 +22,47 @@ export default function ArticleShare({ title, url }: ArticleShareProps) {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const handleNativeShare = async () => {
-    await navigator.share({ title, url })
+  /**
+   * Genera la story card 1080×1920 y la comparte como imagen.
+   * Instagram/WhatsApp NO aceptan texto suelto en Historias, solo imágenes, por
+   * eso compartimos un File. En móvil abre la hoja nativa (→ "Añadir a tu
+   * historia"); en escritorio (sin Web Share de archivos) descargamos el PNG.
+   * En ambos casos copiamos el link para que pegar el sticker sea un toque.
+   */
+  const handleStoryShare = async () => {
+    if (storyBusy) return
+    setStoryBusy(true)
+    try {
+      const res = await fetch(`/api/story-card?slug=${encodeURIComponent(slug)}`)
+      if (!res.ok) throw new Error(`story-card ${res.status}`)
+      const blob = await res.blob()
+      const file = new File([blob], 'reportemedico-historia.png', { type: 'image/png' })
+
+      await copyToClipboard(url).catch(() => {})
+
+      const canShareFile =
+        typeof navigator !== 'undefined' &&
+        !!navigator.canShare &&
+        navigator.canShare({ files: [file] })
+
+      if (canShareFile) {
+        await navigator.share({ files: [file], title })
+      } else {
+        const objectUrl = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = objectUrl
+        a.download = 'reportemedico-historia.png'
+        a.click()
+        URL.revokeObjectURL(objectUrl)
+      }
+    } catch (err) {
+      // El usuario puede cancelar la hoja de compartir (AbortError): no es un error real
+      if ((err as Error)?.name !== 'AbortError') {
+        console.error('[ArticleShare] No se pudo compartir la historia:', err)
+      }
+    } finally {
+      setStoryBusy(false)
+    }
   }
 
   const buttons = [
@@ -56,6 +93,16 @@ export default function ArticleShare({ title, url }: ArticleShareProps) {
           </a>
         ))}
         <button
+          onClick={handleStoryShare}
+          disabled={storyBusy}
+          className="w-9 h-9 rounded-full flex items-center justify-center text-white shadow-sm hover:scale-110 transition-transform disabled:opacity-60 disabled:hover:scale-100"
+          style={{ background: 'linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)' }}
+          aria-label="Compartir en historia de Instagram"
+          title="Compartir en historia"
+        >
+          {storyBusy ? <Loader2 size={14} className="animate-spin" /> : <Instagram size={16} />}
+        </button>
+        <button
           onClick={handleCopy}
           className="w-9 h-9 rounded-full flex items-center justify-center bg-[var(--color-border)] hover:bg-[var(--color-primary)] hover:text-white transition-colors"
           aria-label="Copiar link"
@@ -82,16 +129,15 @@ export default function ArticleShare({ title, url }: ArticleShareProps) {
             {label[0]}
           </a>
         ))}
-        {canShare && (
-          <button
-            onClick={handleNativeShare}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
-            style={{ background: 'linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)' }}
-            aria-label="Compartir en Instagram"
-          >
-            IG
-          </button>
-        )}
+        <button
+          onClick={handleStoryShare}
+          disabled={storyBusy}
+          className="w-8 h-8 rounded-full flex items-center justify-center text-white disabled:opacity-60"
+          style={{ background: 'linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)' }}
+          aria-label="Compartir en historia de Instagram"
+        >
+          {storyBusy ? <Loader2 size={14} className="animate-spin" /> : <Instagram size={15} />}
+        </button>
         <button
           onClick={handleCopy}
           className="w-8 h-8 rounded-full flex items-center justify-center bg-[var(--color-border)]"

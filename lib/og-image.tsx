@@ -9,9 +9,13 @@ export const OG_CONTENT_TYPE = 'image/png'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://reportemedico.com'
 const LOGO_PUBLIC_PATH = '/media/logo-completo-claro.png'
+// Logo blanco+amarillo sin fondo: se lee sobre fondos oscuros (panel verde de la story card)
+const LOGO_WHITE_PUBLIC_PATH = '/media/Logo-Blanco-y-amarillo-sin-fondo-1000-334-para-opengraph.png'
 
 let cachedLogo: string | null = null
 let logoLoadFailed = false
+let cachedWhiteLogo: string | null = null
+let whiteLogoLoadFailed = false
 
 /**
  * Carga el logo de forma resiliente:
@@ -53,6 +57,35 @@ async function getLogoDataUri(): Promise<string | null> {
   }
 }
 
+/** Versión blanca del logo para fondos oscuros. Mismo patrón resiliente que getLogoDataUri. */
+async function getWhiteLogoDataUri(): Promise<string | null> {
+  if (cachedWhiteLogo) return cachedWhiteLogo
+  if (whiteLogoLoadFailed) return null
+
+  try {
+    const buffer = await readFile(join(process.cwd(), `public${LOGO_WHITE_PUBLIC_PATH}`))
+    cachedWhiteLogo = `data:image/png;base64,${buffer.toString('base64')}`
+    return cachedWhiteLogo
+  } catch (err) {
+    console.warn('[story-card] readFile del logo blanco falló, intentando fetch:', err)
+  }
+
+  try {
+    const res = await fetch(`${SITE_URL}${LOGO_WHITE_PUBLIC_PATH}`, {
+      next: { revalidate: 86400 },
+      signal: AbortSignal.timeout(5000),
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const buffer = Buffer.from(await res.arrayBuffer())
+    cachedWhiteLogo = `data:image/png;base64,${buffer.toString('base64')}`
+    return cachedWhiteLogo
+  } catch (err) {
+    console.error('[story-card] No se pudo cargar el logo blanco:', err)
+    whiteLogoLoadFailed = true
+    return null
+  }
+}
+
 function truncate(str: string, max: number): string {
   if (str.length <= max) return str
   return str.slice(0, max - 1).trimEnd() + '…'
@@ -80,6 +113,25 @@ function toOgSafeImageUrl(src: string | null | undefined): string | null {
   const transform = crop
     ? `c_crop,x_${crop.x},y_${crop.y},w_${crop.w},h_${crop.h}/c_fill,w_960,h_1260,q_auto:good,f_jpg`
     : 'c_fill,g_auto:faces,w_960,h_1260,q_auto:good,f_jpg'
+  return cleaned.replace('/upload/', `/upload/${transform}/`)
+}
+
+/**
+ * Igual que toOgSafeImageUrl pero recorta en formato VERTICAL (9:16-ish) para
+ * la zona de foto de la story card. Satori solo decodifica PNG/JPEG, por eso
+ * forzamos f_jpg y eliminamos f_auto.
+ */
+function toStoryImageUrl(src: string | null | undefined): string | null {
+  if (!src) return null
+  const crop = getImageCrop(src)
+  const base = baseImageUrl(src)
+  if (!base.includes('res.cloudinary.com') || !base.includes('/upload/')) {
+    return base
+  }
+  const cleaned = base.replace(/\/upload\/(?:[^/]*[cwhgqf]_[^/]*\/)+/, '/upload/')
+  const transform = crop
+    ? `c_crop,x_${crop.x},y_${crop.y},w_${crop.w},h_${crop.h}/c_fill,w_1080,h_1180,q_auto:good,f_jpg`
+    : 'c_fill,g_auto:faces,w_1080,h_1180,q_auto:good,f_jpg'
   return cleaned.replace('/upload/', `/upload/${transform}/`)
 }
 
@@ -351,5 +403,215 @@ function renderFallbackCard(title: string, kind: 'Noticia' | 'Artículo médico'
       </div>
     ),
     { ...OG_SIZE },
+  )
+}
+
+// ───────────────────────────── STORY CARD (1080×1920) ─────────────────────────────
+
+export const STORY_SIZE = { width: 1080, height: 1920 }
+export const STORY_CONTENT_TYPE = 'image/png'
+
+// Cache-Control para la ruta /api/story-card. La card cambia poco; permite que
+// el CDN la sirva sin re-renderizar Satori en cada compartido.
+const STORY_HEADERS = {
+  'cache-control': 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800',
+}
+
+/**
+ * Renderiza la story card vertical (formato Instagram/WhatsApp Stories).
+ * Layout "editorial": foto arriba (~60%), panel verde de marca abajo con
+ * tag, título y logo. Cae a un fallback sin foto si algo falla.
+ */
+export async function renderStoryCard({ article }: { article: Article }) {
+  try {
+    const [whiteLogo, storyImageUrl] = await Promise.all([
+      getWhiteLogoDataUri(),
+      Promise.resolve(toStoryImageUrl(article.featuredImage)),
+    ])
+
+    const featuredDataUri = storyImageUrl ? await fetchImageAsDataUri(storyImageUrl) : null
+    const hasImage = Boolean(featuredDataUri)
+    const eyebrow = (article.tags?.[0]?.tag?.name || 'Salud').toUpperCase()
+    const title = truncate(article.title, 130)
+    const titleSize = title.length > 90 ? 60 : title.length > 55 ? 72 : 84
+
+    return new ImageResponse(
+      (
+        <div
+          style={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            background: 'linear-gradient(160deg, #0A7B4B 0%, #086b41 100%)',
+            fontFamily: 'sans-serif',
+          }}
+        >
+          {/* Zona de foto (arriba) */}
+          <div
+            style={{
+              width: '100%',
+              height: 1180,
+              display: 'flex',
+              position: 'relative',
+              background:
+                'linear-gradient(160deg, #0A7B4B 0%, #0A7B4B 55%, #00B4A0 100%)',
+            }}
+          >
+            {hasImage && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={featuredDataUri as string}
+                alt=""
+                width={1080}
+                height={1180}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            )}
+            {/* Transición suave hacia el panel verde */}
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background:
+                  'linear-gradient(180deg, rgba(10,123,75,0) 78%, rgba(10,123,75,0.95) 100%)',
+              }}
+            />
+          </div>
+
+          {/* Panel verde de marca (abajo) */}
+          <div
+            style={{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              padding: '64px 72px 72px',
+            }}
+          >
+            {/* Eyebrow: categoría */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 18,
+                marginBottom: 28,
+              }}
+            >
+              <div style={{ width: 56, height: 6, background: '#FFD23F', borderRadius: 999, display: 'flex' }} />
+              <div
+                style={{
+                  fontSize: 30,
+                  color: '#9FE7CF',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: 3,
+                  display: 'flex',
+                }}
+              >
+                {eyebrow}
+              </div>
+            </div>
+
+            {/* Título */}
+            <div
+              style={{
+                fontSize: titleSize,
+                fontWeight: 800,
+                color: '#ffffff',
+                lineHeight: 1.08,
+                letterSpacing: -1.5,
+                display: 'flex',
+              }}
+            >
+              {title}
+            </div>
+
+            {/* Footer: logo + dominio */}
+            <div
+              style={{
+                marginTop: 'auto',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingTop: 40,
+                borderTop: '2px solid rgba(255,255,255,0.25)',
+              }}
+            >
+              {whiteLogo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={whiteLogo}
+                  alt="Reporte Médico"
+                  width={258}
+                  height={86}
+                  style={{ objectFit: 'contain' }}
+                />
+              ) : (
+                <div style={{ fontSize: 38, fontWeight: 800, color: '#ffffff', display: 'flex' }}>
+                  REPORTE MÉDICO
+                </div>
+              )}
+              <div style={{ fontSize: 30, color: 'rgba(255,255,255,0.9)', fontWeight: 600, display: 'flex' }}>
+                reportemedico.com
+              </div>
+            </div>
+          </div>
+        </div>
+      ),
+      { ...STORY_SIZE, headers: STORY_HEADERS },
+    )
+  } catch (err) {
+    console.error('[story-card] Render principal falló, devolviendo fallback:', err)
+    return renderStoryFallback(article.title)
+  }
+}
+
+/** Story card de emergencia: sin foto, solo marca. Nunca devuelve 500. */
+function renderStoryFallback(title: string) {
+  const safeTitle = truncate(title, 150)
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          padding: '120px 80px',
+          background: 'linear-gradient(160deg, #0A7B4B 0%, #0A7B4B 55%, #00B4A0 100%)',
+          color: '#ffffff',
+          fontFamily: 'sans-serif',
+        }}
+      >
+        <div
+          style={{
+            fontSize: 30,
+            letterSpacing: 3,
+            textTransform: 'uppercase',
+            opacity: 0.85,
+            marginBottom: 32,
+            display: 'flex',
+          }}
+        >
+          Reporte Médico
+        </div>
+        <div
+          style={{
+            fontSize: safeTitle.length > 90 ? 64 : 80,
+            fontWeight: 800,
+            lineHeight: 1.06,
+            letterSpacing: -1.5,
+            display: 'flex',
+          }}
+        >
+          {safeTitle}
+        </div>
+        <div style={{ marginTop: 48, fontSize: 32, opacity: 0.9, display: 'flex' }}>
+          reportemedico.com
+        </div>
+      </div>
+    ),
+    { ...STORY_SIZE },
   )
 }
