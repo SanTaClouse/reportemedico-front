@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type ComponentType, type MouseEvent } from 'react'
 import { Share2, Copy, Check, Instagram, Loader2 } from 'lucide-react'
 import { getShareUrls, copyToClipboard } from '@/lib/share'
 import { WhatsAppIcon, XIcon, FacebookIcon, LinkedInIcon } from '@/components/icons/SocialBrands'
@@ -66,11 +66,34 @@ export default function ArticleShare({ title, url, slug }: ArticleShareProps) {
     }
   }
 
-  const buttons = [
+  /**
+   * LinkedIn (y Facebook/X) no tienen un deep link que abra su app a un
+   * compositor con el link pre-cargado, y los Universal Links de iOS no se
+   * disparan al navegar desde una web o un in-app browser → terminan en el
+   * navegador. La única forma fiable de abrir la app nativa es la hoja de
+   * compartir del sistema, donde el usuario elige la app. En escritorio (sin
+   * Web Share) dejamos que el href abra el flujo web de LinkedIn.
+   */
+  const handleNativeFirst = (e: MouseEvent<HTMLAnchorElement>) => {
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      e.preventDefault()
+      navigator.share({ title, url }).catch(() => {})
+    }
+  }
+
+  type ShareButton = {
+    label: string
+    href: string
+    color: string
+    Icon: ComponentType<{ size?: number; className?: string }>
+    onClick?: (e: MouseEvent<HTMLAnchorElement>) => void
+  }
+
+  const buttons: ShareButton[] = [
     { label: 'WhatsApp', href: shareUrls.whatsapp, color: '#25D366', Icon: WhatsAppIcon },
     { label: 'X', href: shareUrls.twitter, color: '#000000', Icon: XIcon },
     { label: 'Facebook', href: shareUrls.facebook, color: '#1877F2', Icon: FacebookIcon },
-    { label: 'LinkedIn', href: shareUrls.linkedin, color: '#0A66C2', Icon: LinkedInIcon },
+    { label: 'LinkedIn', href: shareUrls.linkedin, color: '#0A66C2', Icon: LinkedInIcon, onClick: handleNativeFirst },
   ]
 
   return (
@@ -80,10 +103,11 @@ export default function ArticleShare({ title, url, slug }: ArticleShareProps) {
         <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest mb-1">
           Compartir
         </span>
-        {buttons.map(({ label, href, color, Icon }) => (
+        {buttons.map(({ label, href, color, Icon, onClick }) => (
           <a
             key={label}
             href={href}
+            onClick={onClick}
             target="_blank"
             rel="noopener noreferrer"
             aria-label={`Compartir en ${label}`}
@@ -117,10 +141,11 @@ export default function ArticleShare({ title, url, slug }: ArticleShareProps) {
         <span className="flex items-center gap-1 text-[11px] text-[var(--color-text-muted)]">
           <Share2 size={14} /> Compartir
         </span>
-        {buttons.map(({ label, href, color, Icon }) => (
+        {buttons.map(({ label, href, color, Icon, onClick }) => (
           <a
             key={label}
             href={href}
+            onClick={onClick}
             target="_blank"
             rel="noopener noreferrer"
             aria-label={`Compartir en ${label}`}
