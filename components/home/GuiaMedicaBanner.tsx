@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Stethoscope, Search } from 'lucide-react'
+import { Stethoscope, Search, UserPlus, ArrowRight } from 'lucide-react'
 import { getIndexableCombinations } from '@/lib/api-guia'
 
 const MAX_CHIPS = 6
@@ -75,6 +75,26 @@ export default async function GuiaMedicaBanner() {
             Buscar mi médico
           </Link>
         </div>
+      </div>
+
+      {/* Franja para médicos: el llamado a sumarse a la guía */}
+      <div className="relative border-t border-white/10 px-6 py-4 md:px-12 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <p className="text-white/85 text-sm font-body inline-flex items-center gap-2.5">
+          <span className="flex-shrink-0 w-8 h-8 rounded-lg bg-white/10 ring-1 ring-white/15 flex items-center justify-center">
+            <UserPlus className="w-4 h-4 text-[var(--brand-gold)]" strokeWidth={1.8} />
+          </span>
+          <span>
+            ¿Eres médico? <span className="text-white font-semibold">Aparece gratis</span> y recibe
+            pacientes directo por WhatsApp.
+          </span>
+        </p>
+        <Link
+          href="/registro-medicos"
+          className="group inline-flex items-center gap-1.5 text-[var(--brand-gold)] hover:text-[var(--brand-gold-light)] text-sm font-body font-bold whitespace-nowrap transition-colors"
+        >
+          Crear mi perfil gratis
+          <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" strokeWidth={2.2} />
+        </Link>
       </div>
     </div>
   )
