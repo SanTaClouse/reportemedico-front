@@ -305,11 +305,10 @@ function SubscribeModal({ onClose }: { onClose: () => void }) {
                       key={t.id}
                       type="button"
                       onClick={() => toggleTag(t.id)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                        on
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${on
                           ? 'bg-[var(--brand-navy)] text-white border-[var(--brand-navy)]'
                           : 'border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--brand-navy)]/40'
-                      }`}
+                        }`}
                     >
                       {t.name}
                     </button>
@@ -415,7 +414,7 @@ export default function Navbar() {
             </button>
             <div className="flex items-center gap-2.5">
               <a
-                href="https://www.youtube.com/@reportemedico1504"
+                href="https://www.youtube.com/@reportemedicord"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="YouTube"
@@ -486,9 +485,8 @@ export default function Navbar() {
                   <li key={href}>
                     <Link
                       href={href}
-                      className={`text-sm font-body font-semibold px-3 py-1.5 rounded-full bg-[var(--brand-navy)] text-white hover:opacity-90 transition-opacity ${
-                        isActive ? 'ring-2 ring-[var(--brand-gold)]/60 ring-offset-1' : ''
-                      }`}
+                      className={`text-sm font-body font-semibold px-3 py-1.5 rounded-full bg-[var(--brand-navy)] text-white hover:opacity-90 transition-opacity ${isActive ? 'ring-2 ring-[var(--brand-gold)]/60 ring-offset-1' : ''
+                        }`}
                     >
                       {label}
                     </Link>
@@ -500,8 +498,8 @@ export default function Navbar() {
                   <Link
                     href={href}
                     className={`text-sm font-body font-medium transition-colors hover:text-[var(--brand-navy)] ${isActive
-                        ? 'text-[var(--brand-navy)] border-b-2 border-[var(--brand-gold)] pb-0.5'
-                        : 'text-[var(--color-text-secondary)]'
+                      ? 'text-[var(--brand-navy)] border-b-2 border-[var(--brand-gold)] pb-0.5'
+                      : 'text-[var(--color-text-secondary)]'
                       }`}
                   >
                     {label}
@@ -564,13 +562,12 @@ export default function Navbar() {
                   <Link
                     href={href}
                     onClick={() => setMenuOpen(false)}
-                    className={`block px-6 py-3 text-sm transition-colors ${
-                      isGuia
+                    className={`block px-6 py-3 text-sm transition-colors ${isGuia
                         ? 'font-bold text-[var(--brand-gold)] bg-white/5'
                         : pathname === href
                           ? 'font-medium text-[var(--brand-gold)] bg-white/10'
                           : 'font-medium text-white/80 hover:text-[var(--brand-gold)] hover:bg-white/5'
-                    }`}
+                      }`}
                   >
                     {label}
                   </Link>
