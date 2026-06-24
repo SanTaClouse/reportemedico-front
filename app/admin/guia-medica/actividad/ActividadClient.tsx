@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { Download, MessageCircle, Activity } from 'lucide-react'
+import { Download, MessageCircle, Activity, Mail } from 'lucide-react'
 import { DOCTOR_STATUS_LABELS, type EngagementRow, type DoctorStatus } from '@/lib/api-guia'
 
 const STATUS_STYLES: Record<DoctorStatus, string> = {
@@ -46,11 +46,11 @@ export default function ActividadClient({ rows }: { rows: EngagementRow[] }) {
   }, [rows, filter])
 
   const exportCsv = () => {
-    const header = ['Médico', 'Plan', 'Estado', 'Última conexión', 'Sesiones 30d', 'Sesiones total', 'Clics WhatsApp 30d', 'Clics WhatsApp total', 'Artículos']
+    const header = ['Médico', 'Plan', 'Estado', 'Última conexión', 'Sesiones 30d', 'Sesiones total', 'Clics WhatsApp 30d', 'Clics WhatsApp total', 'Sesiones desde email', 'Artículos']
     const lines = filtered.map((r) => [
       r.name, r.plan, r.status,
       r.lastSession ? new Date(r.lastSession).toISOString().slice(0, 10) : '',
-      r.sessions30d, r.sessionsTotal, r.whatsappClicks30d, r.whatsappClicksTotal, r.articles,
+      r.sessions30d, r.sessionsTotal, r.whatsappClicks30d, r.whatsappClicksTotal, r.viaEmailSessions, r.articles,
     ].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(','))
     const csv = '﻿' + [header.join(','), ...lines].join('\n') // BOM para acentos en Excel
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
@@ -113,6 +113,9 @@ export default function ActividadClient({ rows }: { rows: EngagementRow[] }) {
                 <th className="px-3 py-3 font-semibold text-center" title="Clics de WhatsApp (30 días / total)">
                   <MessageCircle size={13} className="inline" /> 30d / total
                 </th>
+                <th className="px-3 py-3 font-semibold text-center" title="Sesiones que entraron desde un email (digest)">
+                  <Mail size={13} className="inline" /> Email
+                </th>
                 <th className="px-3 py-3 font-semibold text-center">Artículos</th>
               </tr>
             </thead>
@@ -138,6 +141,7 @@ export default function ActividadClient({ rows }: { rows: EngagementRow[] }) {
                     <span className="font-bold text-[var(--color-primary,#001450)]">{r.whatsappClicks30d}</span>
                     <span className="text-[var(--color-text-muted)]"> / {r.whatsappClicksTotal}</span>
                   </td>
+                  <td className="px-3 py-3 text-center text-[var(--color-text-secondary)]">{r.viaEmailSessions}</td>
                   <td className="px-3 py-3 text-center text-[var(--color-text-secondary)]">{r.articles}</td>
                 </tr>
               ))}

@@ -266,6 +266,7 @@ export interface EngagementRow {
   sessionsTotal: number
   whatsappClicks30d: number
   whatsappClicksTotal: number
+  viaEmailSessions: number
   articles: number
 }
 
