@@ -86,7 +86,8 @@ async function HomeView({
   const pins = allDoctors
     .flatMap((d) => d.clinics)
     .filter((c, i, arr) => arr.findIndex((x) => x.slug === c.slug) === i)
-    .map((c) => ({ latitude: c.latitude, longitude: c.longitude, label: c.name, sublabel: c.address }))
+    .filter((c) => c.latitude != null && c.longitude != null)
+    .map((c) => ({ latitude: c.latitude!, longitude: c.longitude!, label: c.name, sublabel: c.address }))
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -235,7 +236,8 @@ async function ResultsView({
   const pins = items
     .flatMap((d) => d.clinics)
     .filter((c, i, arr) => arr.findIndex((x) => x.slug === c.slug) === i)
-    .map((c) => ({ latitude: c.latitude, longitude: c.longitude, label: c.name, sublabel: c.address }))
+    .filter((c) => c.latitude != null && c.longitude != null)
+    .map((c) => ({ latitude: c.latitude!, longitude: c.longitude!, label: c.name, sublabel: c.address }))
 
   return (
     <div className="max-w-site mx-auto px-4 md:px-6 py-8">

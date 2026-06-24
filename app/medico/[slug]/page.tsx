@@ -82,12 +82,14 @@ export default async function MedicoPage({ params }: Props) {
     : []
   const ownArticles = ((doctor as unknown as { articles?: SpecialtyArticle[] }).articles ?? [])
 
-  const pins = doctor.clinics.map((c) => ({
-    latitude: c.clinic.latitude,
-    longitude: c.clinic.longitude,
-    label: c.clinic.name,
-    sublabel: c.clinic.address,
-  }))
+  const pins = doctor.clinics
+    .filter((c) => c.clinic.latitude != null && c.clinic.longitude != null)
+    .map((c) => ({
+      latitude: c.clinic.latitude!,
+      longitude: c.clinic.longitude!,
+      label: c.clinic.name,
+      sublabel: c.clinic.address,
+    }))
 
   // ─── JSON-LD: Physician + BreadcrumbList (03 §3) ───
   const physicianJsonLd = {
@@ -245,14 +247,16 @@ export default async function MedicoPage({ params }: Props) {
                           </p>
                         )}
                       </div>
-                      <a
-                        href={`https://www.google.com/maps/dir/?api=1&destination=${c.clinic.latitude},${c.clinic.longitude}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[var(--color-primary)] border border-[var(--color-primary)]/30 rounded-lg hover:bg-[var(--color-primary-pale,#e8edf8)] transition-colors"
-                      >
-                        Cómo llegar <ExternalLink size={11} />
-                      </a>
+                      {c.clinic.latitude != null && c.clinic.longitude != null && (
+                        <a
+                          href={`https://www.google.com/maps/dir/?api=1&destination=${c.clinic.latitude},${c.clinic.longitude}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[var(--color-primary)] border border-[var(--color-primary)]/30 rounded-lg hover:bg-[var(--color-primary-pale,#e8edf8)] transition-colors"
+                        >
+                          Cómo llegar <ExternalLink size={11} />
+                        </a>
+                      )}
                     </div>
                   </div>
                 ))}

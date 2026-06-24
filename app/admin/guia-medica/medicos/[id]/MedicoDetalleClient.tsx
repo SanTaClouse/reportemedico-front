@@ -13,7 +13,7 @@ import {
   updateDoctor, setDoctorStatus, setDoctorPlan, setDoctorVerification,
   createDoctorClaimToken, addDoctorBenefit, updateDoctorBenefit, removeDoctorBenefit,
   DOCTOR_STATUS_LABELS, BENEFIT_LABELS,
-  type Doctor, type DoctorInput, type DoctorStatus, type Specialty, type Clinic,
+  type Doctor, type DoctorInput, type DoctorStatus, type Specialty, type City, type Clinic,
   type Insurance, type BenefitType,
 } from '@/lib/api-guia'
 
@@ -21,6 +21,7 @@ interface Props {
   initialDoctor: Doctor
   specialties: Specialty[]
   clinics: Clinic[]
+  cities: City[]
   insurances: Insurance[]
   duplicates: Doctor[]
   token: string
@@ -30,7 +31,7 @@ const panelClass = 'bg-[var(--color-surface)] rounded-xl border border-[var(--co
 const STATUS_OPTIONS: DoctorStatus[] = ['DRAFT', 'PENDING', 'PUBLISHED', 'INACTIVE']
 const BENEFIT_TYPES: BenefitType[] = ['REVISTA_DIGITAL', 'REVISTA_IMPRESA', 'FOTOGRAFIA', 'VIDEO', 'PODCAST', 'EVENTO']
 
-export default function MedicoDetalleClient({ initialDoctor, specialties, clinics, insurances, duplicates, token }: Props) {
+export default function MedicoDetalleClient({ initialDoctor, specialties, clinics, cities, insurances, duplicates, token }: Props) {
   const router = useRouter()
   const [doctor, setDoctor] = useState(initialDoctor)
   const [busy, setBusy] = useState(false)
@@ -222,6 +223,7 @@ export default function MedicoDetalleClient({ initialDoctor, specialties, clinic
           <DoctorForm
             specialties={specialties}
             clinics={clinics}
+            cities={cities}
             insurances={insurances}
             initial={doctor}
             submitLabel="Guardar cambios"

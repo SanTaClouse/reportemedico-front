@@ -65,6 +65,8 @@ export default async function ClinicaPage({ params }: Props) {
     bySpecialty.get(sp.slug)!.doctors.push(doc)
   }
 
+  const hasCoords = clinic.latitude != null && clinic.longitude != null
+
   const clinicJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'MedicalClinic',
@@ -75,7 +77,9 @@ export default async function ClinicaPage({ params }: Props) {
       addressLocality: clinic.city?.name,
       addressCountry: 'DO',
     },
-    geo: { '@type': 'GeoCoordinates', latitude: clinic.latitude, longitude: clinic.longitude },
+    ...(hasCoords
+      ? { geo: { '@type': 'GeoCoordinates', latitude: clinic.latitude, longitude: clinic.longitude } }
+      : {}),
     ...(clinic.phone ? { telephone: clinic.phone } : {}),
     url: `${SITE_URL}/clinica/${clinic.slug}`,
   }
@@ -135,20 +139,24 @@ export default async function ClinicaPage({ params }: Props) {
               <Phone size={14} /> {clinic.phone}
             </a>
           )}
-          <a
-            href={`https://www.google.com/maps/dir/?api=1&destination=${clinic.latitude},${clinic.longitude}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-[var(--color-primary)] font-medium hover:underline"
-          >
-            Cómo llegar <ExternalLink size={12} />
-          </a>
+          {hasCoords && (
+            <a
+              href={`https://www.google.com/maps/dir/?api=1&destination=${clinic.latitude},${clinic.longitude}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-[var(--color-primary)] font-medium hover:underline"
+            >
+              Cómo llegar <ExternalLink size={12} />
+            </a>
+          )}
         </div>
       </header>
 
-      <div className="mb-8">
-        <ClinicsMap pins={[{ latitude: clinic.latitude, longitude: clinic.longitude, label: clinic.name, sublabel: clinic.address }]} />
-      </div>
+      {hasCoords && (
+        <div className="mb-8">
+          <ClinicsMap pins={[{ latitude: clinic.latitude!, longitude: clinic.longitude!, label: clinic.name, sublabel: clinic.address }]} />
+        </div>
+      )}
 
       {/* Médicos agrupados por especialidad */}
       <h2 className="font-display font-bold text-xl text-[var(--color-text-primary)] mb-5">

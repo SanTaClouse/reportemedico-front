@@ -1,21 +1,24 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import NextImage from 'next/image'
 import dynamic from 'next/dynamic'
 import { Loader2, Check, Plus, X, Upload, GripVertical, Crop } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   uploadFotoMedico,
-  type Doctor, type DoctorInput, type Specialty, type Clinic, type Insurance,
+  type Doctor, type DoctorInput, type Specialty, type City, type Clinic, type Insurance,
 } from '@/lib/api-guia'
 import { cldUrl, baseImageUrl, setImageCrop, type CropRegion } from '@/lib/cloudinary'
+import ClinicForm from './ClinicForm'
 
 const ImageCropModal = dynamic(() => import('@/components/admin/ImageCropModal'), { ssr: false })
 
 interface Props {
   specialties: Specialty[]
   clinics: Clinic[]
+  cities: City[]
   insurances: Insurance[]
   initial?: Doctor
   submitLabel: string
@@ -32,8 +35,12 @@ const sectionClass = 'bg-[var(--color-surface)] rounded-xl border border-[var(--
 const COMMON_LANGUAGES = ['Español', 'Inglés', 'Francés', 'Criollo haitiano', 'Italiano', 'Portugués']
 
 export default function DoctorForm({
-  specialties, clinics, insurances, initial, submitLabel, busy, token, onSubmit,
+  specialties, clinics, cities, insurances, initial, submitLabel, busy, token, onSubmit,
 }: Props) {
+  // Catálogos editables en vivo: el modal de "crear clínica" agrega opciones sin recargar.
+  const [clinicOptions, setClinicOptions] = useState<Clinic[]>(clinics)
+  const [cityOptions, setCityOptions] = useState<City[]>(cities)
+  const [showClinicModal, setShowClinicModal] = useState(false)
   const [form, setForm] = useState({
     title: initial?.title ?? 'Dr.',
     firstName: initial?.firstName ?? '',
@@ -88,6 +95,18 @@ export default function DoctorForm({
     } finally {
       setUploading(false)
     }
+  }
+
+  // Clínica recién creada desde el modal: se agrega al catálogo en vivo y se
+  // autoselecciona (rellena una fila vacía o agrega una nueva).
+  const handleClinicCreated = (clinic: Clinic) => {
+    setClinicOptions((prev) => [...prev, clinic].sort((a, b) => a.name.localeCompare(b.name)))
+    setClinicRows((prev) => {
+      const emptyIdx = prev.findIndex((r) => !r.clinicId)
+      if (emptyIdx >= 0) return prev.map((r, i) => (i === emptyIdx ? { ...r, clinicId: clinic.id } : r))
+      return [...prev, { clinicId: clinic.id, schedule: '' }]
+    })
+    setShowClinicModal(false)
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -314,7 +333,7 @@ export default function DoctorForm({
       {/* ─── Dónde atiende ─── */}
       <section className={sectionClass}>
         <h2 className="font-semibold text-sm text-[var(--color-text-primary)]">
-          Dónde atiende <span className="font-normal text-xs text-[var(--color-text-muted)]">— clínica + tanda de consulta</span>
+          Dónde atiende <span className="font-normal text-xs text-[var(--color-text-muted)]">— elige una clínica del catálogo + la tanda de consulta</span>
         </h2>
         {clinicRows.map((row, i) => (
           <div key={i} className="flex gap-2 items-start">
@@ -324,7 +343,7 @@ export default function DoctorForm({
               className={`${inputClass} max-w-64`}
             >
               <option value="">Elegir clínica...</option>
-              {clinics.map((c) => (
+              {clinicOptions.map((c) => (
                 <option key={c.id} value={c.id} disabled={clinicRows.some((r, j) => j !== i && r.clinicId === c.id)}>
                   {c.name} ({c.city?.name})
                 </option>
@@ -345,13 +364,26 @@ export default function DoctorForm({
             </button>
           </div>
         ))}
-        <button
-          type="button"
-          onClick={() => setClinicRows((prev) => [...prev, { clinicId: '', schedule: '' }])}
-          className="flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
-        >
-          <Plus size={13} /> Agregar clínica
-        </button>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
+          <button
+            type="button"
+            onClick={() => setClinicRows((prev) => [...prev, { clinicId: '', schedule: '' }])}
+            className="flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+          >
+            <Plus size={13} /> Agregar otro lugar de atención
+          </button>
+          <span className="text-xs text-[var(--color-text-muted)]">·</span>
+          <button
+            type="button"
+            onClick={() => setShowClinicModal(true)}
+            className="flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+          >
+            <Plus size={13} /> ¿No está la clínica? Crearla ahora
+          </button>
+        </div>
+        <p className="text-[11px] text-[var(--color-text-muted)]">
+          Las clínicas salen del catálogo. Si la que buscas no aparece en la lista, créala con &ldquo;Crearla ahora&rdquo; — se agrega y queda seleccionada sin perder lo que cargaste hasta ahora.
+        </p>
         {clinicRows.length === 0 && (
           <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
             Sin clínica el médico no aparece en el mapa, en &ldquo;cerca de mí&rdquo; ni en las páginas por ciudad.
@@ -402,6 +434,40 @@ export default function DoctorForm({
           }}
           onClose={() => setCropping(false)}
         />
+      )}
+
+      {showClinicModal && createPortal(
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 sm:p-8"
+          onClick={() => setShowClinicModal(false)}
+        >
+          <div
+            className="w-full max-w-xl bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] shadow-xl my-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--color-border)]">
+              <h3 className="font-semibold text-sm text-[var(--color-text-primary)]">Crear clínica nueva</h3>
+              <button
+                type="button"
+                onClick={() => setShowClinicModal(false)}
+                className="p-1.5 text-[var(--color-text-muted)] hover:bg-[var(--color-surface-2)] rounded-lg"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="p-5">
+              <ClinicForm
+                token={token}
+                cities={cityOptions}
+                onCityCreated={(city) => setCityOptions((prev) => [...prev, city].sort((a, b) => a.name.localeCompare(b.name)))}
+                onSaved={handleClinicCreated}
+                onCancel={() => setShowClinicModal(false)}
+                submitLabel="Crear y seleccionar"
+              />
+            </div>
+          </div>
+        </div>,
+        document.body,
       )}
     </form>
   )

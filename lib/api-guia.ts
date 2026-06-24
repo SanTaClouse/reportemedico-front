@@ -50,8 +50,8 @@ export interface Clinic {
   address: string
   cityId: string
   city?: City
-  latitude: number
-  longitude: number
+  latitude: number | null   // null = clínica sin ubicar (no aparece en mapa ni "cerca de mí")
+  longitude: number | null
   phone?: string | null
   _count?: { doctors: number }
   locationWarning?: string
@@ -199,8 +199,10 @@ export interface ClinicInput {
   longitude?: number
   phone?: string
 }
-export const createClinic = (data: Required<Omit<ClinicInput, 'phone'>> & { phone?: string }, token: string) =>
-  apiFetch<Clinic>('/clinics', { method: 'POST', body: JSON.stringify(data), token })
+export const createClinic = (
+  data: { name: string; address: string; cityId: string; latitude?: number; longitude?: number; phone?: string },
+  token: string,
+) => apiFetch<Clinic>('/clinics', { method: 'POST', body: JSON.stringify(data), token })
 export const updateClinic = (id: string, data: ClinicInput, token: string) =>
   apiFetch<Clinic>(`/clinics/${id}`, { method: 'PATCH', body: JSON.stringify(data), token })
 export const deleteClinic = (id: string, token: string) =>
@@ -359,8 +361,8 @@ export interface PublicDoctorCard {
     slug: string
     name: string
     address: string
-    latitude: number
-    longitude: number
+    latitude: number | null
+    longitude: number | null
     schedule?: string | null
     city: { slug: string; name: string }
   }[]

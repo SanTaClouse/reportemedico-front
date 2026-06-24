@@ -16,7 +16,8 @@ export default function ProgrammaticListing({ doctors, intro, chips = [], chipsT
   const pins = doctors
     .flatMap((d) => d.clinics)
     .filter((c, i, arr) => arr.findIndex((x) => x.slug === c.slug) === i)
-    .map((c) => ({ latitude: c.latitude, longitude: c.longitude, label: c.name, sublabel: c.address }))
+    .filter((c) => c.latitude != null && c.longitude != null)
+    .map((c) => ({ latitude: c.latitude!, longitude: c.longitude!, label: c.name, sublabel: c.address }))
 
   return (
     <>

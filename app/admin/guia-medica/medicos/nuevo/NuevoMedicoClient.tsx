@@ -6,16 +6,17 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
 import DoctorForm from '@/components/admin/guia/DoctorForm'
-import { createDoctor, type DoctorInput, type Specialty, type Clinic, type Insurance } from '@/lib/api-guia'
+import { createDoctor, type DoctorInput, type Specialty, type City, type Clinic, type Insurance } from '@/lib/api-guia'
 
 interface Props {
   specialties: Specialty[]
   clinics: Clinic[]
+  cities: City[]
   insurances: Insurance[]
   token: string
 }
 
-export default function NuevoMedicoClient({ specialties, clinics, insurances, token }: Props) {
+export default function NuevoMedicoClient({ specialties, clinics, cities, insurances, token }: Props) {
   const router = useRouter()
   const [busy, setBusy] = useState(false)
 
@@ -47,6 +48,7 @@ export default function NuevoMedicoClient({ specialties, clinics, insurances, to
       <DoctorForm
         specialties={specialties}
         clinics={clinics}
+        cities={cities}
         insurances={insurances}
         submitLabel="Crear perfil"
         busy={busy}
