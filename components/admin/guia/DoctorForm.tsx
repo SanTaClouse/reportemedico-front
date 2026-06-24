@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { createPortal } from 'react-dom'
 import NextImage from 'next/image'
 import dynamic from 'next/dynamic'
 import { Loader2, Check, Plus, X, Upload, GripVertical, Crop } from 'lucide-react'
@@ -11,7 +10,7 @@ import {
   type Doctor, type DoctorInput, type Specialty, type City, type Clinic, type Insurance,
 } from '@/lib/api-guia'
 import { cldUrl, baseImageUrl, setImageCrop, type CropRegion } from '@/lib/cloudinary'
-import ClinicForm from './ClinicForm'
+import { ClinicFormModal } from './ClinicForm'
 
 const ImageCropModal = dynamic(() => import('@/components/admin/ImageCropModal'), { ssr: false })
 
@@ -436,39 +435,15 @@ export default function DoctorForm({
         />
       )}
 
-      {showClinicModal && createPortal(
-        <div
-          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 sm:p-8"
-          onClick={() => setShowClinicModal(false)}
-        >
-          <div
-            className="w-full max-w-xl bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] shadow-xl my-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--color-border)]">
-              <h3 className="font-semibold text-sm text-[var(--color-text-primary)]">Crear clínica nueva</h3>
-              <button
-                type="button"
-                onClick={() => setShowClinicModal(false)}
-                className="p-1.5 text-[var(--color-text-muted)] hover:bg-[var(--color-surface-2)] rounded-lg"
-              >
-                <X size={16} />
-              </button>
-            </div>
-            <div className="p-5">
-              <ClinicForm
-                token={token}
-                cities={cityOptions}
-                onCityCreated={(city) => setCityOptions((prev) => [...prev, city].sort((a, b) => a.name.localeCompare(b.name)))}
-                onSaved={handleClinicCreated}
-                onCancel={() => setShowClinicModal(false)}
-                submitLabel="Crear y seleccionar"
-              />
-            </div>
-          </div>
-        </div>,
-        document.body,
-      )}
+      <ClinicFormModal
+        open={showClinicModal}
+        onClose={() => setShowClinicModal(false)}
+        token={token}
+        cities={cityOptions}
+        onCityCreated={(city) => setCityOptions((prev) => [...prev, city].sort((a, b) => a.name.localeCompare(b.name)))}
+        onSaved={handleClinicCreated}
+        submitLabel="Crear y seleccionar"
+      />
     </form>
   )
 }

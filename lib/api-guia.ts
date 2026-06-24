@@ -85,6 +85,16 @@ export interface ClaimToken {
   url?: string
 }
 
+/** Clínica escrita en texto libre por el médico, pendiente de normalizar (07 §14) */
+export interface ClinicSuggestion {
+  id: string
+  rawName: string
+  schedule?: string | null
+  status: 'PENDING' | 'RESOLVED' | 'DISMISSED'
+  resolvedClinicId?: string | null
+  createdAt: string
+}
+
 export interface Doctor {
   id: string
   auth0Sub?: string | null
@@ -113,6 +123,7 @@ export interface Doctor {
   updatedAt: string
   specialties: { order: number; specialty: Specialty }[]
   clinics: { schedule?: string | null; clinic: Clinic }[]
+  clinicSuggestions?: ClinicSuggestion[]
   insurances: { insurance: Insurance }[]
   benefits?: DoctorBenefit[]
   claimTokens?: ClaimToken[]
@@ -139,6 +150,7 @@ export interface DoctorInput {
   planNotes?: string
   specialtyIds?: string[]
   clinics?: { clinicId: string; schedule?: string }[]
+  clinicSuggestions?: { rawName: string; schedule?: string }[]
   insuranceIds?: string[]
 }
 
@@ -340,6 +352,20 @@ export const updateDoctorBenefit = (
 
 export const removeDoctorBenefit = (id: string, benefitId: string, token: string) =>
   apiFetch(`/doctors/${id}/benefits/${benefitId}`, { method: 'DELETE', token })
+
+/** Normaliza una sugerencia de clínica: la asocia a una clínica del catálogo (07 §14) */
+export const resolveClinicSuggestion = (
+  doctorId: string,
+  suggestionId: string,
+  data: { clinicId: string; schedule?: string },
+  token: string,
+) =>
+  apiFetch<Doctor>(`/doctors/${doctorId}/clinic-suggestions/${suggestionId}/resolve`, {
+    method: 'POST', body: JSON.stringify(data), token,
+  })
+
+export const dismissClinicSuggestion = (doctorId: string, suggestionId: string, token: string) =>
+  apiFetch<Doctor>(`/doctors/${doctorId}/clinic-suggestions/${suggestionId}/dismiss`, { method: 'POST', token })
 
 // ─── MÉDICOS — PÚBLICO ────────────────────────────────
 

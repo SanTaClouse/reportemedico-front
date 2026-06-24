@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { Plus, Check, X, Loader2, MapPin, Search, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClinic, updateClinic, createCity, type City, type Clinic } from '@/lib/api-guia'
@@ -215,6 +216,36 @@ export default function ClinicForm({
         )}
       </div>
     </form>
+  )
+}
+
+/** ClinicForm dentro de un modal (portal). Reusado en el alta de médico y en la
+ *  normalización de clínicas sugeridas. */
+export function ClinicFormModal({
+  open, title = 'Crear clínica nueva', onClose, ...formProps
+}: { open: boolean; title?: string; onClose: () => void } & Omit<Props, 'onCancel'>) {
+  if (!open) return null
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 sm:p-8"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-xl bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] shadow-xl my-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--color-border)]">
+          <h3 className="font-semibold text-sm text-[var(--color-text-primary)]">{title}</h3>
+          <button type="button" onClick={onClose} className="p-1.5 text-[var(--color-text-muted)] hover:bg-[var(--color-surface-2)] rounded-lg">
+            <X size={16} />
+          </button>
+        </div>
+        <div className="p-5">
+          <ClinicForm {...formProps} onCancel={onClose} />
+        </div>
+      </div>
+    </div>,
+    document.body,
   )
 }
 

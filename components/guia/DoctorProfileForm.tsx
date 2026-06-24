@@ -17,6 +17,7 @@ export interface ProfileFormData {
   photoUrl?: string
   specialtyIds: string[]
   clinics: { clinicId: string; schedule?: string }[]
+  clinicSuggestions: { rawName: string; schedule?: string }[]
   insuranceIds: string[]
   phonePublic?: string
   phoneOffice?: string
@@ -85,6 +86,10 @@ export default function DoctorProfileForm({
   const [clinicRows, setClinicRows] = useState<{ clinicId: string; schedule: string }[]>(
     initial?.clinics?.map((c) => ({ clinicId: c.clinic.id, schedule: c.schedule ?? '' })) ?? [],
   )
+  // Clínicas fuera del catálogo, escritas en texto libre (las normaliza el admin)
+  const [suggestionRows, setSuggestionRows] = useState<{ rawName: string; schedule: string }[]>(
+    initial?.clinicSuggestions?.map((s) => ({ rawName: s.rawName, schedule: s.schedule ?? '' })) ?? [],
+  )
   const [selectedInsurances, setSelectedInsurances] = useState<string[]>(
     initial?.insurances?.map((i) => i.insurance.id) ?? [],
   )
@@ -110,6 +115,9 @@ export default function DoctorProfileForm({
     photoUrl: photoUrl || undefined,
     specialtyIds: selectedSpecialties,
     clinics: clinicRows.filter((r) => r.clinicId).map((r) => ({ clinicId: r.clinicId, schedule: r.schedule.trim() || undefined })),
+    clinicSuggestions: suggestionRows
+      .filter((r) => r.rawName.trim())
+      .map((r) => ({ rawName: r.rawName.trim(), schedule: r.schedule.trim() || undefined })),
     insuranceIds: selectedInsurances,
     phonePublic: form.phonePublic.trim() || undefined,
     phoneOffice: form.phoneOffice.trim() || undefined,
@@ -287,11 +295,40 @@ export default function DoctorProfileForm({
           </div>
         ))}
         <button type="button" onClick={() => setClinicRows((prev) => [...prev, { clinicId: '', schedule: '' }])} className="flex items-center gap-1.5 text-xs font-medium text-[var(--color-primary,#001450)] hover:underline">
-          <Plus size={13} /> Agregar clínica
+          <Plus size={13} /> Agregar clínica del catálogo
         </button>
-        <p className="text-[11px] text-[var(--color-text-muted)]">
-          ¿No encuentras tu clínica en la lista? Escríbela en el horario y nuestro equipo la agrega al aprobar tu perfil.
-        </p>
+
+        {/* Clínica fuera del catálogo: texto libre → el equipo la normaliza al aprobar (07 §14) */}
+        <div className="pt-3 mt-1 border-t border-dashed border-[var(--color-border)] space-y-2">
+          <p className="text-xs font-medium text-[var(--color-text-secondary)]">
+            ¿Tu clínica no está en la lista?
+          </p>
+          {suggestionRows.map((row, i) => (
+            <div key={i} className="flex gap-2 items-start">
+              <input
+                value={row.rawName}
+                onChange={(e) => setSuggestionRows((prev) => prev.map((r, j) => (j === i ? { ...r, rawName: e.target.value } : r)))}
+                className={`${inputClass} max-w-56`}
+                placeholder="Nombre de tu clínica"
+              />
+              <input
+                value={row.schedule}
+                onChange={(e) => setSuggestionRows((prev) => prev.map((r, j) => (j === i ? { ...r, schedule: e.target.value } : r)))}
+                className={inputClass}
+                placeholder="Lunes a viernes 8:00–12:00"
+              />
+              <button type="button" onClick={() => setSuggestionRows((prev) => prev.filter((_, j) => j !== i))} className="p-2 text-[var(--color-text-muted)] hover:text-red-600 hover:bg-red-50 rounded-lg">
+                <X size={15} />
+              </button>
+            </div>
+          ))}
+          <button type="button" onClick={() => setSuggestionRows((prev) => [...prev, { rawName: '', schedule: '' }])} className="flex items-center gap-1.5 text-xs font-medium text-[var(--color-primary,#001450)] hover:underline">
+            <Plus size={13} /> Agregar una clínica que no está en la lista
+          </button>
+          <p className="text-[11px] text-[var(--color-text-muted)]">
+            Escríbela tal como se llama. Nuestro equipo la agrega al catálogo y la ubica en el mapa cuando revise tu perfil.
+          </p>
+        </div>
       </section>
 
       {/* Seguros */}

@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import DoctorForm from '@/components/admin/guia/DoctorForm'
+import ClinicSuggestionsPanel from '@/components/admin/guia/ClinicSuggestionsPanel'
 import {
   updateDoctor, setDoctorStatus, setDoctorPlan, setDoctorVerification,
   createDoctorClaimToken, addDoctorBenefit, updateDoctorBenefit, removeDoctorBenefit,
@@ -220,6 +221,14 @@ export default function MedicoDetalleClient({ initialDoctor, specialties, clinic
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* ─── Columna principal: form de edición ─── */}
         <div className="lg:col-span-2">
+          <ClinicSuggestionsPanel
+            doctorId={doctor.id}
+            suggestions={doctor.clinicSuggestions ?? []}
+            clinics={clinics}
+            cities={cities}
+            token={token}
+            onResolved={(updated) => { setDoctor((prev) => ({ ...prev, ...updated })); refresh() }}
+          />
           <DoctorForm
             specialties={specialties}
             clinics={clinics}
