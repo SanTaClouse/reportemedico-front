@@ -339,7 +339,7 @@ export default function EdicionesClient({ editions: initial, token }: Props) {
               </label>
             </div>
             <p className="text-xs text-[var(--color-text-muted)]">
-              En Issuu: abrí la revista → <strong>Compartir</strong> → <strong>Embed</strong> → copiá el código y pegalo aquí.
+              En Issuu: abre la revista → <strong>Compartir</strong> → <strong>Embed</strong> → copia el código y pégalo aquí.
               El título, número de edición y la portada se completarán automáticamente.
             </p>
             <textarea

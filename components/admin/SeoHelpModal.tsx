@@ -34,7 +34,7 @@ export default function SeoHelpModal({ onClose }: { onClose: () => void }) {
           </Tip>
 
           {/* Tip 2 — Keywords en meta */}
-          <Tip number={2} label="Keywords en meta" title="Usá palabras que la gente realmente busca">
+          <Tip number={2} label="Keywords en meta" title="Usa palabras que la gente realmente busca">
             <p>Un buen título médico combina:</p>
             <ul className="mt-2 space-y-1 list-none">
               <li>🦟 <strong>Enfermedad o tema</strong> — dengue, diabetes, cáncer</li>
@@ -51,7 +51,7 @@ export default function SeoHelpModal({ onClose }: { onClose: () => void }) {
             <p>Si el título habla de dengue pero el artículo desarrolla otro tema, Google lo detecta.</p>
             <p className="mt-2">En vez de un título genérico:</p>
             <Bad>"Avances en políticas sanitarias"</Bad>
-            <p className="mt-2">Usá uno que describa el contenido real:</p>
+            <p className="mt-2">Usa uno que describa el contenido real:</p>
             <Good>"Nuevas medidas de prevención contra el dengue en RD 2025"</Good>
           </Tip>
 
@@ -62,12 +62,12 @@ export default function SeoHelpModal({ onClose }: { onClose: () => void }) {
             <p className="mt-2">Mejor:</p>
             <Good>"Síntomas, tratamiento y prevención del dengue en RD para 2025"</Good>
             <p className="mt-2 text-xs text-[var(--color-text-muted)]">
-              Apuntá a 80–155 caracteres. Si lo dejás vacío, se usa el resumen del artículo automáticamente.
+              Apunta a 80–155 caracteres. Si lo dejas vacío, se usa el resumen del artículo automáticamente.
             </p>
           </Tip>
 
           {/* Tip 5 — Frases vagas */}
-          <Tip number={5} label="Frases vagas" title="Evitá frases que no dicen nada">
+          <Tip number={5} label="Frases vagas" title="Evita frases que no dicen nada">
             <p>Estas frases aparecen cuando el título es inespecífico:</p>
             <div className="mt-2 flex flex-wrap gap-2">
               {['"todo lo que"', '"lo que debes saber"', '"importante"', '"gran"', '"avances en"'].map((f) => (
@@ -86,7 +86,7 @@ export default function SeoHelpModal({ onClose }: { onClose: () => void }) {
               Regla de oro
             </p>
             <p className="text-[var(--color-text-primary)]">
-              Escribe primero para el lector. Luego revisá si Google va a entender de qué trata.
+              Escribe primero para el lector. Luego revisa si Google va a entender de qué trata.
               Si el título lo dice todo en pocas palabras, ya es buen SEO.
             </p>
           </div>

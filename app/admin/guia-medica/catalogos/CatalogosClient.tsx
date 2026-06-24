@@ -571,7 +571,7 @@ function ClinicsTab({
           {outsideRd && (
             <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-xs">
               <AlertTriangle size={14} />
-              Esta ubicación está fuera de República Dominicana — revisá que no estén invertidas las coordenadas.
+              Esta ubicación está fuera de República Dominicana — revisa que no estén invertidas las coordenadas.
             </div>
           )}
 
@@ -641,7 +641,7 @@ function LocationField({
       )
       const data: NominatimResult[] = await res.json()
       setResults(data)
-      if (!data.length) toast.info('Sin resultados — probá pegar las coordenadas de Google Maps')
+      if (!data.length) toast.info('Sin resultados — prueba pegar las coordenadas de Google Maps')
     } catch {
       toast.error('No se pudo buscar la dirección')
     } finally {
@@ -673,7 +673,7 @@ function LocationField({
   return (
     <div className="space-y-2">
       <label className="block text-xs font-medium text-[var(--color-text-secondary)]">
-        Ubicación * — pegá las coordenadas de Google Maps (clic derecho sobre la clínica → copiar) o buscá por nombre/dirección
+        Ubicación * — pega las coordenadas de Google Maps (clic derecho sobre la clínica → copiar) o busca por nombre/dirección
       </label>
       <div className="relative">
         <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]" />

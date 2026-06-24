@@ -41,7 +41,7 @@ async function apiFetch<T>(path: string, options: FetchOptions = {}): Promise<T>
 const GENERIC_ERROR_MESSAGES: Record<number, string> = {
   400: 'Solicitud inválida',
   401: 'No autenticado. Por favor iniciá sesión.',
-  403: 'No tenés permiso para realizar esta acción.',
+  403: 'No tienes permiso para realizar esta acción.',
   404: 'El recurso solicitado no existe.',
   409: 'Ya existe un registro con esos datos.',
   422: 'Los datos enviados no son válidos.',

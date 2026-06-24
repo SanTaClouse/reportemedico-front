@@ -114,7 +114,7 @@ export function analyzeSeo({
           : titleLen > 60
           ? `Muy largo (${titleLen} chars) — Google lo cortará en 60`
           : titleLen < 30
-          ? `Muy corto (${titleLen} chars) — apuntá a 40–60`
+          ? `Muy corto (${titleLen} chars) — apunta a 40–60`
           : `Perfecto (${titleLen} chars)`,
     },
     {
@@ -138,7 +138,7 @@ export function analyzeSeo({
         descLen === 0
           ? 'Sin descripción — se usará el resumen automáticamente'
           : descLen < 80
-          ? `Muy corta (${descLen} chars) — apuntá a 80–155`
+          ? `Muy corta (${descLen} chars) — apunta a 80–155`
           : descLen > 155
           ? `Muy larga (${descLen} chars) — Google la cortará`
           : `Perfecto (${descLen} chars)`,

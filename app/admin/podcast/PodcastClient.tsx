@@ -391,7 +391,7 @@ export default function PodcastClient({ episodes: initial, token }: Props) {
                       ))}
                     </ul>
                     <p className="text-xs text-[var(--color-text-muted)] mt-2 pt-2 border-t border-[var(--color-border)]">
-                      El título se completa automático si lo dejás vacío.
+                      El título se completa automático si lo dejas vacío.
                     </p>
                   </div>
                 )}

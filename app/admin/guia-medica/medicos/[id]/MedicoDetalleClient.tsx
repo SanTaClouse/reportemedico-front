@@ -144,7 +144,7 @@ export default function MedicoDetalleClient({ initialDoctor, specialties, clinic
 
   const copyClaim = (url: string) => {
     navigator.clipboard.writeText(url)
-    toast.success('Link copiado — pegalo en WhatsApp')
+    toast.success('Link copiado — pégalo en WhatsApp')
   }
 
   // ─── Beneficios ───

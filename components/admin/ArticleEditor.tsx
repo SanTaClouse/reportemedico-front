@@ -303,7 +303,7 @@ export default function ArticleEditor({
       if (!silent) {
         toast.error(`Error al guardar: ${err.message}`, { id: toastId })
       } else {
-        toast.warning('Autosave falló — guardá manualmente antes de salir', { duration: 5000 })
+        toast.warning('Autosave falló — guarda manualmente antes de salir', { duration: 5000 })
       }
       setSavedStatus('idle')
     } finally {
@@ -656,7 +656,7 @@ export default function ArticleEditor({
                   <li><span className="font-bold text-[var(--color-text-primary)]">H2</span> — Subtítulo de sección</li>
                   <li><span className="font-bold text-[var(--color-text-primary)]">H3</span> — Subtítulo secundario</li>
                   <li><kbd className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded px-1">Ctrl+B</kbd> Negrita &nbsp;·&nbsp; <kbd className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded px-1">Ctrl+I</kbd> Cursiva</li>
-                  <li>🔗 Link — seleccioná el texto primero</li>
+                  <li>🔗 Link — selecciona el texto primero</li>
                   <li>≡ Lista con viñetas</li>
                   <li>" Cita destacada (blockquote)</li>
                   <li>⤢ Modo foco — pantalla completa</li>
@@ -669,7 +669,7 @@ export default function ArticleEditor({
                   <li>✅ Incluí palabras clave en los subtítulos</li>
                   <li>✅ Párrafos cortos (3-4 líneas máximo)</li>
                   <li>✅ El resumen (excerpt) aparece en Google</li>
-                  <li>⚠️ Evitá pegar texto directo desde Word</li>
+                  <li>⚠️ Evita pegar texto directo desde Word</li>
                 </ul>
               </div>
             </div>

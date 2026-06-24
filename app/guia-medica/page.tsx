@@ -327,7 +327,7 @@ function EmptyResults({
         No encontramos médicos con estos filtros
       </p>
       <p className="text-sm text-[var(--color-text-muted)] mb-6">
-        La guía crece todos los días — probá ajustando la búsqueda:
+        La guía crece todos los días — prueba ajustando la búsqueda:
       </p>
       <div className="flex flex-wrap justify-center gap-2">
         {searchParams.seguro && (

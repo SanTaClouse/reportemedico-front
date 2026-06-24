@@ -49,8 +49,8 @@ export default function TextosClient({ initialPairs, token }: Props) {
         Textos de páginas (Especialidad × Ciudad)
       </h1>
       <p className="text-sm text-[var(--color-text-muted)] mb-6">
-        Texto introductorio editorial para las combinaciones con más médicos. Si lo dejás vacío, la
-        página usa una intro automática con datos reales. Enriquecé primero las que Search Console
+        Texto introductorio editorial para las combinaciones con más médicos. Si lo dejas vacío, la
+        página usa una intro automática con datos reales. Enriquece primero las que Search Console
         muestre con tráfico.
       </p>
 
