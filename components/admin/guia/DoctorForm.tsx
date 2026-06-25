@@ -482,9 +482,24 @@ export default function DoctorForm({
 
       {/* ─── Seguros ─── */}
       <section className={sectionClass}>
-        <h2 className="font-semibold text-sm text-[var(--color-text-primary)]">
-          Seguros (ARS) que acepta <span className="font-normal text-xs text-[var(--color-text-muted)]">— el filtro #1 del paciente</span>
-        </h2>
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <h2 className="font-semibold text-sm text-[var(--color-text-primary)]">
+            Seguros (ARS) que acepta <span className="font-normal text-xs text-[var(--color-text-muted)]">— el filtro #1 del paciente</span>
+          </h2>
+          {insurances.length > 0 && (
+            <button
+              type="button"
+              onClick={() =>
+                setSelectedInsurances(
+                  selectedInsurances.length === insurances.length ? [] : insurances.map((i) => i.id),
+                )
+              }
+              className="text-xs font-medium text-primary hover:underline whitespace-nowrap"
+            >
+              {selectedInsurances.length === insurances.length ? 'Quitar todos' : 'Seleccionar todos'}
+            </button>
+          )}
+        </div>
         <div className="flex flex-wrap gap-1.5">
           {insurances.map((ins) => (
             <button
