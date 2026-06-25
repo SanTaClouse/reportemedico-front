@@ -8,6 +8,7 @@ import ScrollToTop from '@/components/providers/ScrollToTop'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import AdminFab from '@/components/layout/AdminFab'
+import HideOnBio from '@/components/layout/HideOnBio'
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -155,10 +156,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {/* Sesión de médicos (Auth0). profileUrl apunta al SDK montado en /api/auth-medico */}
           <UserProvider profileUrl="/api/auth-medico/me">
             <ScrollToTop />
-            <Navbar />
+            <HideOnBio><Navbar /></HideOnBio>
             <main>{children}</main>
-            <Footer />
-            <AdminFab />
+            <HideOnBio><Footer /></HideOnBio>
+            <HideOnBio><AdminFab /></HideOnBio>
           </UserProvider>
         </ThemeProvider>
         <Analytics />

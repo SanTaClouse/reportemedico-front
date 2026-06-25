@@ -18,6 +18,7 @@ import {
   ClipboardList,
   FolderTree,
   Activity,
+  Link2,
 } from 'lucide-react'
 
 const BASE_NAV_ITEMS = [
@@ -31,6 +32,7 @@ const BASE_NAV_ITEMS = [
   { href: '/admin/suscriptores', label: 'Suscriptores', icon: Mail },
   { href: '/admin/media', label: 'Media', icon: Image },
   { href: '/admin/publicidad', label: 'Publicidad', icon: Megaphone },
+  { href: '/admin/bio', label: 'Bio', icon: Link2 },
 ]
 
 // V2 — Guía Médica
