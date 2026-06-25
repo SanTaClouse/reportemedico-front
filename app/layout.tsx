@@ -28,12 +28,13 @@ const sourceSerif = Source_Serif_4({
 })
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://reportemedico.com'
+const SITE_TITLE = 'Reporte Médico — Noticias y salud en República Dominicana'
 const SITE_DESCRIPTION =
-  'La plataforma de salud líder en República Dominicana. Noticias médicas, artículos de especialistas, podcast y ediciones impresas.'
+  'El canal líder de noticias, investigación y difusión de salud en República Dominicana. Unimos el rigor de las especialidades médicas con el periodismo moderno.'
 
 export const metadata: Metadata = {
   title: {
-    default: 'Reporte Médico — Salud e Información Médica de República Dominicana',
+    default: SITE_TITLE,
     template: '%s | Reporte Médico',
   },
   description: SITE_DESCRIPTION,
@@ -67,7 +68,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     siteName: 'Reporte Médico',
-    title: 'Reporte Médico — Salud e Información Médica de República Dominicana',
+    title: SITE_TITLE,
     description: SITE_DESCRIPTION,
     url: SITE_URL,
     locale: 'es_DO',
@@ -76,7 +77,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Reporte Médico — Salud e Información Médica de República Dominicana',
+    title: SITE_TITLE,
     description: SITE_DESCRIPTION,
   },
   robots: {

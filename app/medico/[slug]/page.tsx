@@ -2,12 +2,14 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { BadgeCheck, Monitor, MapPin, ExternalLink, Languages, Clock } from 'lucide-react'
+import { BadgeCheck, Monitor, MapPin, ExternalLink, Languages, Clock, ArrowDown } from 'lucide-react'
 import { getDoctorBySlug, getSpecialtyArticles, type SpecialtyArticle } from '@/lib/api-guia'
 import { cldUrl } from '@/lib/cloudinary'
 import { formatDate } from '@/lib/utils'
 import ProfileCta from '@/components/guia/ProfileCta'
 import ClinicsMap from '@/components/guia/ClinicsMap'
+import InsuranceChips from '@/components/guia/InsuranceChips'
+import ShareProfile from '@/components/guia/ShareProfile'
 import DoctorCard from '@/components/guia/DoctorCard'
 
 export const revalidate = 3600
@@ -201,33 +203,36 @@ export default async function MedicoPage({ params }: Props) {
             </div>
           </header>
 
+          {/* Compartir el perfil (Instagram / WhatsApp / etc.) */}
+          <ShareProfile url={`${SITE_URL}/medico/${doctor.slug}`} name={fullName} />
+
           {/* Seguros (criterio #1 del paciente — 04 §1.3) */}
           {doctor.insurances.length > 0 && (
             <section aria-labelledby="seguros">
               <h2 id="seguros" className="font-display font-bold text-lg text-[var(--color-text-primary)] mb-3">
                 Seguros que acepta
               </h2>
-              <div className="flex flex-wrap gap-2">
-                {doctor.insurances.map((i) => (
-                  <Link
-                    key={i.insurance.id}
-                    href={`/guia-medica?seguro=${i.insurance.slug}`}
-                    className="px-3 py-1.5 rounded-lg text-sm font-medium bg-[var(--color-surface-2)] text-[var(--color-text-primary)] border border-[var(--color-border)] hover:border-[var(--color-primary)]/40 transition-colors"
-                  >
-                    {i.insurance.name}
-                  </Link>
-                ))}
-              </div>
+              <InsuranceChips
+                insurances={doctor.insurances.map((i) => ({ slug: i.insurance.slug, name: i.insurance.name }))}
+                initial={4}
+              />
             </section>
           )}
 
           {/* Dónde atiende (04 §1.4) */}
           {doctor.clinics.length > 0 && (
             <section id="donde-atiende" aria-labelledby="donde">
-              <h2 id="donde" className="font-display font-bold text-lg text-[var(--color-text-primary)] mb-3">
-                Dónde atiende
-              </h2>
-              <div className="space-y-3 mb-4">
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <h2 id="donde" className="font-display font-bold text-lg text-[var(--color-text-primary)]">
+                  Dónde atiende
+                </h2>
+                {pins.length > 0 && (
+                  <a href="#mapa" className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--color-primary)] hover:underline">
+                    Ver en el mapa <ArrowDown size={13} strokeWidth={2.2} />
+                  </a>
+                )}
+              </div>
+              <div className="space-y-3">
                 {doctor.clinics.map((c) => (
                   <div key={c.clinic.id} className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-4">
                     <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -256,7 +261,6 @@ export default async function MedicoPage({ params }: Props) {
                   </div>
                 ))}
               </div>
-              <ClinicsMap pins={pins} />
             </section>
           )}
 
@@ -301,6 +305,16 @@ export default async function MedicoPage({ params }: Props) {
                     </li>
                   ))}
               </ul>
+            </section>
+          )}
+
+          {/* Ubicación / mapa — debajo del video; ancla #mapa desde "Dónde atiende" */}
+          {pins.length > 0 && (
+            <section id="mapa" aria-labelledby="mapa-h" className="scroll-mt-24">
+              <h2 id="mapa-h" className="font-display font-bold text-lg text-[var(--color-text-primary)] mb-3">
+                Ubicación
+              </h2>
+              <ClinicsMap pins={pins} />
             </section>
           )}
 

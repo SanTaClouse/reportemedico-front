@@ -418,7 +418,16 @@ html {
 }
 .guia-cta:hover::after { animation: guia-cta-shine 0.85s ease forwards; }
 
+/* Carrusel de médicos de la guía: marquee infinito; se pausa al pasar el cursor */
+@keyframes guia-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.guia-marquee { animation: guia-marquee 45s linear infinite; will-change: transform; }
+.guia-marquee:hover { animation-play-state: paused; }
+
 @media (prefers-reduced-motion: reduce) {
   .guia-float { animation: none; }
   .guia-cta:hover::after { animation: none; }
+  .guia-marquee { animation: none; }
 }

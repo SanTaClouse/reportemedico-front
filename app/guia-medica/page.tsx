@@ -12,6 +12,7 @@ import { formatDate } from '@/lib/utils'
 import GuiaSearchForm from '@/components/guia/GuiaSearchForm'
 import ResultsToggle from '@/components/guia/ResultsToggle'
 import DoctorCard from '@/components/guia/DoctorCard'
+import DoctorsCarousel from '@/components/guia/DoctorsCarousel'
 import ClinicsMap from '@/components/guia/ClinicsMap'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://reportemedico.com'
@@ -137,6 +138,9 @@ async function HomeView({
           </div>
         </section>
       )}
+
+      {/* Carrusel de médicos: descubrimiento + gancho para que otros se sumen */}
+      <DoctorsCarousel doctors={allDoctors} />
 
       {/* Mapa general (lazy, no bloquea LCP) */}
       {pins.length > 0 && (
