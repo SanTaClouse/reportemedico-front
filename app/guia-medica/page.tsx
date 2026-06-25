@@ -125,12 +125,13 @@ async function HomeView({
       {/* Chips de acceso rápido — SOLO especialidades indexables (P7) */}
       {combos.specialties.length > 0 && (
         <section className="max-w-3xl mx-auto mb-10" aria-label="Especialidades disponibles">
-          <div className="flex flex-wrap justify-center gap-1.5">
+          {/* Una sola línea: si no entran, scrollean en horizontal (no hacen wrap) */}
+          <div className="flex gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {combos.specialties.map((s) => (
               <Link
                 key={s.slug}
                 href={`/guia-medica/${s.slug}`}
-                className="px-3 py-1.5 rounded-full text-xs font-medium border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-primary)]/40 hover:text-[var(--color-primary)] transition-colors"
+                className="shrink-0 whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-primary)]/40 hover:text-[var(--color-primary)] transition-colors"
               >
                 {s.name}
               </Link>
