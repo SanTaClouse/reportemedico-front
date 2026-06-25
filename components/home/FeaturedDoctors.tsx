@@ -9,11 +9,11 @@ import { getPublicDoctors } from '@/lib/api-guia'
  * Cards verticales (foto arriba, datos abajo) — al paciente le muestra quién
  * está y al médico que su perfil puede verse así de bien. El public-list ya
  * viene ordenado (premium → verificado → completitud → rotación diaria), así
- * que los primeros 3 son buenas vitrinas y van rotando solos cada día.
+ * que los primeros son buenas vitrinas y van rotando solos cada día.
  */
 export default async function FeaturedDoctors() {
   const doctors = await getPublicDoctors({}).catch(() => [])
-  const featured = doctors.slice(0, 3)
+  const featured = doctors.slice(0, 5)
   if (featured.length === 0) return null
 
   return (
@@ -35,9 +35,12 @@ export default async function FeaturedDoctors() {
         </Link>
       </div>
 
-      {/* Mobile: carrusel horizontal (swipe). Desktop (md+): fila centrada de
-          cards de ancho fijo, con aire a los lados. */}
-      <div className="flex gap-4 md:gap-6 overflow-x-auto snap-x snap-mandatory -mx-4 px-4 pb-2 md:mx-0 md:px-0 md:pb-0 md:overflow-visible md:flex-wrap md:justify-center [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {/* Mobile: carrusel horizontal (swipe). Desktop (md+): grilla que llena el
+          ancho — tantas columnas como médicos, sin huecos a los lados. */}
+      <div
+        className="flex gap-4 md:gap-5 overflow-x-auto snap-x snap-mandatory -mx-4 px-4 pb-2 md:mx-0 md:px-0 md:pb-0 md:overflow-visible md:grid [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        style={{ gridTemplateColumns: `repeat(${featured.length}, minmax(0, 1fr))` }}
+      >
         {featured.map((doc) => {
           const fullName = `${doc.title ?? ''} ${doc.firstName} ${doc.lastName}`.trim()
           const city = doc.clinics[0]?.city?.name
@@ -45,7 +48,7 @@ export default async function FeaturedDoctors() {
             <Link
               key={doc.id}
               href={`/medico/${doc.slug}`}
-              className="group flex flex-col rounded-2xl overflow-hidden bg-[var(--color-surface)] border border-[var(--color-border)] hover:shadow-lg hover:-translate-y-0.5 transition-all snap-start shrink-0 w-[46%] md:w-[220px]"
+              className="group flex flex-col rounded-2xl overflow-hidden bg-[var(--color-surface)] border border-[var(--color-border)] hover:shadow-lg hover:-translate-y-0.5 transition-all snap-start shrink-0 w-[46%] md:w-auto"
             >
               {/* Foto (vertical) */}
               <div className="relative aspect-[4/5] bg-[var(--color-primary,#001450)]">
@@ -55,7 +58,7 @@ export default async function FeaturedDoctors() {
                     alt={`${fullName}, ${doc.specialties[0]?.name ?? 'médico'}`}
                     fill
                     className="object-cover"
-                    sizes="(max-width: 768px) 46vw, 220px"
+                    sizes="(max-width: 768px) 46vw, 20vw"
                   />
                 ) : (
                   <span className="absolute inset-0 flex items-center justify-center font-display text-4xl font-bold text-white/90">
