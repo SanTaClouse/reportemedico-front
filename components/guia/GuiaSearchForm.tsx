@@ -2,9 +2,11 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Search, MapPin, Loader2, LocateFixed, User, Building2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { suggestDoctors, type SuggestItem, type Specialty, type City, type Insurance } from '@/lib/api-guia'
+import { cldUrl } from '@/lib/cloudinary'
 
 interface Props {
   insurances: Insurance[]
@@ -185,15 +187,25 @@ export default function GuiaSearchForm({ insurances, specialties, cities, curren
                 <button
                   type="button"
                   onClick={() => router.push(s.type === 'doctor' ? `/medico/${s.slug}` : `/clinica/${s.slug}`)}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left text-sm hover:bg-[var(--color-surface-2)] transition-colors"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-[var(--color-surface-2)] transition-colors"
                 >
                   {s.type === 'doctor' ? (
-                    <User size={15} className="text-[var(--color-primary)] shrink-0" />
+                    <span className="relative w-9 h-9 rounded-full overflow-hidden bg-[var(--color-primary,#001450)] flex items-center justify-center shrink-0">
+                      {s.photoUrl ? (
+                        <Image src={cldUrl(s.photoUrl, { w: 72, h: 72 })} alt="" fill className="object-cover" sizes="36px" />
+                      ) : (
+                        <User size={16} className="text-white" />
+                      )}
+                    </span>
                   ) : (
-                    <Building2 size={15} className="text-[var(--color-accent,#F0B414)] shrink-0" />
+                    <span className="w-9 h-9 rounded-lg bg-[var(--color-accent,#F0B414)]/15 flex items-center justify-center shrink-0">
+                      <Building2 size={16} className="text-[var(--color-accent,#F0B414)]" />
+                    </span>
                   )}
-                  <span className="font-medium text-[var(--color-text-primary)]">{s.label}</span>
-                  {s.sublabel && <span className="text-xs text-[var(--color-text-muted)]">{s.sublabel}</span>}
+                  <span className="min-w-0">
+                    <span className="block font-medium text-sm text-[var(--color-text-primary)] truncate">{s.label}</span>
+                    {s.sublabel && <span className="block text-xs text-[var(--color-text-muted)] truncate">{s.sublabel}</span>}
+                  </span>
                 </button>
               </li>
             ))}
