@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState, useEffect, useRef } from 'react'
 import { useSearch } from '@/lib/hooks/useSearch'
-import { Menu, X, Sun, Moon, Search, Loader2, Check, UserCircle } from 'lucide-react'
+import { Menu, X, Sun, Moon, Search, Loader2, Check, UserCircle, Stethoscope, Mail } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useUser } from '@auth0/nextjs-auth0/client'
 import { subscribeNewsletter, getTags, type Tag } from '@/lib/api'
@@ -408,9 +408,9 @@ export default function Navbar() {
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSubscribeOpen(true)}
-              className="hidden sm:inline-flex items-center text-[10px] font-semibold px-3 py-1 rounded-full border border-[var(--brand-gold)]/60 text-[var(--brand-gold)] hover:bg-[var(--brand-gold)]/10 transition-colors tracking-wide"
+              className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1 rounded-full bg-[var(--brand-gold)] text-[var(--brand-navy)] hover:brightness-105 transition-all tracking-wide shadow-sm"
             >
-              SUSCRIBIRSE
+              <Mail size={12} strokeWidth={2.2} /> SUSCRIBIRSE
             </button>
             <div className="flex items-center gap-2.5">
               <a
@@ -478,21 +478,32 @@ export default function Navbar() {
           {/* Desktop nav */}
           <ul className="hidden md:flex items-center gap-6">
             {NAV_LINKS.map(({ href, label }) => {
-              const isActive = pathname === href
-              // Guía Médica resaltada: pill navy con texto blanco
+              // Guía Médica: CTA destacada. El relleno navy se reserva para cuando
+              // realmente estás en una página de la guía (incluye fichas de médico y
+              // clínica); fuera de ahí va como botón con borde, para que no se lea
+              // como "estás acá".
               if (href === '/guia-medica') {
+                const guiaActive =
+                  pathname === '/guia-medica' ||
+                  pathname.startsWith('/guia-medica/') ||
+                  pathname.startsWith('/medico/') ||
+                  pathname.startsWith('/clinica/')
                 return (
                   <li key={href}>
                     <Link
                       href={href}
-                      className={`text-sm font-body font-semibold px-3 py-1.5 rounded-full bg-[var(--brand-navy)] text-white hover:opacity-90 transition-opacity ${isActive ? 'ring-2 ring-[var(--brand-gold)]/60 ring-offset-1' : ''
+                      aria-current={guiaActive ? 'page' : undefined}
+                      className={`inline-flex items-center gap-1.5 text-sm font-body font-semibold px-3 py-1.5 rounded-full border transition-colors ${guiaActive
+                        ? 'bg-[var(--brand-navy)] text-white border-[var(--brand-navy)]'
+                        : 'border-[var(--brand-navy)]/35 text-[var(--brand-navy)] hover:bg-[var(--brand-navy)]/5'
                         }`}
                     >
-                      {label}
+                      <Stethoscope size={14} strokeWidth={1.75} /> {label}
                     </Link>
                   </li>
                 )
               }
+              const isActive = pathname === href
               return (
                 <li key={href}>
                   <Link

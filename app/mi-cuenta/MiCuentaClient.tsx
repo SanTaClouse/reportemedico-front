@@ -201,11 +201,11 @@ export default function MiCuentaClient({
               clinics={clinics}
               insurances={insurances}
               saving={saving}
-              renderActions={(getData) => (
+              renderActions={(getData, validate) => (
                 <div className="flex flex-wrap gap-3 pt-2">
                   <button
                     type="button"
-                    onClick={() => saveProfile(getData())}
+                    onClick={() => { if (validate()) saveProfile(getData()) }}
                     disabled={saving || submitting}
                     className="inline-flex items-center gap-2 px-5 py-2.5 border border-[var(--color-primary,#001450)]/30 text-[var(--color-primary,#001450)] rounded-xl text-sm font-semibold hover:bg-[var(--color-primary-pale,#e8edf8)] transition-colors disabled:opacity-50"
                   >
@@ -217,6 +217,7 @@ export default function MiCuentaClient({
                     <button
                       type="button"
                       onClick={async () => {
+                        if (!validate()) return
                         const ok = await saveProfile(getData())
                         if (ok) await submitForReview()
                       }}

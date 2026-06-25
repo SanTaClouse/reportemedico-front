@@ -32,8 +32,11 @@ interface Props {
   clinics: Clinic[]
   insurances: Insurance[]
   saving: boolean
-  /** Render-prop: recibe una función que devuelve los datos actuales del form */
-  renderActions: (getData: () => ProfileFormData) => ReactNode
+  /**
+   * Render-prop de los botones de acción. Recibe `getData` (datos actuales) y
+   * `validate` (marca los campos obligatorios y devuelve si está OK para guardar).
+   */
+  renderActions: (getData: () => ProfileFormData, validate: () => boolean) => ReactNode
 }
 
 const inputClass =
@@ -124,8 +127,29 @@ export default function DoctorProfileForm({
     instagram: form.instagram.trim() || undefined,
   })
 
+  // Validación por campo: los errores aparecen tras el primer intento de guardar
+  // y se corrigen en vivo. Solo nombre y apellido son obligatorios.
+  const [submitted, setSubmitted] = useState(false)
+  const computeErrors = () => {
+    const e: { firstName?: string; lastName?: string } = {}
+    if (!form.firstName.trim()) e.firstName = 'Ingresa tu nombre'
+    if (!form.lastName.trim()) e.lastName = 'Ingresa tu apellido'
+    return e
+  }
+  const errors: { firstName?: string; lastName?: string } = submitted ? computeErrors() : {}
+  const fieldClass = (err?: string) => (err ? `${inputClass} !border-red-400` : inputClass)
+  const validate = () => {
+    setSubmitted(true)
+    return Object.keys(computeErrors()).length === 0
+  }
+
   return (
     <div className="space-y-5">
+      <p className="text-xs text-[var(--color-text-muted)]">
+        Solo <strong className="text-[var(--color-text-secondary)]">Nombre</strong> y{' '}
+        <strong className="text-[var(--color-text-secondary)]">Apellido</strong> son obligatorios (
+        <span className="text-red-600">*</span>). Mientras más completes, mejor te encuentran los pacientes.
+      </p>
       {/* Datos personales */}
       <section className={sectionClass}>
         <h2 className="font-semibold text-sm text-[var(--color-text-primary)]">Datos personales</h2>
@@ -170,12 +194,14 @@ export default function DoctorProfileForm({
             </select>
           </div>
           <div className="col-span-4 sm:col-span-2">
-            <label className={labelClass}>Nombre *</label>
-            <input value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} className={inputClass} autoComplete="given-name" />
+            <label className={labelClass}>Nombre <span className="text-red-600">*</span></label>
+            <input value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} className={fieldClass(errors.firstName)} autoComplete="given-name" />
+            {errors.firstName && <p className="text-[11px] text-red-600 mt-1">{errors.firstName}</p>}
           </div>
           <div className="col-span-3">
-            <label className={labelClass}>Apellido *</label>
-            <input value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} className={inputClass} autoComplete="family-name" />
+            <label className={labelClass}>Apellido <span className="text-red-600">*</span></label>
+            <input value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} className={fieldClass(errors.lastName)} autoComplete="family-name" />
+            {errors.lastName && <p className="text-[11px] text-red-600 mt-1">{errors.lastName}</p>}
           </div>
           <div className="col-span-3">
             <label className={labelClass}>Exequátur</label>
@@ -373,7 +399,7 @@ export default function DoctorProfileForm({
         </div>
       </section>
 
-      {renderActions(getData)}
+      {renderActions(getData, validate)}
     </div>
   )
 }

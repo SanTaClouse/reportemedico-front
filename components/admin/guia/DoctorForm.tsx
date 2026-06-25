@@ -1,16 +1,33 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import NextImage from 'next/image'
 import dynamic from 'next/dynamic'
-import { Loader2, Check, Plus, X, Upload, GripVertical, Crop } from 'lucide-react'
+import { Loader2, Check, Plus, X, Upload, GripVertical, Crop, RotateCcw } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   uploadFotoMedico,
   type Doctor, type DoctorInput, type Specialty, type City, type Clinic, type Insurance,
 } from '@/lib/api-guia'
 import { cldUrl, baseImageUrl, setImageCrop, type CropRegion } from '@/lib/cloudinary'
+import { useUnsavedGuard } from '@/lib/hooks/useUnsavedGuard'
+import { loadDraft, saveDraft, clearDraft } from '@/lib/draft'
 import { ClinicFormModal } from './ClinicForm'
+
+// Borrador del alta de médico (solo modo creación) — se guarda en el navegador
+// para no perder lo cargado si el admin sale a mitad del proceso (A5/A6).
+const DRAFT_KEY = 'rm:guia:nuevo-medico-draft'
+interface DoctorDraft {
+  form: {
+    title: string; firstName: string; lastName: string; exequatur: string; email: string
+    phonePublic: string; phoneOffice: string; phoneInternal: string; instagram: string
+    bio: string; photoUrl: string; videoUrl: string; telehealth: boolean
+  }
+  languages: string[]
+  selectedSpecialties: string[]
+  clinicRows: { clinicId: string; schedule: string }[]
+  selectedInsurances: string[]
+}
 
 const ImageCropModal = dynamic(() => import('@/components/admin/ImageCropModal'), { ssr: false })
 
@@ -69,6 +86,52 @@ export default function DoctorForm({
   const [cropping, setCropping] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
+  // Validación por campo: los errores aparecen recién tras el primer intento de
+  // envío y se actualizan en vivo a medida que el usuario corrige.
+  const [submitted, setSubmitted] = useState(false)
+  const validate = () => {
+    const e: { firstName?: string; lastName?: string; email?: string } = {}
+    if (!form.firstName.trim()) e.firstName = 'Ingresa el nombre'
+    if (!form.lastName.trim()) e.lastName = 'Ingresa el apellido'
+    const email = form.email.trim()
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = 'Revisa el formato del email'
+    return e
+  }
+  const errors: { firstName?: string; lastName?: string; email?: string } = submitted ? validate() : {}
+  const fieldClass = (err?: string) => (err ? `${inputClass} !border-red-400` : inputClass)
+
+  // ─── Borrador + freno al salir (solo en el alta; A5/A6) ───
+  const isCreate = !initial
+  const snapshot = JSON.stringify({ form, languages, selectedSpecialties, clinicRows, selectedInsurances })
+  const baselineRef = useRef<string | null>(null)
+  if (baselineRef.current === null) baselineRef.current = snapshot
+  const dirty = snapshot !== baselineRef.current
+  useUnsavedGuard(isCreate && dirty)
+
+  const [draftRestore, setDraftRestore] = useState<DoctorDraft | null>(null)
+  // Al montar el alta: si hay un borrador con contenido real, ofrecemos recuperarlo.
+  useEffect(() => {
+    if (!isCreate) return
+    const d = loadDraft<DoctorDraft>(DRAFT_KEY)
+    if (d && (d.form?.firstName || d.form?.lastName || d.form?.bio || d.selectedSpecialties?.length || d.clinicRows?.length)) {
+      setDraftRestore(d)
+    }
+  }, [isCreate])
+  // Autosave del borrador en cada cambio (solo alta y solo si tocó algo).
+  useEffect(() => {
+    if (isCreate && dirty) saveDraft<DoctorDraft>(DRAFT_KEY, { form, languages, selectedSpecialties, clinicRows, selectedInsurances })
+  }, [snapshot, isCreate, dirty, form, languages, selectedSpecialties, clinicRows, selectedInsurances])
+
+  const applyDraft = (d: DoctorDraft) => {
+    setForm(d.form)
+    setLanguages(d.languages ?? ['Español'])
+    setSelectedSpecialties(d.selectedSpecialties ?? [])
+    setClinicRows(d.clinicRows ?? [])
+    setSelectedInsurances(d.selectedInsurances ?? [])
+    setDraftRestore(null)
+    toast.success('Borrador recuperado')
+  }
+
   const toggleSpecialty = (id: string) => {
     setSelectedSpecialties((prev) =>
       prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id],
@@ -110,8 +173,9 @@ export default function DoctorForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.firstName.trim() || !form.lastName.trim()) {
-      toast.error('Nombre y apellido son obligatorios')
+    setSubmitted(true)
+    if (Object.keys(validate()).length) {
+      toast.error('Revisa los campos marcados en rojo')
       return
     }
     const data: DoctorInput = {
@@ -135,11 +199,34 @@ export default function DoctorForm({
         .map((r) => ({ clinicId: r.clinicId, schedule: r.schedule.trim() || undefined })),
       insuranceIds: selectedInsurances,
     }
+    if (isCreate) clearDraft(DRAFT_KEY) // se envió: el borrador ya cumplió su función
     onSubmit(data)
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+      <p className="text-xs text-[var(--color-text-muted)]">
+        Solo <strong className="text-[var(--color-text-secondary)]">Nombre</strong> y{' '}
+        <strong className="text-[var(--color-text-secondary)]">Apellido</strong> son obligatorios (marcados con{' '}
+        <span className="text-red-600">*</span>). El resto es opcional y lo puedes completar después.
+      </p>
+
+      {draftRestore && (
+        <div className="flex items-center justify-between gap-3 px-3.5 py-2.5 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
+          <span className="inline-flex items-center gap-2">
+            <RotateCcw size={14} className="shrink-0" />
+            Tienes un borrador sin terminar
+            {(draftRestore.form?.firstName || draftRestore.form?.lastName)
+              ? ` de ${`${draftRestore.form.firstName ?? ''} ${draftRestore.form.lastName ?? ''}`.trim()}`
+              : ''}.
+          </span>
+          <span className="flex gap-3 shrink-0">
+            <button type="button" onClick={() => applyDraft(draftRestore)} className="font-semibold hover:underline">Restaurar</button>
+            <button type="button" onClick={() => { clearDraft(DRAFT_KEY); setDraftRestore(null) }} className="text-amber-700/70 hover:text-amber-900">Descartar</button>
+          </span>
+        </div>
+      )}
+
       {/* ─── Datos personales ─── */}
       <section className={sectionClass}>
         <h2 className="font-semibold text-sm text-[var(--color-text-primary)]">Datos personales</h2>
@@ -194,12 +281,14 @@ export default function DoctorForm({
               </select>
             </div>
             <div className="col-span-3 sm:col-span-2">
-              <label className={labelClass}>Nombre *</label>
-              <input value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} className={inputClass} />
+              <label className={labelClass}>Nombre <span className="text-red-600">*</span></label>
+              <input value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} className={fieldClass(errors.firstName)} />
+              {errors.firstName && <p className="text-[11px] text-red-600 mt-1">{errors.firstName}</p>}
             </div>
             <div className="col-span-2 sm:col-span-3">
-              <label className={labelClass}>Apellido *</label>
-              <input value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} className={inputClass} />
+              <label className={labelClass}>Apellido <span className="text-red-600">*</span></label>
+              <input value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} className={fieldClass(errors.lastName)} />
+              {errors.lastName && <p className="text-[11px] text-red-600 mt-1">{errors.lastName}</p>}
             </div>
             <div className="col-span-3">
               <label className={labelClass}>Exequátur</label>
@@ -266,8 +355,9 @@ export default function DoctorForm({
             <input value={form.phoneOffice} onChange={(e) => setForm({ ...form, phoneOffice: e.target.value })} className={inputClass} />
           </div>
           <div>
-            <label className={labelClass}>Email <span className="text-[var(--color-text-muted)]">(no se muestra públicamente)</span></label>
-            <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className={inputClass} />
+            <label className={labelClass}>Email <span className="text-[var(--color-text-muted)]">(opcional · no se muestra públicamente)</span></label>
+            <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className={fieldClass(errors.email)} />
+            {errors.email && <p className="text-[11px] text-red-600 mt-1">{errors.email}</p>}
           </div>
           <div>
             <label className={labelClass}>Instagram</label>

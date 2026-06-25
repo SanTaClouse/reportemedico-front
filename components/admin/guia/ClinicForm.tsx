@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Plus, Check, X, Loader2, MapPin, Search, AlertTriangle } from 'lucide-react'
+import { Plus, Check, X, Loader2, MapPin, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
 import { createClinic, updateClinic, createCity, type City, type Clinic } from '@/lib/api-guia'
 
@@ -70,6 +70,18 @@ export default function ClinicForm({
   )
   const [busy, setBusy] = useState(false)
 
+  // Validación por campo: aparece tras el primer intento y se corrige en vivo.
+  const [submitted, setSubmitted] = useState(false)
+  const validate = () => {
+    const e: { name?: string; address?: string; cityId?: string } = {}
+    if (!form.name.trim()) e.name = 'Ingresa el nombre'
+    if (!form.address.trim()) e.address = 'Ingresa la dirección'
+    if (!form.cityId) e.cityId = 'Elige una ciudad'
+    return e
+  }
+  const errors: { name?: string; address?: string; cityId?: string } = submitted ? validate() : {}
+  const fieldClass = (err?: string) => (err ? `${inputClass} !border-red-400` : inputClass)
+
   // ─── Crear ciudad inline ───
   const [addingCity, setAddingCity] = useState(false)
   const [newCity, setNewCity] = useState('')
@@ -101,8 +113,9 @@ export default function ClinicForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.name.trim() || !form.address.trim() || !form.cityId) {
-      toast.error('Completa nombre, dirección y ciudad')
+    setSubmitted(true)
+    if (Object.keys(validate()).length) {
+      toast.error('Revisa los campos marcados en rojo')
       return
     }
     setBusy(true)
@@ -130,14 +143,15 @@ export default function ClinicForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
       <div className="grid grid-cols-2 gap-3">
         <div className="col-span-2 sm:col-span-1">
-          <label className={labelClass}>Nombre *</label>
-          <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputClass} placeholder="Clínica Abreu" />
+          <label className={labelClass}>Nombre <span className="text-red-600">*</span></label>
+          <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={fieldClass(errors.name)} placeholder="Clínica Abreu" />
+          {errors.name && <p className="text-[11px] text-red-600 mt-1">{errors.name}</p>}
         </div>
         <div className="col-span-2 sm:col-span-1">
-          <label className={labelClass}>Ciudad *</label>
+          <label className={labelClass}>Ciudad <span className="text-red-600">*</span></label>
           {addingCity ? (
             <div className="flex gap-1.5">
               <input
@@ -157,7 +171,7 @@ export default function ClinicForm({
             </div>
           ) : (
             <div className="flex gap-1.5">
-              <select value={form.cityId} onChange={(e) => setForm({ ...form, cityId: e.target.value })} className={inputClass}>
+              <select value={form.cityId} onChange={(e) => setForm({ ...form, cityId: e.target.value })} className={fieldClass(errors.cityId)}>
                 <option value="">Elegir ciudad...</option>
                 {cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
@@ -171,10 +185,12 @@ export default function ClinicForm({
               </button>
             </div>
           )}
+          {errors.cityId && !addingCity && <p className="text-[11px] text-red-600 mt-1">{errors.cityId}</p>}
         </div>
         <div className="col-span-2">
-          <label className={labelClass}>Dirección *</label>
-          <input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className={inputClass} placeholder="Calle Arzobispo Portes 853, Ciudad Nueva" />
+          <label className={labelClass}>Dirección <span className="text-red-600">*</span></label>
+          <input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className={fieldClass(errors.address)} placeholder="Calle Arzobispo Portes 853, Ciudad Nueva" />
+          {errors.address && <p className="text-[11px] text-red-600 mt-1">{errors.address}</p>}
         </div>
         <div className="col-span-2 sm:col-span-1">
           <label className={labelClass}>Teléfono</label>
@@ -249,11 +265,10 @@ export function ClinicFormModal({
   )
 }
 
-// ─── Campo inteligente de ubicación (doble vía — 07 §5) ────────────────────────
-// Vía 1: pegar coordenadas de Google Maps (clic derecho → copiar) → parse al instante
-// Vía 2: texto libre → geocodificación con Nominatim (OSM, sin API key)
-
-interface NominatimResult { display_name: string; lat: string; lon: string }
+// ─── Campo de ubicación: pegar las coordenadas de Google Maps (07 §5) ──────────
+// Decisión del cliente (2026-06-24): la geocodificación por texto es poco
+// confiable; lo más práctico y exacto es copiar las coordenadas directo de Maps
+// (clic derecho → copiar) y pegarlas acá. Sin búsqueda por nombre.
 
 export function LocationField({
   latitude, longitude, onChange,
@@ -262,107 +277,66 @@ export function LocationField({
   longitude: string
   onChange: (lat: string, lng: string) => void
 }) {
-  const [query, setQuery] = useState('')
-  const [results, setResults] = useState<NominatimResult[]>([])
-  const [searching, setSearching] = useState(false)
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [paste, setPaste] = useState('')
 
-  const search = useCallback(async (q: string) => {
-    setSearching(true)
-    try {
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&countrycodes=do&limit=5&q=${encodeURIComponent(q)}`,
-        { headers: { 'Accept-Language': 'es' } },
-      )
-      const data: NominatimResult[] = await res.json()
-      setResults(data)
-      if (!data.length) toast.info('Sin resultados — prueba pegar las coordenadas de Google Maps')
-    } catch {
-      toast.error('No se pudo buscar la dirección')
-    } finally {
-      setSearching(false)
-    }
-  }, [])
-
-  // Vía 1: si lo escrito/pegado ES un par de coordenadas, se aplica directo
-  const handleInput = (value: string) => {
-    setQuery(value)
+  // Al pegar el par "lat, lng" se fija al instante; el input se limpia.
+  const handlePaste = (value: string) => {
+    setPaste(value)
     const coords = parseCoordinates(value)
     if (coords) {
       onChange(String(coords.lat), String(coords.lng))
-      setResults([])
+      setPaste('')
       toast.success(`Ubicación fijada: ${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}`)
-      return
-    }
-    // Vía 2: si no, geocodificar con debounce
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    if (value.trim().length >= 4) {
-      debounceRef.current = setTimeout(() => search(value.trim()), 600)
-    } else {
-      setResults([])
     }
   }
 
-  useEffect(() => () => { if (debounceRef.current) clearTimeout(debounceRef.current) }, [])
+  const lat = parseFloat(latitude)
+  const lng = parseFloat(longitude)
+  const hasCoords = !isNaN(lat) && !isNaN(lng)
 
   return (
     <div className="space-y-2">
       <label className="block text-xs font-medium text-[var(--color-text-secondary)]">
-        Ubicación <span className="text-[var(--color-text-muted)]">(opcional)</span> — pega las coordenadas de Google Maps (clic derecho sobre la clínica → copiar) o busca por nombre/dirección
+        Ubicación <span className="text-[var(--color-text-muted)]">(opcional)</span>
       </label>
+      <p className="text-[11px] text-[var(--color-text-muted)] leading-relaxed">
+        En Google Maps, haz clic derecho sobre la clínica y elige el primer renglón
+        (las coordenadas, ej. <span className="font-mono">18.4702, -69.8931</span>) — se copian solas. Pégalas aquí abajo.
+      </p>
       <div className="relative">
-        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]" />
+        <MapPin size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]" />
         <input
-          value={query}
-          onChange={(e) => handleInput(e.target.value)}
-          placeholder="18.470177, -69.893145  ó  Clínica Abreu Santo Domingo"
+          value={paste}
+          onChange={(e) => handlePaste(e.target.value)}
+          placeholder="Pega aquí: 18.470177, -69.893145"
           className={`${inputClass} pl-9`}
         />
-        {searching && <Loader2 size={15} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-[var(--color-text-muted)]" />}
       </div>
 
-      {results.length > 0 && (
-        <ul className="border border-[var(--color-border)] rounded-lg divide-y divide-[var(--color-border)] bg-[var(--color-surface)] max-h-44 overflow-auto">
-          {results.map((r, i) => (
-            <li key={i}>
-              <button
-                type="button"
-                onClick={() => {
-                  onChange(r.lat, r.lon)
-                  setResults([])
-                  setQuery(r.display_name.split(',').slice(0, 2).join(','))
-                  toast.success('Ubicación seleccionada')
-                }}
-                className="w-full text-left px-3 py-2 text-xs text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-2)]"
-              >
-                <MapPin size={12} className="inline mr-1.5 text-primary" />
-                {r.display_name}
-              </button>
-            </li>
-          ))}
-        </ul>
+      {hasCoords && (
+        <div className="flex items-center justify-between gap-2 px-3 py-2 bg-primary-pale rounded-lg text-xs text-primary">
+          <span className="inline-flex items-center gap-1.5 font-medium">
+            <Check size={13} /> Ubicación fijada: {lat.toFixed(5)}, {lng.toFixed(5)}
+          </span>
+          <button type="button" onClick={() => onChange('', '')} className="text-[var(--color-text-muted)] hover:text-red-600 font-medium">
+            Quitar
+          </button>
+        </div>
       )}
 
-      <div className="flex gap-3">
-        <div className="flex-1">
-          <label className="block text-[10px] text-[var(--color-text-muted)] mb-0.5">Latitud</label>
-          <input
-            value={latitude}
-            onChange={(e) => onChange(e.target.value, longitude)}
-            className={inputClass}
-            placeholder="18.470177"
-          />
+      <details className="text-[11px] text-[var(--color-text-muted)]">
+        <summary className="cursor-pointer hover:text-[var(--color-text-secondary)] select-none">Escribir latitud y longitud por separado</summary>
+        <div className="flex gap-3 mt-2">
+          <div className="flex-1">
+            <label className="block text-[10px] text-[var(--color-text-muted)] mb-0.5">Latitud</label>
+            <input value={latitude} onChange={(e) => onChange(e.target.value, longitude)} className={inputClass} placeholder="18.470177" />
+          </div>
+          <div className="flex-1">
+            <label className="block text-[10px] text-[var(--color-text-muted)] mb-0.5">Longitud</label>
+            <input value={longitude} onChange={(e) => onChange(latitude, e.target.value)} className={inputClass} placeholder="-69.893145" />
+          </div>
         </div>
-        <div className="flex-1">
-          <label className="block text-[10px] text-[var(--color-text-muted)] mb-0.5">Longitud</label>
-          <input
-            value={longitude}
-            onChange={(e) => onChange(latitude, e.target.value)}
-            className={inputClass}
-            placeholder="-69.893145"
-          />
-        </div>
-      </div>
+      </details>
     </div>
   )
 }

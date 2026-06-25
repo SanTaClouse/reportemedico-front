@@ -6,6 +6,7 @@ import ActualidadSection from '@/components/home/ActualidadSection'
 import MedicalArticlesSection from '@/components/home/MedicalArticlesSection'
 import PodcastSection from '@/components/home/PodcastSection'
 import EditionsSection from '@/components/home/EditionsSection'
+import FeaturedDoctors from '@/components/home/FeaturedDoctors'
 import GuiaMedicaBanner from '@/components/home/GuiaMedicaBanner'
 import AboutSection from '@/components/home/AboutSection'
 import WhatsAppChannelBanner from '@/components/home/WhatsAppChannelBanner'
@@ -60,7 +61,10 @@ export default async function HomePage() {
           </div>
         )}
 
-        <div id="sec-guia">
+        <div id="sec-guia" className="space-y-8">
+          <ScrollReveal delay={80}>
+            <FeaturedDoctors />
+          </ScrollReveal>
           <ScrollReveal delay={80}>
             <GuiaMedicaBanner />
           </ScrollReveal>
