@@ -623,3 +623,149 @@ function renderStoryFallback(title: string) {
     { ...STORY_SIZE },
   )
 }
+
+// ─────────────────────── STORY CARD DEL MÉDICO (guía) ───────────────────────
+
+/**
+ * Story card vertical (1080×1920) del perfil de un médico, para que lo comparta
+ * en su historia de Instagram. Foto arriba, panel navy de marca abajo con
+ * especialidad, nombre, el link al perfil y el logo. Paleta de la guía
+ * (navy #001450 + dorado #F0B414). Cae a un fallback si algo falla.
+ */
+export async function renderDoctorStoryCard({
+  name, specialty, photoUrl, slug,
+}: {
+  name: string
+  specialty: string | null
+  photoUrl: string | null
+  slug: string
+}) {
+  try {
+    const [whiteLogo, storyImageUrl] = await Promise.all([
+      getWhiteLogoDataUri(),
+      Promise.resolve(toStoryImageUrl(photoUrl)),
+    ])
+
+    const photoDataUri = storyImageUrl ? await fetchImageAsDataUri(storyImageUrl) : null
+    const hasPhoto = Boolean(photoDataUri)
+    const safeName = truncate(name, 42)
+    const eyebrow = (specialty || 'Médico').toUpperCase()
+    const profileUrl = `reportemedico.com/medico/${truncate(slug, 36)}`
+
+    return new ImageResponse(
+      (
+        <div
+          style={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            background: 'linear-gradient(160deg, #001450 0%, #0A1E5E 100%)',
+            fontFamily: 'sans-serif',
+          }}
+        >
+          {/* Foto (arriba) */}
+          <div
+            style={{
+              width: '100%',
+              height: 1180,
+              display: 'flex',
+              position: 'relative',
+              background: 'linear-gradient(160deg, #001450 0%, #142a6e 100%)',
+            }}
+          >
+            {hasPhoto && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={photoDataUri as string}
+                alt=""
+                width={1080}
+                height={1180}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            )}
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background: 'linear-gradient(180deg, rgba(0,20,80,0) 76%, rgba(0,20,80,0.96) 100%)',
+              }}
+            />
+          </div>
+
+          {/* Panel navy (abajo) */}
+          <div
+            style={{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              padding: '56px 72px 72px',
+            }}
+          >
+            {/* Eyebrow: especialidad */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginBottom: 24 }}>
+              <div style={{ width: 56, height: 6, background: '#F0B414', borderRadius: 999, display: 'flex' }} />
+              <div
+                style={{
+                  fontSize: 30,
+                  color: '#F0B414',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: 3,
+                  display: 'flex',
+                }}
+              >
+                {eyebrow}
+              </div>
+            </div>
+
+            {/* Nombre */}
+            <div
+              style={{
+                fontSize: safeName.length > 26 ? 72 : 88,
+                fontWeight: 800,
+                color: '#ffffff',
+                lineHeight: 1.05,
+                letterSpacing: -1.5,
+                display: 'flex',
+              }}
+            >
+              {safeName}
+            </div>
+            <div style={{ fontSize: 34, color: 'rgba(255,255,255,0.85)', marginTop: 20, display: 'flex' }}>
+              Encuéntrame en la Guía Médica
+            </div>
+
+            {/* Footer: logo + link */}
+            <div
+              style={{
+                marginTop: 'auto',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingTop: 40,
+                borderTop: '2px solid rgba(255,255,255,0.25)',
+              }}
+            >
+              {whiteLogo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={whiteLogo} alt="Reporte Médico" width={240} height={80} style={{ objectFit: 'contain' }} />
+              ) : (
+                <div style={{ fontSize: 38, fontWeight: 800, color: '#ffffff', display: 'flex' }}>
+                  REPORTE MÉDICO
+                </div>
+              )}
+              <div style={{ fontSize: 28, color: 'rgba(255,255,255,0.9)', fontWeight: 600, display: 'flex' }}>
+                {profileUrl}
+              </div>
+            </div>
+          </div>
+        </div>
+      ),
+      { ...STORY_SIZE, headers: STORY_HEADERS },
+    )
+  } catch (err) {
+    console.error('[doctor-story-card] Render principal falló, devolviendo fallback:', err)
+    return renderStoryFallback(name)
+  }
+}

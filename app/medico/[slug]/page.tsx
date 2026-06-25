@@ -203,9 +203,6 @@ export default async function MedicoPage({ params }: Props) {
             </div>
           </header>
 
-          {/* Compartir el perfil (Instagram / WhatsApp / etc.) */}
-          <ShareProfile url={`${SITE_URL}/medico/${doctor.slug}`} name={fullName} />
-
           {/* Seguros (criterio #1 del paciente — 04 §1.3) */}
           {doctor.insurances.length > 0 && (
             <section aria-labelledby="seguros">
@@ -317,6 +314,14 @@ export default async function MedicoPage({ params }: Props) {
               <ClinicsMap pins={pins} />
             </section>
           )}
+
+          {/* Compartir el perfil (Instagram / WhatsApp / etc.) */}
+          <section aria-label="Compartir perfil" className="pt-1">
+            <h2 className="font-display font-bold text-lg text-[var(--color-text-primary)] mb-3">
+              Comparte este perfil
+            </h2>
+            <ShareProfile url={`${SITE_URL}/medico/${doctor.slug}`} name={fullName} slug={doctor.slug} />
+          </section>
 
           {/* Artículos del médico — premium (04 §1.7) */}
           {ownArticles.length > 0 && (
