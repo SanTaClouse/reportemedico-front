@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { BadgeCheck, Monitor, MapPin, ExternalLink, Languages } from 'lucide-react'
+import { BadgeCheck, Monitor, MapPin, ExternalLink, Languages, Clock } from 'lucide-react'
 import { getDoctorBySlug, getSpecialtyArticles, type SpecialtyArticle } from '@/lib/api-guia'
 import { cldUrl } from '@/lib/cloudinary'
 import { formatDate } from '@/lib/utils'
@@ -241,11 +241,6 @@ export default async function MedicoPage({ params }: Props) {
                         <p className="text-xs text-[var(--color-text-muted)] mt-0.5 flex items-center gap-1">
                           <MapPin size={11} /> {c.clinic.address}, {c.clinic.city?.name}
                         </p>
-                        {c.schedule && (
-                          <p className="text-xs text-[var(--color-text-secondary)] mt-1.5 font-medium">
-                            🕐 {c.schedule}
-                          </p>
-                        )}
                       </div>
                       {c.clinic.latitude != null && c.clinic.longitude != null && (
                         <a
@@ -284,6 +279,28 @@ export default async function MedicoPage({ params }: Props) {
                 Video de presentación
               </h2>
               <VideoEmbed url={doctor.videoUrl} title={`Video de presentación de ${fullName}`} />
+            </section>
+          )}
+
+          {/* Horarios de consulta — debajo del video (pedido del cliente) */}
+          {doctor.clinics.some((c) => c.schedule) && (
+            <section aria-labelledby="horarios">
+              <h2 id="horarios" className="font-display font-bold text-lg text-[var(--color-text-primary)] mb-3">
+                Horarios de consulta
+              </h2>
+              <ul className="space-y-2">
+                {doctor.clinics
+                  .filter((c) => c.schedule)
+                  .map((c) => (
+                    <li key={c.clinic.id} className="flex items-start gap-3 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-3.5">
+                      <Clock size={16} strokeWidth={1.5} className="text-[var(--color-primary)] shrink-0 mt-0.5" />
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-[var(--color-text-primary)]">{c.clinic.name}</p>
+                        <p className="text-sm text-[var(--color-text-secondary)] whitespace-pre-line">{c.schedule}</p>
+                      </div>
+                    </li>
+                  ))}
+              </ul>
             </section>
           )}
 

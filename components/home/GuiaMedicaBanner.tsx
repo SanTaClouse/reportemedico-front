@@ -1,19 +1,20 @@
 import Link from 'next/link'
-import { Stethoscope, Search, UserPlus, ArrowRight } from 'lucide-react'
-import { getIndexableCombinations } from '@/lib/api-guia'
-
-const MAX_CHIPS = 6
+import { Stethoscope, UserPlus, ArrowRight } from 'lucide-react'
+import { getSpecialties, getCities, getInsurances } from '@/lib/api-guia'
+import GuiaSearchForm from '@/components/guia/GuiaSearchForm'
 
 /**
  * Banda promocional de la Guía Médica en el Home.
- * Lleva al usuario a buscar especialistas. Navy + dorado (paleta de la guía),
- * distinta del verde del banner de WhatsApp. Se renderiza tras las Destacadas.
+ * En vez de describir los filtros, montamos el buscador real (GuiaSearchForm):
+ * el usuario filtra acá mismo y cae en /guia-medica ya con la búsqueda aplicada.
+ * Navy + dorado (paleta de la guía). Se renderiza tras las Destacadas.
  */
 export default async function GuiaMedicaBanner() {
-  const combos = await getIndexableCombinations().catch(() => ({
-    specialties: [], cities: [], clinics: [], pairs: [],
-  }))
-  const chips = combos.specialties.slice(0, MAX_CHIPS)
+  const [insurances, specialties, cities] = await Promise.all([
+    getInsurances().catch(() => []),
+    getSpecialties().catch(() => []),
+    getCities().catch(() => []),
+  ])
 
   return (
     <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#001450] via-[#0A1E5E] to-[#142a6e] shadow-lg ring-1 ring-[var(--brand-gold)]/20">
@@ -30,49 +31,37 @@ export default async function GuiaMedicaBanner() {
         className="absolute inset-0 bg-[radial-gradient(ellipse_at_4%_92%,rgba(0,180,160,0.16),transparent_55%)] pointer-events-none"
       />
 
-      <div className="relative flex flex-col md:flex-row md:items-center gap-6 md:gap-10 px-6 py-9 md:px-12 md:py-11">
-        {/* Icono flotante */}
-        <div className="guia-float flex-shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-[var(--brand-gold)]/15 ring-1 ring-[var(--brand-gold)]/30 flex items-center justify-center shadow-lg shadow-black/20">
-          <Stethoscope className="w-8 h-8 md:w-10 md:h-10 text-[var(--brand-gold)]" strokeWidth={1.5} />
+      <div className="relative px-6 py-8 md:px-12 md:py-10">
+        {/* Encabezado */}
+        <div className="flex items-start gap-4 md:gap-5 mb-5">
+          <div className="guia-float flex-shrink-0 w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-[var(--brand-gold)]/15 ring-1 ring-[var(--brand-gold)]/30 flex items-center justify-center shadow-lg shadow-black/20">
+            <Stethoscope className="w-7 h-7 md:w-8 md:h-8 text-[var(--brand-gold)]" strokeWidth={1.5} />
+          </div>
+          <div className="min-w-0">
+            <span className="inline-block mb-2 px-3 py-1 rounded-full text-[10px] md:text-[11px] font-body font-semibold uppercase tracking-widest bg-[var(--brand-gold)] text-[#001450]">
+              Nuevo · Guía Médica
+            </span>
+            <h2 className="font-display font-bold text-white text-2xl md:text-3xl leading-tight">
+              Encuentra tu médico ideal
+            </h2>
+            <p className="text-white/80 text-sm md:text-base font-body leading-relaxed mt-1">
+              Elige tu seguro (ARS), especialidad y ciudad — o busca por nombre.
+            </p>
+          </div>
         </div>
 
-        {/* Texto */}
-        <div className="flex-1 min-w-0">
-          <span className="inline-block mb-2 px-3 py-1 rounded-full text-[10px] md:text-[11px] font-body font-semibold uppercase tracking-widest bg-[var(--brand-gold)] text-[#001450]">
-            Nuevo · Guía Médica
-          </span>
-          <h2 className="font-display font-bold text-white text-2xl md:text-3xl leading-tight mb-2">
-            Encuentra tu médico ideal
-          </h2>
-          <p className="text-white/80 text-sm md:text-base font-body leading-relaxed max-w-xl mb-4">
-            Filtra por seguro (ARS), especialidad y ciudad. Perfiles verificados con
-            contacto directo por WhatsApp.
-          </p>
-
-          {/* Chips de especialidades (solo indexables → nunca páginas vacías) */}
-          {chips.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {chips.map((s) => (
-                <Link
-                  key={s.slug}
-                  href={`/guia-medica/${s.slug}`}
-                  className="px-3 py-1 rounded-full text-xs font-medium text-white/90 border border-white/20 hover:border-[var(--brand-gold)] hover:text-[var(--brand-gold)] transition-colors"
-                >
-                  {s.name}
-                </Link>
-              ))}
-            </div>
-          )}
+        {/* Buscador real: filtra acá y cae en /guia-medica con la búsqueda aplicada */}
+        <div className="bg-[var(--color-surface)] rounded-2xl p-3 md:p-4 shadow-xl ring-1 ring-black/5">
+          <GuiaSearchForm insurances={insurances} specialties={specialties} cities={cities} compact />
         </div>
 
-        {/* CTA */}
-        <div className="flex-shrink-0">
+        <div className="mt-3">
           <Link
             href="/guia-medica"
-            className="guia-cta inline-flex items-center gap-2 bg-[var(--brand-gold)] hover:bg-[var(--brand-gold-light)] text-[#001450] text-sm md:text-base font-body font-bold px-6 py-3 md:px-7 md:py-3.5 rounded-lg transition-all shadow-lg hover:shadow-[var(--brand-gold)]/30 hover:-translate-y-0.5 whitespace-nowrap"
+            className="inline-flex items-center gap-1 text-xs font-body font-medium text-white/70 hover:text-[var(--brand-gold)] transition-colors"
           >
-            <Search className="w-5 h-5" strokeWidth={2} />
-            Buscar mi médico
+            Explorar toda la guía
+            <ArrowRight className="w-3.5 h-3.5" strokeWidth={2.2} />
           </Link>
         </div>
       </div>
