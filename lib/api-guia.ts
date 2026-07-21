@@ -65,7 +65,7 @@ export interface Insurance {
 }
 
 export type DoctorStatus = 'DRAFT' | 'PENDING' | 'PUBLISHED' | 'INACTIVE'
-export type DoctorPlan = 'BASIC' | 'PREMIUM'
+export type DoctorPlan = 'BASIC' | 'STANDARD' | 'PREMIUM'
 export type BenefitType = 'REVISTA_DIGITAL' | 'REVISTA_IMPRESA' | 'FOTOGRAFIA' | 'VIDEO' | 'PODCAST' | 'EVENTO'
 
 export interface DoctorBenefit {
@@ -108,9 +108,17 @@ export interface Doctor {
   phoneOffice?: string | null
   instagram?: string | null
   bio?: string | null
+  /**
+   * Patologías / procedimientos que trata — replica el campo de la card impresa.
+   * OPCIONAL a propósito: front y back se deployan por separado, así que el
+   * front tiene que sobrevivir a un backend que todavía no manda el campo.
+   */
+  conditions?: string[] | null
   photoUrl?: string | null
   videoUrl?: string | null
   exequatur?: string | null
+  /** Años de ejercicio — franja de credenciales del hero pago */
+  yearsExperience?: number | null
   isVerified: boolean
   needsReverify: boolean
   languages: string[]
@@ -140,6 +148,7 @@ export interface DoctorInput {
   phoneOffice?: string
   instagram?: string
   bio?: string
+  conditions?: string[]
   photoUrl?: string
   videoUrl?: string
   exequatur?: string
@@ -182,6 +191,56 @@ export const DOCTOR_STATUS_LABELS: Record<DoctorStatus, string> = {
   PENDING: 'Pendiente',
   PUBLISHED: 'Publicado',
   INACTIVE: 'Inactivo',
+}
+
+/** Orden de las claves = orden de prioridad en resultados (05 §3) */
+export const PLAN_LABELS: Record<DoctorPlan, string> = {
+  BASIC: 'Básica',
+  STANDARD: 'Estándar',
+  PREMIUM: 'Premium',
+}
+
+// ─── LEADS (captura previa a Auth0) ───────────────────
+
+export interface LeadInput {
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  specialtyId?: string
+  interestPlan?: DoctorPlan
+}
+
+export interface Lead extends LeadInput {
+  id: string
+  convertedAt?: string | null
+}
+
+export interface LeadRow extends Lead {
+  createdAt: string
+  specialty: { id: string; name: string; slug: string } | null
+  doctor: { id: string; slug: string; plan: DoctorPlan; status: DoctorStatus } | null
+}
+
+/** Público: crea el lead ANTES de mandar al médico a Auth0 */
+export const createLead = (input: LeadInput) =>
+  apiFetch<Lead>('/leads', { method: 'POST', body: JSON.stringify(input) })
+
+/** Requiere sesión de médico (se llama al volver de Auth0, para precargar) */
+export const getLead = (id: string, accessToken: string) =>
+  apiFetch<Lead>(`/leads/${id}`, { token: accessToken, cache: 'no-store' })
+
+export const getLeadsAdmin = (
+  params: { converted?: boolean; page?: number },
+  token: string,
+) => {
+  const qs = new URLSearchParams()
+  if (params.converted !== undefined) qs.set('converted', String(params.converted))
+  qs.set('page', String(params.page ?? 1))
+  return apiFetch<{ items: LeadRow[]; total: number; page: number; limit: number }>(
+    `/leads?${qs}`,
+    { token, cache: 'no-store' },
+  )
 }
 
 // ─── CATÁLOGOS ────────────────────────────────────────
@@ -231,11 +290,12 @@ export const deleteInsurance = (id: string, token: string) =>
 // ─── MÉDICOS — ADMIN ──────────────────────────────────
 
 export function getDoctorsAdmin(
-  params: { status?: string; search?: string; page?: number; limit?: number },
+  params: { status?: string; plan?: string; search?: string; page?: number; limit?: number },
   token: string,
 ) {
   const qs = new URLSearchParams()
   if (params.status) qs.set('status', params.status)
+  if (params.plan) qs.set('plan', params.plan)
   if (params.search) qs.set('search', params.search)
   qs.set('page', String(params.page ?? 1))
   qs.set('limit', String(params.limit ?? 20))
@@ -369,7 +429,10 @@ export const dismissClinicSuggestion = (doctorId: string, suggestionId: string, 
 
 // ─── MÉDICOS — PÚBLICO ────────────────────────────────
 
-/** Card pública (sin plan ni campos internos — el plan es invisible al paciente) */
+/**
+ * Card pública. Incluye `plan` desde 2026-07-21 (los planes pagos se destacan
+ * visualmente, pedido del cliente); los campos internos siguen fuera.
+ */
 export interface PublicDoctorCard {
   id: string
   slug: string
@@ -378,10 +441,14 @@ export interface PublicDoctorCard {
   lastName: string
   photoUrl?: string | null
   isVerified: boolean
+  /** Opcional por el mismo motivo de deploy-skew que `conditions` */
+  plan?: DoctorPlan | null
   telehealth: boolean
   languages: string[]
   phonePublic?: string | null
   excerpt?: string | null
+  /** Patologías / procedimientos. Opcional: ver nota en `Doctor.conditions`. */
+  conditions?: string[] | null
   specialties: { slug: string; name: string }[]
   clinics: {
     slug: string
@@ -395,9 +462,12 @@ export interface PublicDoctorCard {
   insurances: { slug: string; name: string }[]
 }
 
+// `plan` ya NO se omite: el perfil público muestra el sello de Miembro (2026-07-21).
+// `exequatur` SÍ se omite: el número de matrícula nunca se publica — el badge ✓
+// comunica que fue verificada, el número queda solo para el admin.
 export type PublicDoctorProfile = Omit<
   Doctor,
-  'phoneInternal' | 'planNotes' | 'auth0Sub' | 'email' | 'plan' | 'needsReverify'
+  'phoneInternal' | 'planNotes' | 'auth0Sub' | 'email' | 'needsReverify' | 'exequatur'
 > & {
   related: PublicDoctorCard[]
 }

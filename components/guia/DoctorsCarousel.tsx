@@ -1,7 +1,9 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { BadgeCheck, MapPin } from 'lucide-react'
+import { MapPin } from 'lucide-react'
 import { cldUrl } from '@/lib/cloudinary'
+import PlanBadge, { planCardClass } from './PlanBadge'
+import VerifiedBadge from './VerifiedBadge'
 import type { PublicDoctorCard } from '@/lib/api-guia'
 
 /**
@@ -32,7 +34,7 @@ export default function DoctorsCarousel({ doctors }: { doctors: PublicDoctorCard
                 <Link
                   href={`/medico/${doc.slug}`}
                   tabIndex={i >= doctors.length ? -1 : undefined}
-                  className="flex items-center gap-3 w-64 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-3 hover:shadow-md hover:border-[var(--color-primary)]/30 transition-all"
+                  className={`flex items-center gap-3 w-64 bg-[var(--color-surface)] rounded-xl p-3 hover:shadow-md transition-all ${planCardClass(doc.plan)}`}
                 >
                   <div className="w-14 h-14 rounded-lg overflow-hidden bg-[var(--color-primary,#001450)] flex items-center justify-center relative shrink-0">
                     {doc.photoUrl ? (
@@ -46,10 +48,11 @@ export default function DoctorsCarousel({ doctors }: { doctors: PublicDoctorCard
                   <div className="min-w-0">
                     <p className="font-display font-bold text-sm text-[var(--color-text-primary)] leading-tight flex items-center gap-1">
                       <span className="truncate">{fullName}</span>
-                      {doc.isVerified && <BadgeCheck size={13} className="text-[var(--color-primary)] shrink-0" aria-label="Verificado" />}
+                      {doc.isVerified && <VerifiedBadge size={13} />}
                     </p>
-                    <p className="text-[11px] text-[var(--color-text-secondary)] truncate mt-0.5">
-                      {doc.specialties[0]?.name ?? 'Médico'}
+                    <p className="text-[11px] text-[var(--color-text-secondary)] truncate mt-0.5 flex items-center gap-1.5">
+                      <span className="truncate">{doc.specialties[0]?.name ?? 'Médico'}</span>
+                      <PlanBadge plan={doc.plan} />
                     </p>
                     {city && (
                       <p className="text-[11px] text-[var(--color-text-muted)] truncate inline-flex items-center gap-1">

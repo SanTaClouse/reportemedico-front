@@ -1,5 +1,6 @@
+import { cookies } from 'next/headers'
 import { auth0 } from '@/lib/auth0'
-import { getSpecialties, getClinics, getInsurances, type Doctor } from '@/lib/api-guia'
+import { getSpecialties, getClinics, getInsurances, getLead, type Doctor, type Lead } from '@/lib/api-guia'
 import MiCuentaClient from './MiCuentaClient'
 
 export const dynamic = 'force-dynamic'
@@ -13,6 +14,7 @@ export default async function MiCuentaPage() {
 
   let doctor: Doctor | null = null
   let claimCandidate: Doctor | null = null
+  let leadPrefill: Lead | null = null
   try {
     const { accessToken } = await auth0.getAccessToken()
     const res = await fetch(`${API_URL}/doctors/me`, {
@@ -23,6 +25,13 @@ export default async function MiCuentaPage() {
       const body = await res.json()
       doctor = body.doctor
       claimCandidate = body.claimCandidate ?? null
+    }
+
+    // Lead dejado ANTES de pasar por Auth0 (cookie que puso el modal de planes):
+    // precarga el wizard y se vincula al guardar. Solo si aún no hay perfil.
+    if (!doctor) {
+      const leadId = (await cookies()).get('rm_lead')?.value
+      if (leadId && accessToken) leadPrefill = await getLead(leadId, accessToken).catch(() => null)
     }
   } catch {
     // sin perfil / backend no disponible: el cliente muestra el onboarding
@@ -41,6 +50,7 @@ export default async function MiCuentaPage() {
       userPicture={(user?.picture as string) ?? null}
       initialDoctor={doctor}
       claimCandidate={claimCandidate}
+      leadPrefill={leadPrefill}
       specialties={specialties}
       clinics={clinics}
       insurances={insurances}

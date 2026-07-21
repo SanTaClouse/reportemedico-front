@@ -21,8 +21,12 @@ const selectClass =
   'w-full px-3 py-2.5 border border-[var(--color-border)] rounded-xl text-sm bg-[var(--color-surface)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30'
 
 /**
- * Buscador de la guía (05 §1): el seguro va PRIMERO y más prominente —
- * es el criterio #1 del paciente dominicano (00 §2).
+ * Buscador de la guía (05 §1).
+ *
+ * Orden de los filtros: especialidad → ciudad → seguro → modalidad.
+ * ⚠️ Cambiado a pedido del cliente (2026-07-21). El doc 00 §2 define el seguro
+ * como el filtro #1 (criterio primario del paciente dominicano, ~9M de afiliados
+ * al SFS); si el orgánico por seguro cae, este es el primer lugar a revisar.
  */
 export default function GuiaSearchForm({ insurances, specialties, cities, current = {}, compact = false }: Props) {
   const router = useRouter()
@@ -113,12 +117,8 @@ export default function GuiaSearchForm({ insurances, specialties, cities, curren
 
   return (
     <form onSubmit={handleSubmit} className={compact ? 'space-y-2' : 'space-y-3'}>
-      <div className={`grid gap-2 ${compact ? 'grid-cols-2 lg:grid-cols-5' : 'grid-cols-1 sm:grid-cols-3'}`}>
-        {/* SEGURO primero — el filtro número uno (P-insight de mercado) */}
-        <select value={seguro} onChange={(e) => setSeguro(e.target.value)} className={selectClass} aria-label="Seguro (ARS)">
-          <option value="">🛡️ Tu seguro (ARS)</option>
-          {insurances.map((i) => <option key={i.id} value={i.slug}>{i.name}</option>)}
-        </select>
+      {/* Orden pedido por el cliente (2026-07-21): especialidad → ciudad → seguro → modalidad */}
+      <div className={`grid gap-2 ${compact ? 'grid-cols-2 lg:grid-cols-5' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'}`}>
         <select value={especialidad} onChange={(e) => setEspecialidad(e.target.value)} className={selectClass} aria-label="Especialidad">
           <option value="">Especialidad</option>
           {specialties.map((s) => <option key={s.id} value={s.slug}>{s.name}</option>)}
@@ -127,12 +127,14 @@ export default function GuiaSearchForm({ insurances, specialties, cities, curren
           <option value="">Ciudad</option>
           {cities.map((c) => <option key={c.id} value={c.slug}>{c.name}</option>)}
         </select>
-        {compact && (
-          <select value={modalidad} onChange={(e) => setModalidad(e.target.value)} className={selectClass} aria-label="Modalidad">
-            <option value="">Modalidad</option>
-            <option value="teleconsulta">💻 Teleconsulta</option>
-          </select>
-        )}
+        <select value={seguro} onChange={(e) => setSeguro(e.target.value)} className={selectClass} aria-label="Seguro (ARS)">
+          <option value="">🛡️ Tu seguro (ARS)</option>
+          {insurances.map((i) => <option key={i.id} value={i.slug}>{i.name}</option>)}
+        </select>
+        <select value={modalidad} onChange={(e) => setModalidad(e.target.value)} className={selectClass} aria-label="Modalidad">
+          <option value="">Modalidad</option>
+          <option value="teleconsulta">💻 Teleconsulta</option>
+        </select>
         {compact && (
           <button
             type="submit"

@@ -1,8 +1,10 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { BadgeCheck, MapPin, Monitor, ArrowRight } from 'lucide-react'
+import { MapPin, Monitor, ArrowRight } from 'lucide-react'
 import { cldUrl } from '@/lib/cloudinary'
 import { getPublicDoctors } from '@/lib/api-guia'
+import PlanBadge, { planCardClass } from '@/components/guia/PlanBadge'
+import VerifiedBadge from '@/components/guia/VerifiedBadge'
 
 /**
  * Vitrina de médicos en el Home, justo ARRIBA del banner de la Guía Médica.
@@ -48,7 +50,7 @@ export default async function FeaturedDoctors() {
             <Link
               key={doc.id}
               href={`/medico/${doc.slug}`}
-              className="group flex flex-col rounded-2xl overflow-hidden bg-[var(--color-surface)] border border-[var(--color-border)] hover:shadow-lg hover:-translate-y-0.5 transition-all snap-start shrink-0 w-[46%] md:w-auto"
+              className={`group flex flex-col rounded-2xl overflow-hidden bg-[var(--color-surface)] hover:shadow-lg hover:-translate-y-0.5 transition-all snap-start shrink-0 w-[46%] md:w-auto ${planCardClass(doc.plan)}`}
             >
               {/* Foto (vertical) */}
               <div className="relative aspect-[4/5] bg-[var(--color-primary,#001450)]">
@@ -65,17 +67,17 @@ export default async function FeaturedDoctors() {
                     {doc.firstName[0]}{doc.lastName[0]}
                   </span>
                 )}
-                {doc.isVerified && (
-                  <span className="absolute top-2 left-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-white/95 text-[var(--color-primary,#001450)] text-[10px] font-semibold shadow-sm">
-                    <BadgeCheck size={12} /> Verificado
-                  </span>
-                )}
+                {/* Solo el ★ de miembro sobre la foto. El ✓ va al lado del
+                    nombre (estilo Instagram): encima de la foto se chocaban
+                    en mobile y el tooltip lo recortaba el overflow-hidden. */}
+                <PlanBadge plan={doc.plan} className="absolute top-2 left-2 shadow-sm" />
               </div>
 
               {/* Datos */}
               <div className="p-3.5 flex flex-col gap-1 flex-1">
                 <h3 className="font-display font-bold text-base text-[var(--color-text-primary)] leading-snug group-hover:text-[var(--color-primary)] transition-colors">
                   {fullName}
+                  {doc.isVerified && <VerifiedBadge size={14} className="ml-1" />}
                 </h3>
                 <p className="text-sm font-medium text-[var(--color-primary)]">
                   {doc.specialties[0]?.name ?? 'Médico'}

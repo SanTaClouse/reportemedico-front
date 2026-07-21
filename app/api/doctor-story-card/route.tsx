@@ -22,7 +22,13 @@ export async function GET(req: NextRequest) {
     const doctor = await getDoctorBySlug(slug)
     const name = `${doctor.title ?? ''} ${doctor.firstName} ${doctor.lastName}`.trim()
     const specialty = doctor.specialties?.[0]?.specialty?.name ?? null
-    return renderDoctorStoryCard({ name, specialty, photoUrl: doctor.photoUrl ?? null, slug: doctor.slug })
+    return renderDoctorStoryCard({
+      name,
+      specialty,
+      photoUrl: doctor.photoUrl ?? null,
+      slug: doctor.slug,
+      isVerified: doctor.isVerified,
+    })
   } catch {
     return NextResponse.json({ error: 'médico no encontrado' }, { status: 404 })
   }

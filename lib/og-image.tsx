@@ -633,12 +633,14 @@ function renderStoryFallback(title: string) {
  * (navy #001450 + dorado #F0B414). Cae a un fallback si algo falla.
  */
 export async function renderDoctorStoryCard({
-  name, specialty, photoUrl, slug,
+  name, specialty, photoUrl, slug, isVerified = false,
 }: {
   name: string
   specialty: string | null
   photoUrl: string | null
   slug: string
+  /** Sello "Médico verificado" sobre la foto — solo si el admin verificó el exequátur */
+  isVerified?: boolean
 }) {
   try {
     const [whiteLogo, storyImageUrl] = await Promise.all([
@@ -691,6 +693,65 @@ export async function renderDoctorStoryCard({
                 background: 'linear-gradient(180deg, rgba(0,20,80,0) 76%, rgba(0,20,80,0.96) 100%)',
               }}
             />
+
+            {/* Sello de verificación — pastilla blanca sobre el degradado inferior */}
+            {isVerified && (
+              <div
+                style={{
+                  position: 'absolute',
+                  left: 72,
+                  bottom: 52,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 18,
+                  padding: '20px 36px 20px 26px',
+                  background: '#ffffff',
+                  borderRadius: 999,
+                  boxShadow: '0 10px 40px rgba(0,0,0,0.35)',
+                }}
+              >
+                <svg width="52" height="52" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M12 1.8l2.55 1.9 3.17-.32 1.06 3.02 2.75 1.6-1.11 3 1.11 3-2.75 1.6-1.06 3.02-3.17-.32L12 22.2l-2.55-1.9-3.17.32-1.06-3.02-2.75-1.6 1.11-3-1.11-3 2.75-1.6 1.06-3.02 3.17.32L12 1.8z"
+                    fill="#001450"
+                  />
+                  <path
+                    d="M8.3 12.15l2.55 2.55 4.85-5.15"
+                    stroke="#F0B414"
+                    strokeWidth="2.4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <div
+                    style={{
+                      fontSize: 34,
+                      fontWeight: 800,
+                      color: '#001450',
+                      lineHeight: 1.1,
+                      letterSpacing: -0.5,
+                      display: 'flex',
+                    }}
+                  >
+                    Médico verificado
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 21,
+                      fontWeight: 700,
+                      color: 'rgba(0,20,80,0.58)',
+                      textTransform: 'uppercase',
+                      letterSpacing: 1.6,
+                      marginTop: 2,
+                      display: 'flex',
+                    }}
+                  >
+                    por Reporte Médico
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Panel navy (abajo) */}

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { LogOut, BadgeCheck, Clock, Eye, Loader2, Send, Save, PenLine } from 'lucide-react'
 import { toast } from 'sonner'
 import DoctorProfileForm, { type ProfileFormData } from '@/components/guia/DoctorProfileForm'
-import type { Doctor, Specialty, Clinic, Insurance } from '@/lib/api-guia'
+import type { Doctor, Specialty, Clinic, Insurance, Lead } from '@/lib/api-guia'
 
 interface Props {
   userName: string | null
@@ -12,13 +12,15 @@ interface Props {
   userPicture: string | null
   initialDoctor: Doctor | null
   claimCandidate: Doctor | null
+  /** Datos que dejó antes de Auth0 — precargan el wizard y se vinculan al guardar */
+  leadPrefill: Lead | null
   specialties: Specialty[]
   clinics: Clinic[]
   insurances: Insurance[]
 }
 
 export default function MiCuentaClient({
-  userName, userEmail, userPicture, initialDoctor, claimCandidate, specialties, clinics, insurances,
+  userName, userEmail, userPicture, initialDoctor, claimCandidate, leadPrefill, specialties, clinics, insurances,
 }: Props) {
   const [doctor, setDoctor] = useState<Doctor | null>(initialDoctor)
   const [candidateDismissed, setCandidateDismissed] = useState(false)
@@ -55,7 +57,8 @@ export default function MiCuentaClient({
       const res = await fetch('/api/mi-cuenta/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        // leadId cierra el círculo: marca el lead como convertido en el backend
+        body: JSON.stringify({ ...data, leadId: leadPrefill?.id }),
       })
       const body = await res.json()
       if (!res.ok) throw new Error(body.message || 'No se pudo guardar')
@@ -196,6 +199,7 @@ export default function MiCuentaClient({
           {isEditable && (
             <DoctorProfileForm
               initial={doctor}
+              prefill={leadPrefill}
               defaultPhoto={userPicture}
               specialties={specialties}
               clinics={clinics}

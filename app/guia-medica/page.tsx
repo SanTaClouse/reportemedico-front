@@ -14,6 +14,7 @@ import ResultsToggle from '@/components/guia/ResultsToggle'
 import DoctorCard from '@/components/guia/DoctorCard'
 import DoctorsCarousel from '@/components/guia/DoctorsCarousel'
 import ClinicsMap from '@/components/guia/ClinicsMap'
+import MedicoCta from '@/components/guia/MedicoCta'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://reportemedico.com'
 const PAGE_SIZE = 20
@@ -142,6 +143,9 @@ async function HomeView({
 
       {/* Carrusel de médicos: descubrimiento + gancho para que otros se sumen */}
       <DoctorsCarousel doctors={allDoctors} />
+
+      {/* Captación de médicos — card aparte, nunca dentro del buscador */}
+      <MedicoCta className="mb-10" />
 
       {/* Mapa general (lazy, no bloquea LCP) */}
       {pins.length > 0 && (

@@ -19,6 +19,7 @@ import {
   FolderTree,
   Activity,
   Link2,
+  PhoneCall,
 } from 'lucide-react'
 
 const BASE_NAV_ITEMS = [
@@ -39,6 +40,7 @@ const BASE_NAV_ITEMS = [
 const GUIA_NAV_ITEMS = [
   { href: '/admin/guia-medica/medicos', label: 'Médicos', icon: Stethoscope },
   { href: '/admin/guia-medica/pendientes', label: 'Aprobaciones', icon: ClipboardList, badgeKey: 'doctors' as const },
+  { href: '/admin/guia-medica/leads', label: 'Leads de ventas', icon: PhoneCall },
   { href: '/admin/guia-medica/catalogos', label: 'Catálogos', icon: FolderTree },
   { href: '/admin/guia-medica/textos', label: 'Textos SEO', icon: FileText },
   { href: '/admin/guia-medica/actividad', label: 'Actividad', icon: Activity },

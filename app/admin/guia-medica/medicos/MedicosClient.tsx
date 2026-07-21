@@ -5,7 +5,7 @@ import Link from 'next/link'
 import NextImage from 'next/image'
 import { Plus, Search, BadgeCheck, Video, ExternalLink } from 'lucide-react'
 import { useState } from 'react'
-import { DOCTOR_STATUS_LABELS, type DoctorListResponse, type DoctorStatus } from '@/lib/api-guia'
+import { DOCTOR_STATUS_LABELS, PLAN_LABELS, type DoctorListResponse, type DoctorStatus } from '@/lib/api-guia'
 
 const STATUS_STYLES: Record<DoctorStatus, string> = {
   DRAFT: 'bg-gray-100 text-gray-600',
@@ -107,9 +107,9 @@ export default function MedicosClient({ initialData }: { initialData: DoctorList
                   {doc.clinics.length > 0 && ` · ${doc.clinics.map((c) => c.clinic.name).join(', ')}`}
                 </p>
               </div>
-              {doc.plan === 'PREMIUM' && (
-                <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-[var(--color-accent,#F0B414)]/15 text-amber-700">
-                  Premium
+              {doc.plan !== 'BASIC' && (
+                <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-brand-gold/15 text-amber-700">
+                  {PLAN_LABELS[doc.plan]}
                 </span>
               )}
               <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${STATUS_STYLES[doc.status]}`}>

@@ -13,10 +13,11 @@ import ClinicSuggestionsPanel from '@/components/admin/guia/ClinicSuggestionsPan
 import {
   updateDoctor, setDoctorStatus, setDoctorPlan, setDoctorVerification,
   createDoctorClaimToken, addDoctorBenefit, updateDoctorBenefit, removeDoctorBenefit,
-  DOCTOR_STATUS_LABELS, BENEFIT_LABELS,
-  type Doctor, type DoctorInput, type DoctorStatus, type Specialty, type City, type Clinic,
-  type Insurance, type BenefitType,
+  DOCTOR_STATUS_LABELS, BENEFIT_LABELS, PLAN_LABELS,
+  type Doctor, type DoctorInput, type DoctorStatus, type DoctorPlan, type Specialty, type City,
+  type Clinic, type Insurance, type BenefitType,
 } from '@/lib/api-guia'
+import { isPaidPlan } from '@/components/guia/PlanBadge'
 
 interface Props {
   initialDoctor: Doctor
@@ -90,13 +91,13 @@ export default function MedicoDetalleClient({ initialDoctor, specialties, clinic
 
   // ─── Plan ───
 
-  const handlePlanToggle = async () => {
-    const newPlan = doctor.plan === 'PREMIUM' ? 'BASIC' : 'PREMIUM'
+  const handlePlanChange = async (newPlan: DoctorPlan) => {
+    if (newPlan === doctor.plan) return
     const toastId = toast.loading('Actualizando plan...')
     try {
       const updated = await setDoctorPlan(doctor.id, newPlan, doctor.planNotes ?? undefined, token)
       setDoctor((prev) => ({ ...prev, plan: updated.plan }))
-      toast.success(`Plan: ${updated.plan}`, { id: toastId })
+      toast.success(`Plan: ${PLAN_LABELS[updated.plan]}`, { id: toastId })
     } catch (err) {
       toast.error((err as Error).message, { id: toastId })
     }
@@ -340,19 +341,27 @@ export default function MedicoDetalleClient({ initialDoctor, specialties, clinic
             </p>
           </div>
 
-          {/* Plan */}
+          {/* Plan — tres niveles desde 2026-07-21 (BASIC / STANDARD / PREMIUM) */}
           <div className={panelClass}>
             <h3 className="font-semibold text-xs uppercase tracking-wide text-[var(--color-text-muted)]">Plan</h3>
-            <button
-              onClick={handlePlanToggle}
-              className={`w-full px-3 py-2 rounded-lg text-sm font-semibold border transition-colors ${
-                doctor.plan === 'PREMIUM'
-                  ? 'bg-amber-100 text-amber-800 border-amber-300'
-                  : 'border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-amber-400'
-              }`}
-            >
-              {doctor.plan === 'PREMIUM' ? '★ PREMIUM' : 'BASIC — pasar a Premium'}
-            </button>
+            <div className="grid grid-cols-3 gap-1">
+              {(Object.keys(PLAN_LABELS) as DoctorPlan[]).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => handlePlanChange(p)}
+                  aria-pressed={doctor.plan === p}
+                  className={`px-2 py-2 rounded-lg text-xs font-semibold border transition-colors ${
+                    doctor.plan === p
+                      ? p === 'BASIC'
+                        ? 'bg-[var(--color-surface-2)] text-[var(--color-text-primary)] border-[var(--color-border)]'
+                        : 'bg-amber-100 text-amber-800 border-amber-300'
+                      : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-amber-400'
+                  }`}
+                >
+                  {PLAN_LABELS[p]}
+                </button>
+              ))}
+            </div>
             <textarea
               defaultValue={doctor.planNotes ?? ''}
               onBlur={(e) => { if (e.target.value !== (doctor.planNotes ?? '')) handlePlanNotes(e.target.value) }}
@@ -361,7 +370,8 @@ export default function MedicoDetalleClient({ initialDoctor, specialties, clinic
               className="w-full px-2.5 py-1.5 border border-[var(--color-border)] rounded-lg text-xs bg-[var(--color-surface)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
             <p className="text-[10px] text-[var(--color-text-muted)]">
-              Los PREMIUM aparecen primero en los resultados de búsqueda. El cobro es manual y externo.
+              Orden en resultados: Premium → Estándar → Básica. Los planes pagos muestran el sello ★
+              de Miembro; el badge ✓ de exequátur es aparte y no se cobra. Cobro manual y externo.
             </p>
           </div>
 
@@ -404,8 +414,9 @@ export default function MedicoDetalleClient({ initialDoctor, specialties, clinic
             </div>
           )}
 
-          {/* Beneficios premium */}
-          {doctor.plan === 'PREMIUM' && (
+          {/* Beneficios de los planes pagos: Estándar también tiene entregables
+              (revista impresa+digital, video, eventos), no solo Premium */}
+          {isPaidPlan(doctor.plan) && (
             <div className={panelClass}>
               <h3 className="font-semibold text-xs uppercase tracking-wide text-[var(--color-text-muted)]">
                 Beneficios entregados

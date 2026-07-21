@@ -4,7 +4,8 @@ import { useState, useRef, type ReactNode } from 'react'
 import NextImage from 'next/image'
 import { Plus, X, GripVertical, Monitor, Upload, Loader2, ShieldAlert } from 'lucide-react'
 import { toast } from 'sonner'
-import type { Doctor, Specialty, Clinic, Insurance } from '@/lib/api-guia'
+import type { Doctor, Specialty, Clinic, Insurance, Lead } from '@/lib/api-guia'
+import ConditionsInput from './ConditionsInput'
 
 export interface ProfileFormData {
   title?: string
@@ -13,6 +14,8 @@ export interface ProfileFormData {
   exequatur?: string
   languages: string[]
   bio?: string
+  /** Patologías / procedimientos que trata */
+  conditions: string[]
   telehealth: boolean
   photoUrl?: string
   specialtyIds: string[]
@@ -20,12 +23,16 @@ export interface ProfileFormData {
   clinicSuggestions: { rawName: string; schedule?: string }[]
   insuranceIds: string[]
   phonePublic?: string
+  /** Teléfono de contacto interno — obligatorio en el alta, nunca se publica */
+  phoneInternal?: string
   phoneOffice?: string
   instagram?: string
 }
 
 interface Props {
   initial: Doctor | null
+  /** Lead capturado antes de Auth0: siembra el form cuando aún no hay perfil */
+  prefill?: Lead | null
   /** Foto de Auth0/Google: default hasta que el médico suba la suya */
   defaultPhoto?: string | null
   specialties: Specialty[]
@@ -46,16 +53,17 @@ const sectionClass = 'bg-[var(--color-surface)] rounded-2xl border border-[var(-
 const COMMON_LANGUAGES = ['Español', 'Inglés', 'Francés', 'Criollo haitiano', 'Italiano', 'Portugués']
 
 export default function DoctorProfileForm({
-  initial, defaultPhoto, specialties, clinics, insurances, saving, renderActions,
+  initial, prefill, defaultPhoto, specialties, clinics, insurances, saving, renderActions,
 }: Props) {
   const [form, setForm] = useState({
     title: initial?.title ?? 'Dr.',
-    firstName: initial?.firstName ?? '',
-    lastName: initial?.lastName ?? '',
+    firstName: initial?.firstName ?? prefill?.firstName ?? '',
+    lastName: initial?.lastName ?? prefill?.lastName ?? '',
     exequatur: initial?.exequatur ?? '',
     bio: initial?.bio ?? '',
     telehealth: initial?.telehealth ?? false,
     phonePublic: initial?.phonePublic ?? '',
+    phoneInternal: initial?.phoneInternal ?? prefill?.phone ?? '',
     phoneOffice: initial?.phoneOffice ?? '',
     instagram: initial?.instagram ?? '',
   })
@@ -83,8 +91,9 @@ export default function DoctorProfileForm({
     }
   }
   const [languages, setLanguages] = useState<string[]>(initial?.languages ?? ['Español'])
+  const [conditions, setConditions] = useState<string[]>(initial?.conditions ?? [])
   const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>(
-    initial?.specialties?.map((s) => s.specialty.id) ?? [],
+    initial?.specialties?.map((s) => s.specialty.id) ?? (prefill?.specialtyId ? [prefill.specialtyId] : []),
   )
   const [clinicRows, setClinicRows] = useState<{ clinicId: string; schedule: string }[]>(
     initial?.clinics?.map((c) => ({ clinicId: c.clinic.id, schedule: c.schedule ?? '' })) ?? [],
@@ -114,6 +123,7 @@ export default function DoctorProfileForm({
     exequatur: form.exequatur.trim() || undefined,
     languages,
     bio: form.bio.trim() || undefined,
+    conditions,
     telehealth: form.telehealth,
     photoUrl: photoUrl || undefined,
     specialtyIds: selectedSpecialties,
@@ -123,6 +133,7 @@ export default function DoctorProfileForm({
       .map((r) => ({ rawName: r.rawName.trim(), schedule: r.schedule.trim() || undefined })),
     insuranceIds: selectedInsurances,
     phonePublic: form.phonePublic.trim() || undefined,
+    phoneInternal: form.phoneInternal.trim() || undefined,
     phoneOffice: form.phoneOffice.trim() || undefined,
     instagram: form.instagram.trim() || undefined,
   })
@@ -131,12 +142,15 @@ export default function DoctorProfileForm({
   // y se corrigen en vivo. Solo nombre y apellido son obligatorios.
   const [submitted, setSubmitted] = useState(false)
   const computeErrors = () => {
-    const e: { firstName?: string; lastName?: string } = {}
+    const e: { firstName?: string; lastName?: string; phoneInternal?: string } = {}
     if (!form.firstName.trim()) e.firstName = 'Ingresa tu nombre'
     if (!form.lastName.trim()) e.lastName = 'Ingresa tu apellido'
+    // Obligatorio desde 2026-07-21: es el único contacto garantizado del médico.
+    // Auth0/Google no devuelve teléfono, así que hay que pedirlo explícitamente.
+    if (!form.phoneInternal.trim()) e.phoneInternal = 'Ingresa un teléfono de contacto'
     return e
   }
-  const errors: { firstName?: string; lastName?: string } = submitted ? computeErrors() : {}
+  const errors: ReturnType<typeof computeErrors> = submitted ? computeErrors() : {}
   const fieldClass = (err?: string) => (err ? `${inputClass} !border-red-400` : inputClass)
   const validate = () => {
     setSubmitted(true)
@@ -146,9 +160,11 @@ export default function DoctorProfileForm({
   return (
     <div className="space-y-5">
       <p className="text-xs text-[var(--color-text-muted)]">
-        Solo <strong className="text-[var(--color-text-secondary)]">Nombre</strong> y{' '}
-        <strong className="text-[var(--color-text-secondary)]">Apellido</strong> son obligatorios (
-        <span className="text-red-600">*</span>). Mientras más completes, mejor te encuentran los pacientes.
+        Solo <strong className="text-[var(--color-text-secondary)]">Nombre</strong>,{' '}
+        <strong className="text-[var(--color-text-secondary)]">Apellido</strong> y{' '}
+        <strong className="text-[var(--color-text-secondary)]">Teléfono de contacto</strong> son
+        obligatorios (<span className="text-red-600">*</span>). Mientras más completes, mejor te
+        encuentran los pacientes.
       </p>
       {/* Datos personales */}
       <section className={sectionClass}>
@@ -258,6 +274,17 @@ export default function DoctorProfileForm({
           <p className={`text-[11px] mt-1 ${form.bio.length >= 300 ? 'text-[var(--color-primary,#001450)]' : 'text-[var(--color-text-muted)]'}`}>
             {form.bio.length} caracteres{form.bio.length > 0 && form.bio.length < 300 ? ' · recomendado: 300+' : ''}
           </p>
+        </div>
+
+        <div>
+          <label className={labelClass}>
+            Patologías y procedimientos que tratas
+          </label>
+          <p className="text-[11px] text-[var(--color-text-muted)] mb-2">
+            Es lo que más te ayuda a aparecer en Google: los pacientes buscan la patología
+            (&ldquo;cálculos renales&rdquo;), no la especialidad.
+          </p>
+          <ConditionsInput value={conditions} onChange={setConditions} />
         </div>
       </section>
 
@@ -383,6 +410,32 @@ export default function DoctorProfileForm({
       {/* Contacto */}
       <section className={sectionClass}>
         <h2 className="font-semibold text-sm text-[var(--color-text-primary)]">Contacto</h2>
+
+        {/* Teléfono de contacto: obligatorio y NO público. Se explica para qué se
+            pide — que a un médico lo llame el equipo por un dato que creía
+            público arranca mal la relación. */}
+        <div>
+          <label className={labelClass}>
+            Teléfono de contacto <span className="text-red-600">*</span>
+          </label>
+          <input
+            value={form.phoneInternal}
+            onChange={(e) => setForm({ ...form, phoneInternal: e.target.value })}
+            className={fieldClass(errors.phoneInternal)}
+            placeholder="+1 809..."
+            autoComplete="tel"
+            inputMode="tel"
+          />
+          {errors.phoneInternal ? (
+            <p className="text-[11px] text-red-600 mt-1">{errors.phoneInternal}</p>
+          ) : (
+            <p className="text-[11px] text-[var(--color-text-muted)] mt-1">
+              Para que el equipo de Reporte Médico pueda comunicarse contigo.
+              No se muestra en tu perfil.
+            </p>
+          )}
+        </div>
+
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className={labelClass}>WhatsApp público <span className="text-[var(--color-text-muted)]">(botón de tu perfil)</span></label>

@@ -13,6 +13,7 @@ import { cldUrl, baseImageUrl, setImageCrop, type CropRegion } from '@/lib/cloud
 import { useUnsavedGuard } from '@/lib/hooks/useUnsavedGuard'
 import { loadDraft, saveDraft, clearDraft } from '@/lib/draft'
 import { ClinicFormModal } from './ClinicForm'
+import ConditionsInput from '@/components/guia/ConditionsInput'
 
 // Borrador del alta de médico (solo modo creación) — se guarda en el navegador
 // para no perder lo cargado si el admin sale a mitad del proceso (A5/A6).
@@ -24,6 +25,7 @@ interface DoctorDraft {
     bio: string; photoUrl: string; videoUrl: string; telehealth: boolean
   }
   languages: string[]
+  conditions: string[]
   selectedSpecialties: string[]
   clinicRows: { clinicId: string; schedule: string }[]
   selectedInsurances: string[]
@@ -73,6 +75,7 @@ export default function DoctorForm({
     telehealth: initial?.telehealth ?? false,
   })
   const [languages, setLanguages] = useState<string[]>(initial?.languages ?? ['Español'])
+  const [conditions, setConditions] = useState<string[]>(initial?.conditions ?? [])
   const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>(
     initial?.specialties?.map((s) => s.specialty.id) ?? [],
   )
@@ -102,7 +105,7 @@ export default function DoctorForm({
 
   // ─── Borrador + freno al salir (solo en el alta; A5/A6) ───
   const isCreate = !initial
-  const snapshot = JSON.stringify({ form, languages, selectedSpecialties, clinicRows, selectedInsurances })
+  const snapshot = JSON.stringify({ form, languages, conditions, selectedSpecialties, clinicRows, selectedInsurances })
   const baselineRef = useRef<string | null>(null)
   if (baselineRef.current === null) baselineRef.current = snapshot
   const dirty = snapshot !== baselineRef.current
@@ -119,12 +122,13 @@ export default function DoctorForm({
   }, [isCreate])
   // Autosave del borrador en cada cambio (solo alta y solo si tocó algo).
   useEffect(() => {
-    if (isCreate && dirty) saveDraft<DoctorDraft>(DRAFT_KEY, { form, languages, selectedSpecialties, clinicRows, selectedInsurances })
-  }, [snapshot, isCreate, dirty, form, languages, selectedSpecialties, clinicRows, selectedInsurances])
+    if (isCreate && dirty) saveDraft<DoctorDraft>(DRAFT_KEY, { form, languages, conditions, selectedSpecialties, clinicRows, selectedInsurances })
+  }, [snapshot, isCreate, dirty, form, languages, conditions, selectedSpecialties, clinicRows, selectedInsurances])
 
   const applyDraft = (d: DoctorDraft) => {
     setForm(d.form)
     setLanguages(d.languages ?? ['Español'])
+    setConditions(d.conditions ?? [])
     setSelectedSpecialties(d.selectedSpecialties ?? [])
     setClinicRows(d.clinicRows ?? [])
     setSelectedInsurances(d.selectedInsurances ?? [])
@@ -193,6 +197,7 @@ export default function DoctorForm({
       videoUrl: form.videoUrl.trim() || undefined,
       telehealth: form.telehealth,
       languages,
+      conditions,
       specialtyIds: selectedSpecialties,
       clinics: clinicRows
         .filter((r) => r.clinicId)
@@ -334,6 +339,13 @@ export default function DoctorForm({
           <p className={`text-[11px] mt-1 ${form.bio.length >= 300 ? 'text-primary' : 'text-[var(--color-text-muted)]'}`}>
             {form.bio.length} caracteres {form.bio.length < 300 && form.bio.length > 0 ? '· mínimo recomendado: 300' : ''}
           </p>
+        </div>
+
+        <div>
+          <label className={labelClass}>
+            Patologías y procedimientos — como en la card de la revista impresa
+          </label>
+          <ConditionsInput value={conditions} onChange={setConditions} />
         </div>
 
         <div>

@@ -1,8 +1,10 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { BadgeCheck, MapPin, Monitor } from 'lucide-react'
+import { MapPin, Monitor } from 'lucide-react'
 import { cldUrl } from '@/lib/cloudinary'
 import WhatsAppButton from './WhatsAppButton'
+import PlanBadge, { planCardClass } from './PlanBadge'
+import VerifiedBadge from './VerifiedBadge'
 import type { PublicDoctorCard } from '@/lib/api-guia'
 
 interface Props {
@@ -16,9 +18,13 @@ interface Props {
 export default function DoctorCard({ doctor, source, highlightInsurance, distanceKm }: Props) {
   const fullName = `${doctor.title ?? ''} ${doctor.firstName} ${doctor.lastName}`.trim()
   const mainClinic = doctor.clinics[0]
+  // El backend puede no mandar el campo todavía (deploy escalonado)
+  const conditions = doctor.conditions ?? []
 
   return (
-    <article className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-4 flex gap-4 hover:shadow-md transition-shadow">
+    <article
+      className={`bg-[var(--color-surface)] rounded-xl p-4 flex gap-4 hover:shadow-md transition-shadow ${planCardClass(doctor.plan)}`}
+    >
       <Link href={`/medico/${doctor.slug}`} className="shrink-0" aria-label={`Ver perfil de ${fullName}`}>
         <div className="w-20 h-20 rounded-xl overflow-hidden bg-[var(--color-primary,#001450)] flex items-center justify-center relative">
           {doctor.photoUrl ? (
@@ -39,11 +45,10 @@ export default function DoctorCard({ doctor, source, highlightInsurance, distanc
 
       <div className="flex-1 min-w-0">
         <Link href={`/medico/${doctor.slug}`}>
-          <h3 className="font-display font-bold text-base text-[var(--color-text-primary)] flex items-center gap-1.5 hover:text-[var(--color-primary)] transition-colors">
+          <h3 className="font-display font-bold text-base text-[var(--color-text-primary)] flex items-center gap-1.5 flex-wrap hover:text-[var(--color-primary)] transition-colors">
             {fullName}
-            {doctor.isVerified && (
-              <BadgeCheck size={16} className="text-[var(--color-primary)] shrink-0" aria-label="Exequátur verificado" />
-            )}
+            {doctor.isVerified && <VerifiedBadge size={16} />}
+            <PlanBadge plan={doctor.plan} />
           </h3>
         </Link>
 
@@ -56,6 +61,18 @@ export default function DoctorCard({ doctor, source, highlightInsurance, distanc
             </span>
           )}
         </p>
+
+        {/* Patologías: lo que el paciente realmente busca ("cálculos renales",
+            no "urología"). Replica el campo de la card de la revista impresa. */}
+        {conditions.length > 0 && (
+          <p className="text-xs text-[var(--color-text-secondary)] mt-1 line-clamp-1">
+            <span className="text-[var(--color-text-muted)]">Trata: </span>
+            {conditions.slice(0, 3).join(' · ')}
+            {conditions.length > 3 && (
+              <span className="text-[var(--color-text-muted)]"> +{conditions.length - 3}</span>
+            )}
+          </p>
+        )}
 
         {mainClinic && (
           <p className="text-xs text-[var(--color-text-muted)] mt-1 flex items-center gap-1">
