@@ -15,6 +15,9 @@ export default async function MiCuentaPage() {
   let doctor: Doctor | null = null
   let claimCandidate: Doctor | null = null
   let leadPrefill: Lead | null = null
+
+  // 1) Perfil existente (requiere access token). Aislado: si el token no está
+  //    listo en el primer callback de Auth0, NO debe tumbar el prefill del lead.
   try {
     const { accessToken } = await auth0.getAccessToken()
     const res = await fetch(`${API_URL}/doctors/me`, {
@@ -26,15 +29,16 @@ export default async function MiCuentaPage() {
       doctor = body.doctor
       claimCandidate = body.claimCandidate ?? null
     }
-
-    // Lead dejado ANTES de pasar por Auth0 (cookie que puso el modal de planes):
-    // precarga el wizard y se vincula al guardar. Solo si aún no hay perfil.
-    if (!doctor) {
-      const leadId = (await cookies()).get('rm_lead')?.value
-      if (leadId && accessToken) leadPrefill = await getLead(leadId, accessToken).catch(() => null)
-    }
   } catch {
-    // sin perfil / backend no disponible: el cliente muestra el onboarding
+    // sin perfil / token aún no disponible: el cliente muestra el onboarding
+  }
+
+  // 2) Lead dejado ANTES de Auth0 (cookie del modal de planes). Precarga el
+  //    wizard y se vincula al guardar. Independiente del paso anterior y del
+  //    access token — por eso el endpoint es público.
+  if (!doctor) {
+    const leadId = (await cookies()).get('rm_lead')?.value
+    if (leadId) leadPrefill = await getLead(leadId).catch(() => null)
   }
 
   const [specialties, clinics, insurances] = await Promise.all([

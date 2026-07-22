@@ -117,8 +117,6 @@ export interface Doctor {
   photoUrl?: string | null
   videoUrl?: string | null
   exequatur?: string | null
-  /** Años de ejercicio — franja de credenciales del hero pago */
-  yearsExperience?: number | null
   isVerified: boolean
   needsReverify: boolean
   languages: string[]
@@ -226,9 +224,13 @@ export interface LeadRow extends Lead {
 export const createLead = (input: LeadInput) =>
   apiFetch<Lead>('/leads', { method: 'POST', body: JSON.stringify(input) })
 
-/** Requiere sesión de médico (se llama al volver de Auth0, para precargar) */
-export const getLead = (id: string, accessToken: string) =>
-  apiFetch<Lead>(`/leads/${id}`, { token: accessToken, cache: 'no-store' })
+/**
+ * Precarga el wizard al volver de Auth0. Público (sin token) a propósito: el
+ * access token puede no estar listo en el primer callback, y atarlo ahí rompía
+ * el prefill justo en el primer registro. El uuid del cookie es la credencial.
+ */
+export const getLead = (id: string) =>
+  apiFetch<Lead>(`/leads/${id}`, { cache: 'no-store' })
 
 export const getLeadsAdmin = (
   params: { converted?: boolean; page?: number },

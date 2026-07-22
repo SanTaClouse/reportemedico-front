@@ -134,13 +134,16 @@ export default async function MedicoPage({ params }: Props) {
   const hero = profileHeroTheme(doctor.plan)
 
   /**
-   * Franja de credenciales del hero pago. Cada celda es opcional y se colapsa
-   * si falta el dato; sin ninguna, la franja no se renderiza.
-   * ⚠️ El número de exequátur NO va acá — nunca se publica.
+   * Franja de credenciales del hero pago. Solo datos REALES que tenemos; cada
+   * celda es opcional y se colapsa si falta. Sin ninguna, la franja no se
+   * renderiza. ⚠️ El número de exequátur NO va acá — nunca se publica.
    */
   const credentials: { value: string; label: string }[] = [
-    ...(doctor.yearsExperience
-      ? [{ value: `+${doctor.yearsExperience} años`, label: 'De experiencia' }]
+    ...(doctor.insurances.length > 0
+      ? [{
+          value: String(doctor.insurances.length),
+          label: doctor.insurances.length === 1 ? 'Seguro que acepta' : 'Seguros que acepta',
+        }]
       : []),
     ...(principal ? [{ value: principal.name, label: 'Especialidad principal' }] : []),
     ...(doctor.isVerified

@@ -391,6 +391,8 @@ html {
   .autofill-flash,
   .autofill-check,
   .autofill-thumb-pop { animation: none; }
+  /* Entradas con fade-up: sin animación, pero SIEMPRE visibles (no quedar en opacity:0) */
+  .hero-anim { animation: none; opacity: 1; transform: none; }
 }
 
 /* ─── Guía Médica banner — efectos ─── */
