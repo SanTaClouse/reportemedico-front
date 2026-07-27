@@ -1,125 +1,52 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowRight, BadgeCheck, MessageCircle, Search } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 
 interface Props {
-  /**
-   * `light`: card propia sobre fondo claro (home de la guía).
-   * `dark`: sobre el navy del banner del home — sin fondo propio.
-   */
+  /** Se mantiene por compatibilidad con las llamadas; el banner es autónomo. */
   variant?: 'light' | 'dark'
   className?: string
 }
 
-const PERKS = [
-  { icon: Search, text: 'Te encuentran en Google y en la guía' },
-  { icon: MessageCircle, text: 'Pacientes te escriben por WhatsApp' },
-  { icon: BadgeCheck, text: 'Perfil profesional con tu especialidad' },
-]
-
 /**
- * CTA de captación de médicos. Va como card APARTE (no dentro del buscador):
- * meterlo en el form le compite la atención al paciente, que es la tarea
- * principal de esa página. Foto + botón grande, a pedido del cliente (2026-07-21).
+ * CTA de captación de médicos. Muestra el banner de marca "Eres Doctor"
+ * (diseño provisto por el cliente, 2026-07-27) ENTERO — antes recortaba una
+ * foto a la mitad, pero este asset ya trae su propio mensaje, tarjeta de
+ * ejemplo y redes, así que se muestra completo y clickeable, con una barra de
+ * acción abajo que deja explícito el "crear perfil gratis".
  */
-export default function MedicoCta({ variant = 'light', className = '' }: Props) {
-  const dark = variant === 'dark'
-
+export default function MedicoCta({ className = '' }: Props) {
   return (
     <section
       aria-labelledby="cta-medico"
-      className={`overflow-hidden rounded-2xl ${
-        dark
-          ? 'bg-white/[0.06] ring-1 ring-white/15'
-          : 'bg-[var(--color-surface)] border border-[var(--color-border)] shadow-sm'
-      } ${className}`}
+      className={`overflow-hidden rounded-2xl border border-[var(--color-border)] shadow-sm ${className}`}
     >
-      <div className="grid md:grid-cols-2 items-stretch">
-        {/* Foto */}
-        <div className="relative h-48 md:h-auto md:min-h-[15rem]">
-          <Image
-            src="/media/medicos-guia-cta.webp"
-            alt="Dos médicos revisando su perfil profesional en una computadora portátil"
-            fill
-            /* El encuadre útil (los dos médicos) está a la derecha de la foto */
-            className="object-cover object-[65%_center]"
-            sizes="(max-width: 768px) 100vw, 400px"
-          />
-          {/* Funde SOLO el borde derecho contra el panel de texto. Ojo: el color
-              opaco tiene que arrancar tarde (75%) o se come la foto entera. */}
-          <div
-            aria-hidden="true"
-            className={`absolute inset-0 hidden md:block bg-gradient-to-r from-transparent from-75% ${
-              dark ? 'to-[#0d2260]' : 'to-[var(--color-surface)]'
-            }`}
-          />
-        </div>
+      <Link
+        href="/registro-medicos"
+        className="group block"
+        aria-label="¿Eres médico? Crea tu perfil gratis en la Guía Médica"
+      >
+        <Image
+          src="/media/banner-eres-doctor.webp"
+          alt="Suma tu perfil profesional a la Guía Médica de Reporte Médico: impresa, digital y en redes"
+          width={2400}
+          height={1191}
+          className="w-full h-auto"
+          sizes="(max-width: 1280px) 100vw, 1200px"
+          priority={false}
+        />
 
-        {/* Contenido */}
-        <div className="p-6 md:p-8 flex flex-col justify-center">
-          <span
-            className={`inline-block self-start mb-2.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${
-              dark
-                ? 'bg-brand-gold text-[var(--color-primary,#001450)]'
-                : 'bg-[var(--color-primary-pale,#e8edf8)] text-[var(--color-primary,#001450)]'
-            }`}
-          >
-            Para médicos
-          </span>
-
-          <h2
-            id="cta-medico"
-            className={`font-display font-bold text-2xl md:text-[1.75rem] leading-tight ${
-              dark ? 'text-white' : 'text-[var(--color-text-primary)]'
-            }`}
-          >
-            ¿Eres médico?
-          </h2>
-          <p
-            className={`text-sm mt-2 leading-relaxed ${
-              dark ? 'text-white/80' : 'text-[var(--color-text-secondary)]'
-            }`}
-          >
-            Crea tu perfil en la Guía Médica y conecta con los pacientes que están buscando un
-            especialista como tú.
+        {/* Barra de acción — el banner no dice "regístrate", así que el CTA va acá */}
+        <div className="flex items-center justify-center sm:justify-between gap-3 flex-wrap bg-[var(--color-surface)] px-5 py-4">
+          <p id="cta-medico" className="font-display font-bold text-sm md:text-base text-[var(--color-text-primary)]">
+            ¿Eres médico? Suma tu perfil hoy — es gratis.
           </p>
-
-          <ul className="mt-4 space-y-2">
-            {PERKS.map(({ icon: Icon, text }) => (
-              <li
-                key={text}
-                className={`flex items-center gap-2 text-sm ${
-                  dark ? 'text-white/75' : 'text-[var(--color-text-secondary)]'
-                }`}
-              >
-                <Icon
-                  size={15}
-                  strokeWidth={1.5}
-                  className={`shrink-0 ${
-                    dark ? 'text-brand-gold' : 'text-[var(--color-primary)]'
-                  }`}
-                />
-                {text}
-              </li>
-            ))}
-          </ul>
-
-          <Link
-            href="/registro-medicos"
-            className="group mt-6 inline-flex items-center justify-center gap-2 self-start px-6 py-3.5 rounded-xl bg-brand-gold text-[var(--color-primary,#001450)] text-base font-bold shadow-lg shadow-brand-gold/25 hover:shadow-xl hover:-translate-y-0.5 transition-all"
-          >
+          <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-gold text-[var(--color-primary,#001450)] text-sm font-bold shadow-lg shadow-brand-gold/25 transition-transform group-hover:-translate-y-0.5">
             Crear mi perfil gratis
-            <ArrowRight
-              size={18}
-              strokeWidth={2.2}
-              className="transition-transform group-hover:translate-x-0.5"
-            />
-          </Link>
-          <p className={`text-xs mt-2.5 ${dark ? 'text-white/55' : 'text-[var(--color-text-muted)]'}`}>
-            Es gratis. Con tu cuenta de Google o con email.
-          </p>
+            <ArrowRight size={16} strokeWidth={2.2} className="transition-transform group-hover:translate-x-0.5" />
+          </span>
         </div>
-      </div>
+      </Link>
     </section>
   )
 }
