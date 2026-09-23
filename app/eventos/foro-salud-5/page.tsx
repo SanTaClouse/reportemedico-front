@@ -3,6 +3,9 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, CalendarDays, ChevronDown, Clock, MapPin, Navigation, Sparkles, Ticket } from 'lucide-react'
 import Countdown from '@/components/eventos/Countdown'
+import CountUp from '@/components/eventos/CountUp'
+import Reveal from '@/components/eventos/Reveal'
+import StickyCta from '@/components/eventos/StickyCta'
 import { formatDate, formatTime, getEvent, SITE_URL, type PublicEvent } from '@/lib/api-eventos'
 import { ACCESS_STEPS, AXES, EVENT_SLUG, FALLBACK_EVENT, INTRO, LEADERS, OG_IMAGE } from './content'
 
@@ -110,7 +113,7 @@ export default async function ForoSalud5Page() {
       <section className="relative overflow-hidden bg-brand-navy text-white">
         <div
           aria-hidden
-          className="absolute inset-0 opacity-70"
+          className="ev-glow absolute inset-0 opacity-70"
           style={{
             background:
               'radial-gradient(60% 50% at 15% 10%, rgba(43,181,240,0.35), transparent 70%), radial-gradient(50% 40% at 90% 90%, rgba(0,100,200,0.35), transparent 70%)',
@@ -118,16 +121,21 @@ export default async function ForoSalud5Page() {
         />
         <div className="relative max-w-site mx-auto px-4 sm:px-6 pt-10 pb-14 sm:pt-16 sm:pb-20 grid lg:grid-cols-[1.15fr_0.85fr] gap-10 items-center">
           <div>
-            <p className="inline-flex items-center gap-2 rounded-full border border-brand-gold/40 bg-brand-gold/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-brand-gold">
+            <p
+              className="ev-intro inline-flex items-center gap-2 rounded-full border border-brand-gold/40 bg-brand-gold/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-brand-gold"
+            >
               5.º aniversario · Summit
             </p>
-            <h1 className="mt-5 font-display font-bold leading-[1.05] text-4xl sm:text-6xl">
+            <h1 className="ev-intro mt-5 font-display font-bold leading-[1.05] text-4xl sm:text-6xl" style={{ animationDelay: '90ms' }}>
               Foro de Salud <span className="block">Reporte Médico <span className="text-brand-cyan">5.0</span></span>
             </h1>
-            <p className="mt-4 text-sm sm:text-base font-semibold tracking-[0.35em] text-brand-cyan uppercase">
+            <p
+              className="ev-intro mt-4 text-sm sm:text-base font-semibold tracking-[0.35em] text-brand-cyan uppercase"
+              style={{ animationDelay: '200ms' }}
+            >
               Innovar · Conectar · Avanzar
             </p>
-            <ul className="mt-6 space-y-2 text-white/85">
+            <ul className="ev-intro mt-6 space-y-2 text-white/85" style={{ animationDelay: '300ms' }}>
               <li className="flex items-center gap-2.5">
                 <CalendarDays size={18} strokeWidth={1.5} className="text-brand-gold shrink-0" />
                 <span className="first-letter:uppercase">{dateLong}</span>
@@ -141,24 +149,27 @@ export default async function ForoSalud5Page() {
                 Evento gratuito · cupos limitados con inscripción
               </li>
             </ul>
-            <div className="mt-8 flex flex-col sm:flex-row gap-3">
+            <div className="ev-intro mt-8 flex flex-col sm:flex-row gap-3" style={{ animationDelay: '400ms' }}>
               <CtaButton open={e.registrationOpen} className="text-base" />
               <a
                 href="#paneles"
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/25 px-6 py-3.5 font-semibold text-white hover:bg-white/10 transition"
+                className="group inline-flex items-center justify-center gap-2 rounded-xl border border-white/25 px-6 py-3.5 font-semibold text-white transition hover:bg-white/10"
               >
-                Ver los 9 paneles <ChevronDown size={18} strokeWidth={1.5} />
+                Ver los 9 paneles
+                <ChevronDown size={18} strokeWidth={1.5} className="transition-transform group-hover:translate-y-0.5" />
               </a>
             </div>
+            {/* Referencia para <StickyCta>: mientras se vea, la barra del celular queda escondida */}
+            <div id="ev-cta-sentinel" aria-hidden className="h-px w-full" />
           </div>
-          <div className="hidden lg:block">
+          <div className="ev-intro hidden lg:block" style={{ animationDelay: '480ms' }}>
             <Image
               src="/eventos/foro-salud-5/flyer-foro.png"
               alt="Afiche del Foro de Salud Reporte Médico 5.0: 26 de noviembre de 2026, Hotel Jaragua"
               width={1081}
               height={1351}
               priority
-              className="w-full max-w-md ml-auto rounded-2xl shadow-2xl shadow-black/40 ring-1 ring-white/10"
+              className="ev-float w-full max-w-md ml-auto rounded-2xl shadow-2xl shadow-black/40 ring-1 ring-white/10"
             />
           </div>
         </div>
@@ -173,39 +184,51 @@ export default async function ForoSalud5Page() {
 
       {/* ── Qué es ──────────────────────────────────────────── */}
       <section className="max-w-site mx-auto px-4 sm:px-6 py-14 sm:py-20 grid lg:grid-cols-2 gap-10">
-        <div>
+        <Reveal>
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-electric">Un encuentro cumbre</p>
-          <h2 className="mt-2 font-display font-bold text-3xl sm:text-4xl text-[var(--color-text-primary)]">
+          <h2 className="ev-underline mt-2 font-display font-bold text-3xl sm:text-4xl text-[var(--color-text-primary)]">
             La hoja de ruta de la salud dominicana
           </h2>
           {INTRO.map((t) => (
             <p key={t} className="mt-4 text-lg leading-relaxed text-[var(--color-text-secondary)]">{t}</p>
           ))}
-        </div>
-        <dl className="grid grid-cols-3 gap-3 self-center">
-          {[
-            { n: '9', l: 'paneles estratégicos' },
-            { n: '2', l: 'momentos: jornada y gala' },
-            { n: '50', l: 'líderes reconocidos' },
-          ].map((s) => (
-            <div key={s.l} className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-2)] p-4 sm:p-6 text-center">
-              <dt className="font-display font-bold text-4xl sm:text-5xl text-brand-navy dark:text-brand-cyan">{s.n}</dt>
-              <dd className="mt-1 text-xs sm:text-sm text-[var(--color-text-muted)]">{s.l}</dd>
-            </div>
-          ))}
-        </dl>
+        </Reveal>
+        <Reveal delay={140} className="self-center">
+          <dl className="grid grid-cols-3 gap-3">
+            {[
+              { n: 9, l: 'paneles estratégicos' },
+              { n: 2, l: 'momentos: jornada y gala' },
+              { n: 50, l: 'líderes reconocidos' },
+            ].map((s) => (
+              <div
+                key={s.l}
+                className="ev-lift rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-2)] p-4 sm:p-6 text-center"
+              >
+                <dt className="font-display font-bold text-4xl sm:text-5xl text-brand-navy dark:text-brand-cyan">
+                  <CountUp to={s.n} />
+                </dt>
+                <dd className="mt-1 text-xs sm:text-sm text-[var(--color-text-muted)]">{s.l}</dd>
+              </div>
+            ))}
+          </dl>
+        </Reveal>
       </section>
 
       {/* ── Agenda ──────────────────────────────────────────── */}
       <section className="bg-[var(--color-surface-2)] border-y border-[var(--color-border)]">
         <div className="max-w-site mx-auto px-4 sm:px-6 py-14 sm:py-20">
-          <h2 className="font-display font-bold text-3xl sm:text-4xl text-[var(--color-text-primary)]">Agenda del día</h2>
-          <p className="mt-2 text-[var(--color-text-muted)]">
-            Al inscribirte eliges si asistes a la jornada, a la gala o a ambas.
-          </p>
+          <Reveal>
+            <h2 className="ev-underline font-display font-bold text-3xl sm:text-4xl text-[var(--color-text-primary)]">
+              Agenda del día
+            </h2>
+            <p className="mt-2 text-[var(--color-text-muted)]">
+              Al inscribirte eliges si asistes a la jornada, a la gala o a ambas.
+            </p>
+          </Reveal>
           <div className="mt-8 grid md:grid-cols-2 gap-4">
-            {agenda.map(({ icon: Icon, ...a }) => (
-              <article key={a.title} className="rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] p-6">
+            {agenda.map(({ icon: Icon, ...a }, i) => (
+              <Reveal key={a.title} delay={i * 130}>
+                <article className="ev-lift h-full rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] p-6">
                 <Icon size={26} strokeWidth={1.5} className="text-brand-electric dark:text-brand-cyan" />
                 <h3 className="mt-3 font-display font-bold text-2xl text-[var(--color-text-primary)]">{a.title}</h3>
                 <p className="mt-2 flex items-center gap-2 font-semibold text-[var(--color-text-primary)]">
@@ -215,7 +238,8 @@ export default async function ForoSalud5Page() {
                   <MapPin size={16} strokeWidth={1.5} /> {a.where}
                 </p>
                 <p className="mt-3 text-[var(--color-text-secondary)]">{a.text}</p>
-              </article>
+                </article>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -223,15 +247,17 @@ export default async function ForoSalud5Page() {
 
       {/* ── Paneles ─────────────────────────────────────────── */}
       <section id="paneles" className="max-w-site mx-auto px-4 sm:px-6 py-14 sm:py-20 scroll-mt-20">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-electric">Jornada Científica</p>
-        <h2 className="mt-2 font-display font-bold text-3xl sm:text-4xl text-[var(--color-text-primary)]">
-          9 paneles, 3 ejes
-        </h2>
-        <p className="mt-2 text-[var(--color-text-muted)]">Toca un panel para ver de qué se va a hablar.</p>
+        <Reveal>
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-electric">Jornada Científica</p>
+          <h2 className="ev-underline mt-2 font-display font-bold text-3xl sm:text-4xl text-[var(--color-text-primary)]">
+            9 paneles, 3 ejes
+          </h2>
+          <p className="mt-2 text-[var(--color-text-muted)]">Toca un panel para ver de qué se va a hablar.</p>
+        </Reveal>
 
         <div className="mt-10 space-y-12">
           {AXES.map((axis) => (
-            <div key={axis.name}>
+            <Reveal key={axis.name}>
               <div className="flex items-baseline gap-3 flex-wrap border-b border-[var(--color-border)] pb-3">
                 <h3 className="font-display font-bold text-2xl text-brand-navy dark:text-brand-cyan">{axis.name}</h3>
                 <p className="text-sm text-[var(--color-text-muted)]">{axis.summary}</p>
@@ -240,10 +266,10 @@ export default async function ForoSalud5Page() {
                 {axis.panels.map((panel) => (
                   <details
                     key={panel.number}
-                    className="group rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] open:shadow-md open:border-brand-electric/40 transition"
+                    className="ev-details ev-lift group rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] open:shadow-md open:border-brand-electric/40"
                   >
                     <summary className="flex cursor-pointer list-none items-start gap-4 p-5 [&::-webkit-details-marker]:hidden">
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-navy font-bold text-brand-gold">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-navy font-bold text-brand-gold transition-colors group-open:bg-brand-electric group-open:text-white">
                         {panel.number}
                       </span>
                       <span className="flex-1">
@@ -271,7 +297,7 @@ export default async function ForoSalud5Page() {
                   </details>
                 ))}
               </div>
-            </div>
+            </Reveal>
           ))}
         </div>
       </section>
@@ -279,7 +305,7 @@ export default async function ForoSalud5Page() {
       {/* ── 50 Líderes ──────────────────────────────────────── */}
       <section className="bg-brand-navy text-white">
         <div className="max-w-site mx-auto px-4 sm:px-6 py-14 sm:py-20 grid lg:grid-cols-2 gap-10 items-center">
-          <div>
+          <Reveal>
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-gold">{e.eveningTitle}</p>
             <h2 className="mt-2 font-display font-bold text-3xl sm:text-5xl leading-tight">
               <span className="text-brand-gold">50 Líderes</span> que Transforman la Salud en RD
@@ -289,29 +315,39 @@ export default async function ForoSalud5Page() {
               <p key={t} className="mt-4 text-lg leading-relaxed text-white/85">{t}</p>
             ))}
             <p className="mt-4 text-white/60">{LEADERS.magazine}</p>
-          </div>
-          <Image
-            src="/eventos/foro-salud-5/flyer-50-lideres.png"
-            alt="50 Líderes que Transforman la Salud en RD: mosaico de retratos de los homenajeados y la edición especial de la revista"
-            width={1241}
-            height={1600}
-            className="w-full max-w-md mx-auto rounded-2xl shadow-2xl shadow-black/40 ring-1 ring-white/10"
-          />
+          </Reveal>
+          <Reveal delay={160}>
+            <Image
+              src="/eventos/foro-salud-5/flyer-50-lideres.png"
+              alt="50 Líderes que Transforman la Salud en RD: mosaico de retratos de los homenajeados y la edición especial de la revista"
+              width={1241}
+              height={1600}
+              className="ev-float w-full max-w-md mx-auto rounded-2xl shadow-2xl shadow-black/40 ring-1 ring-white/10"
+            />
+          </Reveal>
         </div>
       </section>
 
       {/* ── Cómo funciona el acceso ─────────────────────────── */}
       <section className="max-w-site mx-auto px-4 sm:px-6 py-14 sm:py-20">
-        <h2 className="font-display font-bold text-3xl sm:text-4xl text-[var(--color-text-primary)]">Cómo funciona tu acceso</h2>
-        <p className="mt-2 text-[var(--color-text-muted)]">Es un evento VIP gratuito: inscribirte es el primer paso.</p>
+        <Reveal>
+          <h2 className="ev-underline font-display font-bold text-3xl sm:text-4xl text-[var(--color-text-primary)]">
+            Cómo funciona tu acceso
+          </h2>
+          <p className="mt-2 text-[var(--color-text-muted)]">Es un evento VIP gratuito: inscribirte es el primer paso.</p>
+        </Reveal>
         <ol className="mt-8 grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {ACCESS_STEPS.map((s, i) => (
-            <li key={s.title} className="rounded-2xl border border-[var(--color-border)] p-5">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-gold/15 font-bold text-amber-700 dark:text-brand-gold">
-                {i + 1}
-              </span>
-              <p className="mt-3 font-bold text-[var(--color-text-primary)]">{s.title}</p>
-              <p className="mt-1 text-sm text-[var(--color-text-secondary)]">{s.text}</p>
+            <li key={s.title}>
+              <Reveal delay={i * 110} className="h-full">
+                <div className="ev-lift h-full rounded-2xl border border-[var(--color-border)] p-5">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-gold/15 font-bold text-amber-700 dark:text-brand-gold">
+                    {i + 1}
+                  </span>
+                  <p className="mt-3 font-bold text-[var(--color-text-primary)]">{s.title}</p>
+                  <p className="mt-1 text-sm text-[var(--color-text-secondary)]">{s.text}</p>
+                </div>
+              </Reveal>
             </li>
           ))}
         </ol>
@@ -320,7 +356,7 @@ export default async function ForoSalud5Page() {
       {/* ── Lugar + CTA final ───────────────────────────────── */}
       <section className="bg-[var(--color-surface-2)] border-t border-[var(--color-border)]">
         <div className="max-w-site mx-auto px-4 sm:px-6 py-14 sm:py-16 grid md:grid-cols-2 gap-8 items-center">
-          <div>
+          <Reveal>
             <h2 className="font-display font-bold text-3xl text-[var(--color-text-primary)]">{e.venueName}</h2>
             {e.venueAddress && <p className="mt-2 text-[var(--color-text-secondary)]">{e.venueAddress}</p>}
             {e.eveningVenue && (
@@ -336,21 +372,28 @@ export default async function ForoSalud5Page() {
                 <Navigation size={16} strokeWidth={1.5} /> Cómo llegar
               </a>
             )}
-          </div>
-          <div className="rounded-2xl bg-brand-navy p-6 sm:p-8 text-white">
-            <p className="font-display font-bold text-2xl">Asegura tu lugar</p>
-            <p className="mt-1 text-white/70">Inscripción gratuita, en menos de un minuto.</p>
-            <CtaButton open={e.registrationOpen} className="mt-5 w-full" />
-          </div>
+          </Reveal>
+          <Reveal delay={140}>
+            <div className="ev-lift rounded-2xl bg-brand-navy p-6 sm:p-8 text-white">
+              <p className="font-display font-bold text-2xl">Asegura tu lugar</p>
+              <p className="mt-1 text-white/70">Inscripción gratuita, en menos de un minuto.</p>
+              <CtaButton open={e.registrationOpen} className="mt-5 w-full" />
+            </div>
+          </Reveal>
         </div>
       </section>
 
-      {/* CTA fijo en el celular */}
+      {/* CTA fijo en el celular: entra cuando el botón de la portada sale de pantalla */}
       {e.registrationOpen && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-brand-navy/95 backdrop-blur px-4 py-3 sm:hidden">
+        <StickyCta>
           <CtaButton open className="w-full" />
-        </div>
+        </StickyCta>
       )}
+
+      {/* Sin JS no corre el observador de scroll: los bloques quedan visibles igual */}
+      <noscript>
+        <style>{`.ev-reveal { opacity: 1 !important; } .ev-underline::after { transform: scaleX(1) !important; }`}</style>
+      </noscript>
     </div>
   )
 }

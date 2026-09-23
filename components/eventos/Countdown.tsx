@@ -69,7 +69,11 @@ export default function Countdown({ startsAt, endsAt }: Props) {
             key={u.label}
             className="rounded-2xl bg-white/[0.06] border border-white/10 backdrop-blur px-1 py-3 sm:py-5 text-center"
           >
-            <span className="block font-display font-bold text-4xl sm:text-6xl text-white tabular-nums leading-none">
+            {/* key por valor: al cambiar, el número se remonta y vuelve a entrar deslizando */}
+            <span
+              key={u.value}
+              className="ev-digit block font-display font-bold text-4xl sm:text-6xl text-white tabular-nums leading-none"
+            >
               {u.value}
             </span>
             <span className="block mt-2 text-[10px] sm:text-xs uppercase tracking-widest text-white/60">

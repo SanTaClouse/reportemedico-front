@@ -8,6 +8,7 @@ import {
   DOCTOR_STATUS_LABELS, PLAN_LABELS,
   type DoctorListResponse, type Doctor, type LeadRow,
 } from '@/lib/api-guia'
+import { waNumber } from '@/lib/utils'
 
 interface LeadListResponse {
   items: LeadRow[]
@@ -38,7 +39,6 @@ function salesPhone(d: Doctor): { number: string; source: string } | null {
   return null
 }
 
-const digits = (s: string) => s.replace(/\D/g, '')
 const esc = (v: string) => `"${String(v ?? '').replace(/"/g, '""')}"`
 const fecha = (d: string) => new Date(d).toLocaleDateString('es-DO')
 
@@ -179,13 +179,13 @@ export default function LeadsClient({
                       <td className={`${tdClass} whitespace-nowrap`}>
                         <span className="inline-flex items-center gap-2">
                           <a
-                            href={`tel:${digits(l.phone)}`}
+                            href={`tel:+${waNumber(l.phone)}`}
                             className="font-medium text-[var(--color-text-primary)] hover:text-primary inline-flex items-center gap-1"
                           >
                             <Phone size={12} /> {l.phone}
                           </a>
                           <a
-                            href={`https://wa.me/${digits(l.phone)}`}
+                            href={`https://wa.me/${waNumber(l.phone)}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             title="Abrir WhatsApp"
@@ -309,13 +309,13 @@ export default function LeadsClient({
                           {phone ? (
                             <span className="inline-flex items-center gap-2">
                               <a
-                                href={`tel:${digits(phone.number)}`}
+                                href={`tel:+${waNumber(phone.number)}`}
                                 className="font-medium text-[var(--color-text-primary)] hover:text-primary inline-flex items-center gap-1"
                               >
                                 <Phone size={12} /> {phone.number}
                               </a>
                               <a
-                                href={`https://wa.me/${digits(phone.number)}`}
+                                href={`https://wa.me/${waNumber(phone.number)}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 title="Abrir WhatsApp"

@@ -99,7 +99,7 @@ export default function PlanLeadModal({ plan, planLabel, specialties, onClose }:
               Plan {planLabel}
             </p>
             <h2 id="lead-title" className="font-display font-bold text-xl text-[var(--color-text-primary)] mt-0.5">
-              Dejanos tus datos
+              Déjanos tus datos
             </h2>
             <p className="text-xs text-[var(--color-text-muted)] mt-1">
               Son 30 segundos. Después creas tu cuenta y ya queda todo cargado.

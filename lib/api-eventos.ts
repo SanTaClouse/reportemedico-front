@@ -268,11 +268,8 @@ export const icsUrl = (slug: string, attendance: EventAttendance) =>
 
 export const entryUrl = (slug: string, token: string) => `${SITE_URL}/eventos/${slug}/entrada/${token}`
 
-/** wa.me necesita el código de país; en RD se escribe 809/829/849 sin el 1 */
-export function waNumber(phone: string) {
-  const d = phone.replace(/\D/g, '')
-  return d.length === 10 && /^(809|829|849)/.test(d) ? `1${d}` : d
-}
+/** Se reexporta para que el admin de eventos lo importe desde un solo lugar */
+export { waNumber } from './utils'
 
 // ─── PÚBLICO ──────────────────────────────────────────
 

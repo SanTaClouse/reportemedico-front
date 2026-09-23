@@ -462,3 +462,92 @@ html {
   .bio-anim { animation: none; }
   .bio-glow { animation: none; opacity: 0.6; }
 }
+
+/* ─── Foro de Salud 5.0 — movimiento de la landing (docs/v2/11) ───
+   Mismo criterio que el resto del archivo: keyframes en CSS y el delay
+   escalonado inline por elemento. Nada de esto es imprescindible para leer la
+   página: con prefers-reduced-motion todo queda quieto y visible, y sin JS el
+   <noscript> de la página desactiva el estado oculto de los reveals. */
+
+/* Entrada al hacer scroll — la activa <Reveal> con data-visible */
+@keyframes ev-fade-up {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: none; }
+}
+.ev-reveal { opacity: 0; }
+.ev-reveal[data-visible='true'] {
+  animation: ev-fade-up 0.75s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+/* Portada: las líneas entran solas al cargar, sin esperar scroll */
+.ev-intro { animation: ev-fade-up 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+
+/* Resplandor del hero: deriva muy lenta, casi imperceptible */
+@keyframes ev-glow-drift {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(2.5%, -2%, 0) scale(1.09); }
+}
+.ev-glow { animation: ev-glow-drift 22s ease-in-out infinite; will-change: transform; }
+
+/* Flyer y afiche: flotación suave */
+@keyframes ev-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-12px); }
+}
+.ev-float { animation: ev-float 8s ease-in-out infinite; }
+
+/* Cuenta regresiva: cada número entra deslizando cuando cambia */
+@keyframes ev-digit-in {
+  from { opacity: 0; transform: translateY(-45%); }
+  to   { opacity: 1; transform: none; }
+}
+.ev-digit { animation: ev-digit-in 0.42s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+
+/* Subrayado dorado que se dibuja bajo los títulos de sección */
+@keyframes ev-line-in { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.ev-underline::after {
+  content: '';
+  display: block;
+  height: 3px;
+  width: 4.5rem;
+  margin-top: 0.75rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--brand-gold), var(--brand-cyan));
+  transform: scaleX(0);
+  transform-origin: left;
+}
+[data-visible='true'] .ev-underline::after,
+.ev-underline[data-visible='true']::after {
+  animation: ev-line-in 0.7s 0.15s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+/* Tarjetas y paneles: se levantan apenas al pasar el cursor */
+.ev-lift { transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease; }
+@media (hover: hover) {
+  .ev-lift:hover { transform: translateY(-4px); box-shadow: 0 14px 34px -18px rgba(0, 20, 80, 0.45); }
+}
+
+/* Apertura suave de los paneles <details>. Depende de ::details-content, que
+   es reciente: donde no exista, el panel abre de golpe y se ve igual de bien. */
+@supports selector(::details-content) and (interpolate-size: allow-keywords) {
+  /* Acotado al panel: interpolate-size se hereda, y en :root afectaría a todo el sitio */
+  .ev-details { interpolate-size: allow-keywords; }
+  .ev-details::details-content {
+    block-size: 0;
+    overflow: clip;
+    transition: block-size 0.42s cubic-bezier(0.22, 0.61, 0.36, 1), content-visibility 0.42s allow-discrete;
+  }
+  .ev-details[open]::details-content { block-size: auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ev-reveal,
+  .ev-reveal[data-visible='true'],
+  .ev-intro,
+  .ev-digit { animation: none; opacity: 1; transform: none; }
+  .ev-glow,
+  .ev-float { animation: none; }
+  .ev-lift:hover { transform: none; }
+  .ev-underline::after { transform: scaleX(1); animation: none; }
+  .ev-details::details-content { transition: none; }
+}
