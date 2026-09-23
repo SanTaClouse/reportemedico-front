@@ -7,6 +7,14 @@
 
 export const EVENT_SLUG = 'foro-salud-5'
 
+/** Imagen de vista previa al compartir (WhatsApp, Instagram, X). La genera docs/v2/make-og-foro-5.py */
+export const OG_IMAGE = {
+  url: `/eventos/${EVENT_SLUG}/og.png`,
+  width: 1200,
+  height: 630,
+  alt: 'Foro de Salud Reporte Médico 5.0 — 26 de noviembre, Hotel Jaragua, Santo Domingo. Inscripción gratuita.',
+}
+
 /** Respaldo si la API no responde: la página nunca queda en blanco */
 export const FALLBACK_EVENT = {
   id: '',

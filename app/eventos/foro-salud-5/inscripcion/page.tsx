@@ -4,14 +4,28 @@ import { ArrowLeft, CalendarDays, MapPin } from 'lucide-react'
 import RegistrationForm from '@/components/eventos/RegistrationForm'
 import { formatDate, getEvent } from '@/lib/api-eventos'
 import { getSpecialties } from '@/lib/api-guia'
-import { EVENT_SLUG, FALLBACK_EVENT } from '../content'
+import { EVENT_SLUG, FALLBACK_EVENT, OG_IMAGE } from '../content'
 
 export const dynamic = 'force-dynamic'
 
+const TITLE = 'Inscríbete al Foro de Salud Reporte Médico 5.0'
+const DESCRIPTION =
+  'Evento gratuito con cupos limitados: 26 de noviembre de 2026 en el Hotel Jaragua, Santo Domingo. 9 paneles con los líderes del sector salud y la gala "50 Líderes que Transforman la Salud en RD".'
+
+// El openGraph va completo (imagen incluida) porque si no se hereda el del
+// layout y al compartir el link del formulario aparece el título del sitio.
 export const metadata: Metadata = {
   title: 'Inscripción — Foro de Salud Reporte Médico 5.0',
-  description: 'Inscríbete gratis al Foro de Salud Reporte Médico 5.0: 26 de noviembre de 2026, Hotel Jaragua, Santo Domingo.',
+  description: DESCRIPTION,
   alternates: { canonical: `/eventos/${EVENT_SLUG}/inscripcion` },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: `/eventos/${EVENT_SLUG}/inscripcion`,
+    type: 'website',
+    images: [OG_IMAGE],
+  },
+  twitter: { card: 'summary_large_image', title: TITLE, description: DESCRIPTION, images: [OG_IMAGE.url] },
 }
 
 export default async function InscripcionPage() {

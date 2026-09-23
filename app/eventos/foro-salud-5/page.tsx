@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { ArrowRight, CalendarDays, ChevronDown, Clock, MapPin, Navigation, Sparkles, Ticket } from 'lucide-react'
 import Countdown from '@/components/eventos/Countdown'
 import { formatDate, formatTime, getEvent, SITE_URL, type PublicEvent } from '@/lib/api-eventos'
-import { ACCESS_STEPS, AXES, EVENT_SLUG, FALLBACK_EVENT, INTRO, LEADERS } from './content'
+import { ACCESS_STEPS, AXES, EVENT_SLUG, FALLBACK_EVENT, INTRO, LEADERS, OG_IMAGE } from './content'
 
 export const revalidate = 60
 
@@ -20,9 +20,10 @@ export const metadata: Metadata = {
     title: TITLE,
     description: DESCRIPTION,
     url: `/eventos/${EVENT_SLUG}`,
-    images: [{ url: '/eventos/foro-salud-5/flyer-foro.png', width: 1081, height: 1351, alt: 'Foro de Salud Reporte Médico 5.0' }],
+    type: 'website',
+    images: [OG_IMAGE],
   },
-  twitter: { card: 'summary_large_image', title: TITLE, description: DESCRIPTION },
+  twitter: { card: 'summary_large_image', title: TITLE, description: DESCRIPTION, images: [OG_IMAGE.url] },
 }
 
 async function loadEvent(): Promise<PublicEvent> {

@@ -30,6 +30,15 @@ const nextConfig = {
       },
     ],
   },
+  // Links cortos para compartir en historias y WhatsApp (docs/v2/11).
+  // Temporales (307): al terminar el evento se apuntan al siguiente foro.
+  async redirects() {
+    return [
+      { source: '/foro', destination: '/eventos/foro-salud-5', permanent: false },
+      { source: '/foro/inscripcion', destination: '/eventos/foro-salud-5/inscripcion', permanent: false },
+      { source: '/inscripcion-foro', destination: '/eventos/foro-salud-5/inscripcion', permanent: false },
+    ]
+  },
 }
 
 export default nextConfig
