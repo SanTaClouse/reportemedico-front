@@ -97,6 +97,8 @@ export interface AdminEvent extends PublicEvent {
   dayCapacity: number | null
   eveningCapacity: number | null
   qrSendAt: string
+  /** Días antes del evento en que sale el recordatorio con el QR */
+  reminderDays: number[]
   createdAt: string
   updatedAt: string
   stats: EventStats
@@ -118,6 +120,7 @@ export interface RegistrationRow {
   accessToken: string | null
   approvalEmailSentAt: string | null
   qrEmailSentAt: string | null
+  remindersSent: number[]
   reviewedAt: string | null
   createdAt: string
   specialty: { name: string } | null
@@ -346,7 +349,7 @@ export const createTestRegistration = (
   token: string,
 ) => apiFetch<RegistrationRow>(`/admin/events/${id}/tests`, { method: 'POST', body: JSON.stringify(data), token })
 
-export type TestEmailType = 'received' | 'approved' | 'access'
+export type TestEmailType = 'received' | 'approved' | 'reminder' | 'access'
 
 export const sendTestEmail = (id: string, regId: string, type: TestEmailType, token: string) =>
   apiFetch<{ sent: boolean; smtp: boolean; to: string }>(`/admin/events/${id}/tests/${regId}/email`, {

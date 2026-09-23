@@ -104,8 +104,8 @@ export default function RegistrationForm({ event, specialties }: Props) {
           ¡Listo, {done.firstName}! Recibimos tu inscripción
         </h2>
         <p className="mt-3 text-[var(--color-text-secondary)]">
-          Te enviamos un correo a <strong>{done.email}</strong>. Te avisaremos cuando tu inscripción sea aprobada, y el día
-          antes del evento te llegará tu <strong>código QR de acceso</strong>.
+          Te enviamos un correo a <strong>{done.email}</strong>. Cuando aprobemos tu inscripción te llegará ahí mismo tu{' '}
+          <strong>código QR de acceso</strong>, y te lo recordaremos antes del evento.
         </p>
 
         <div className="mt-8 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-2)] p-5 text-left">

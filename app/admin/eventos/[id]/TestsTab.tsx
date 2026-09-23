@@ -16,13 +16,14 @@ import {
 
 const EMAILS: { type: TestEmailType; label: string }[] = [
   { type: 'received', label: 'Recibida' },
-  { type: 'approved', label: 'Aprobada' },
-  { type: 'access', label: 'QR de acceso' },
+  { type: 'approved', label: 'Aprobada + QR' },
+  { type: 'reminder', label: 'Recordatorio' },
+  { type: 'access', label: 'Reenvío del QR' },
 ]
 
 const STEPS = [
   'Crea una inscripción de prueba con tu email. Queda aprobada y con QR, y no cuenta en los números del evento.',
-  'Revisa cómo se ven los tres emails con "Ver", o envíatelos con "Enviar" (necesita el SMTP configurado).',
+  'Revisa cómo se ven los cuatro emails con "Ver", o envíatelos con "Enviar" (necesita el SMTP configurado).',
   'Abre el escáner en tu celular o en otra pestaña y escanea el QR de esta pantalla, del email o de "Mi entrada".',
   'Escanéalo dos veces: la segunda debe avisar "Ya ingresó". Si la prueba es solo de jornada, prueba escanearla en la gala.',
   'Abre la vista en vivo: si marcaste la prueba como VIP, aparece el aviso destacado.',

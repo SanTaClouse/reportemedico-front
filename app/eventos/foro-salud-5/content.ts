@@ -207,7 +207,7 @@ export const LEADERS = {
 
 export const ACCESS_STEPS = [
   { title: 'Inscríbete', text: 'Completa el formulario en menos de un minuto. Es gratis.' },
-  { title: 'Te confirmamos', text: 'Es un evento con cupos: te avisamos por email cuando tu inscripción sea aprobada.' },
-  { title: 'Recibe tu QR', text: 'El día antes del evento te llega por email tu código QR de acceso.' },
+  { title: 'Te confirmamos', text: 'Es un evento con cupos: revisamos tu inscripción y te avisamos por email.' },
+  { title: 'Recibe tu QR', text: 'Al aprobarla, te llega por email tu código QR de acceso. Lo repetimos antes del evento.' },
   { title: 'Muéstralo en la entrada', text: 'Desde el celular o impreso. Así entras sin filas.' },
 ]

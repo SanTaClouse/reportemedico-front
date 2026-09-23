@@ -305,11 +305,12 @@ export default function RegistrationsTab({
                       {r.status === 'APPROVED' && (
                         <p className="mt-1 flex items-center gap-1 text-[11px] text-[var(--color-text-muted)]">
                           {r.qrEmailSentAt ? (
-                            <><QrCode size={11} /> QR enviado</>
-                          ) : r.approvalEmailSentAt ? (
-                            <><MailCheck size={11} /> Aviso enviado</>
+                            <>
+                              <QrCode size={11} /> QR enviado
+                              {r.remindersSent.length > 0 && ` · ${r.remindersSent.length} recordatorio${r.remindersSent.length === 1 ? '' : 's'}`}
+                            </>
                           ) : (
-                            'Enviando aviso…'
+                            <><MailCheck size={11} /> Enviando el QR…</>
                           )}
                         </p>
                       )}

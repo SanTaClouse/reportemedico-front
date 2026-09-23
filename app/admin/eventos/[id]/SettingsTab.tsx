@@ -34,6 +34,7 @@ export default function SettingsTab({ event, token }: { event: AdminEvent; token
     eveningEndsAt: toInput(event.eveningEndsAt),
     eveningCapacity: event.eveningCapacity?.toString() ?? '',
     qrSendAt: toInput(event.qrSendAt),
+    reminderDays: event.reminderDays.join(', '),
     registrationOpen: event.registrationOpen,
   })
   const set = (k: keyof typeof form, v: string | boolean) => setForm((f) => ({ ...f, [k]: v }))
@@ -46,6 +47,10 @@ export default function SettingsTab({ event, token }: { event: AdminEvent; token
         ...form,
         dayCapacity: form.dayCapacity === '' ? null : Number(form.dayCapacity),
         eveningCapacity: form.eveningCapacity === '' ? null : Number(form.eveningCapacity),
+        // "7, 3, 1" → [7, 3, 1], de mayor a menor y sin repetidos
+        reminderDays: [...new Set(
+          form.reminderDays.split(',').map((d) => Number(d.trim())).filter((d) => Number.isInteger(d) && d >= 0),
+        )].sort((a, b) => b - a),
       }
       for (const k of DATE_FIELDS) payload[k] = fromInput(form[k])
       await updateEventAdmin(event.id, payload, token)
@@ -117,11 +122,20 @@ export default function SettingsTab({ event, token }: { event: AdminEvent; token
       </div>
 
       <div className={section}>
-        <p className="font-semibold text-[var(--color-text-primary)]">Envío del QR</p>
-        {text('qrSendAt', 'Fecha y hora de envío del QR a los aprobados (hora RD)', { type: 'datetime-local', required: true })}
+        <p className="font-semibold text-[var(--color-text-primary)]">Correos con el QR</p>
+        <p className="text-sm text-[var(--color-text-secondary)]">
+          El código QR sale <strong>al aprobar cada inscripción</strong>, dentro del correo que confirma el lugar.
+          Después se repite en los recordatorios, para que nadie tenga que buscarlo en la puerta.
+        </p>
+        {text('reminderDays', 'Recordatorios: días antes del evento, separados por coma')}
         <p className="text-xs text-[var(--color-text-muted)]">
-          A partir de ese momento el sistema manda el QR a todos los aprobados (revisa cada 10 minutos). Quien se apruebe
-          después lo recibe al instante.
+          Por ejemplo <code>7, 1</code> manda uno una semana antes y otro el día anterior. Usa <code>0</code> para el
+          mismo día. Cada persona recibe cada recordatorio una sola vez, entre las 9 de la mañana y las 9 de la noche.
+        </p>
+        {text('qrSendAt', 'Envío de respaldo: fecha y hora (hora RD)', { type: 'datetime-local', required: true })}
+        <p className="text-xs text-[var(--color-text-muted)]">
+          Red de seguridad: a partir de ese momento el sistema le manda el QR a cualquier aprobado que, por el motivo
+          que sea, todavía no lo haya recibido.
         </p>
       </div>
 
