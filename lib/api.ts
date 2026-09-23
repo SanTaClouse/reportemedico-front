@@ -552,7 +552,7 @@ export interface User {
   id: string
   email: string
   name?: string
-  role: 'ADMIN'
+  role: 'ADMIN' | 'SCANNER' // SCANNER = personal de puerta del evento (docs/v2/11)
 }
 
 export interface HomeData {

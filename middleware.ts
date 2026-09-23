@@ -17,6 +17,15 @@ export async function middleware(request: NextRequest) {
     return res
   }
 
+  // ── Escáner del evento (docs/v2/11): ADMIN o personal de puerta (SCANNER) ──
+  if (pathname.startsWith('/acceso')) {
+    const role = await tokenRole(request.cookies.get('rm_token')?.value)
+    if (role !== 'ADMIN' && role !== 'SCANNER') {
+      return NextResponse.redirect(new URL('/admin/login', request.url))
+    }
+    return NextResponse.next()
+  }
+
   // ── Admin (V1): cookie rm_token validada con jose. No se toca. ──
   if (pathname.startsWith('/admin')) {
     const token = request.cookies.get('rm_token')?.value
@@ -37,6 +46,10 @@ export async function middleware(request: NextRequest) {
       const secret = new TextEncoder().encode(process.env.JWT_SECRET)
       const { payload } = await jwtVerify(token, secret)
 
+      // El personal de puerta entra con el mismo login pero solo ve el escáner
+      if (payload.role === 'SCANNER') {
+        return NextResponse.redirect(new URL('/acceso', request.url))
+      }
       if (payload.role !== 'ADMIN') {
         return NextResponse.redirect(new URL('/admin/login', request.url))
       }
@@ -48,6 +61,16 @@ export async function middleware(request: NextRequest) {
   return NextResponse.next()
 }
 
+async function tokenRole(token: string | undefined): Promise<string | null> {
+  if (!token) return null
+  try {
+    const { payload } = await jwtVerify(token, new TextEncoder().encode(process.env.JWT_SECRET))
+    return typeof payload.role === 'string' ? payload.role : null
+  } catch {
+    return null
+  }
+}
+
 export const config = {
-  matcher: ['/admin/:path*', '/mi-cuenta/:path*'],
+  matcher: ['/admin/:path*', '/mi-cuenta/:path*', '/acceso/:path*', '/acceso'],
 }

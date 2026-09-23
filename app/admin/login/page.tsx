@@ -19,14 +19,15 @@ export default function AdminLoginPage() {
     setLoading(true)
 
     try {
-      const { token } = await login(email, password)
+      const { token, user } = await login(email, password)
       // Guardar token en cookie httpOnly via API route
       await fetch('/api/auth/set-cookie', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token }),
       })
-      router.push('/admin/dashboard')
+      // El personal de puerta del evento (SCANNER) solo usa el escáner
+      router.push(user?.role === 'SCANNER' ? '/acceso' : '/admin/dashboard')
     } catch (err: any) {
       setError(err.message || 'Credenciales inválidas')
     } finally {

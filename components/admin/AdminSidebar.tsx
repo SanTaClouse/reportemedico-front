@@ -20,6 +20,7 @@ import {
   Activity,
   Link2,
   PhoneCall,
+  CalendarDays,
 } from 'lucide-react'
 
 const BASE_NAV_ITEMS = [
@@ -34,6 +35,7 @@ const BASE_NAV_ITEMS = [
   { href: '/admin/media', label: 'Media', icon: Image },
   { href: '/admin/publicidad', label: 'Publicidad', icon: Megaphone },
   { href: '/admin/bio', label: 'Bio', icon: Link2 },
+  { href: '/admin/eventos', label: 'Eventos', icon: CalendarDays },
 ]
 
 // V2 — Guía Médica

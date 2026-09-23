@@ -29,6 +29,7 @@ const config: Config = {
           gold:        '#F0B414',
           'gold-light':'#F5C842',
           lila:        '#964B96',
+          cyan:        '#2BB5F0', // acento del arte del Foro 5.0 (docs/v2/11)
         },
         editorial: {
           breaking: '#D63B2F',

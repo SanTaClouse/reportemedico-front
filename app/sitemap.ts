@@ -21,6 +21,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/sobre-nosotros`, priority: 0.5, changeFrequency: 'monthly' },
     { url: `${SITE_URL}/ediciones`, priority: 0.5, changeFrequency: 'monthly' },
     { url: `${SITE_URL}/politica-editorial`, priority: 0.4, changeFrequency: 'yearly' },
+    // Eventos (docs/v2/11)
+    { url: `${SITE_URL}/eventos/foro-salud-5`, priority: 0.8, changeFrequency: 'weekly' },
+    { url: `${SITE_URL}/eventos/foro-salud-5/inscripcion`, priority: 0.6, changeFrequency: 'weekly' },
   ]
 
   const newsRoutes: MetadataRoute.Sitemap = newsRes.data.map((a) => ({
