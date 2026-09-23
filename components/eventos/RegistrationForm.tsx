@@ -22,9 +22,12 @@ const labelClass = 'block text-sm font-medium text-[var(--color-text-secondary)]
  *  el nombre corto, el completo se usa en la página y en los emails. */
 const shortTitle = (title: string) => title.split('·')[0].trim()
 
+/** Valor del <option> "Otra especialidad…": no es un id del catálogo */
+const OTHER = '__otra__'
+
 const EMPTY = {
   firstName: '', lastName: '', email: '', phone: '',
-  sector: '' as EventSector | '', specialtyId: '', institution: '', position: '',
+  sector: '' as EventSector | '', specialtyId: '', specialtyOther: '', institution: '', position: '',
   attendance: '' as EventAttendance | '', website: '',
 }
 
@@ -52,6 +55,9 @@ export default function RegistrationForm({ event, specialties }: Props) {
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email.trim())) e.email = 'Ingresa un correo válido'
     if (form.phone.replace(/\D/g, '').length < 8) e.phone = 'Ingresa un número válido'
     if (!form.sector) e.sector = 'Elige tu sector'
+    if (form.specialtyId === OTHER && form.specialtyOther.trim().length < 3) {
+      e.specialtyOther = 'Escribe tu especialidad'
+    }
     if (!form.attendance) e.attendance = 'Elige a qué vas a asistir'
     setErrors(e)
     return Object.keys(e).length === 0
@@ -69,7 +75,10 @@ export default function RegistrationForm({ event, specialties }: Props) {
         email: form.email.trim(),
         phone: form.phone.trim(),
         sector: form.sector as EventSector,
-        specialtyId: form.sector === 'DOCTOR' && form.specialtyId ? form.specialtyId : undefined,
+        specialtyId:
+          form.sector === 'DOCTOR' && form.specialtyId && form.specialtyId !== OTHER ? form.specialtyId : undefined,
+        specialtyOther:
+          form.sector === 'DOCTOR' && form.specialtyId === OTHER ? form.specialtyOther.trim() : undefined,
         institution: form.institution.trim() || undefined,
         position: form.position.trim() || undefined,
         attendance: form.attendance as EventAttendance,
@@ -201,7 +210,19 @@ export default function RegistrationForm({ event, specialties }: Props) {
             {specialties.map((s) => (
               <option key={s.id} value={s.id}>{s.name}</option>
             ))}
+            {/* El catálogo de la guía no cubre todas: escape para no perder el dato */}
+            <option value={OTHER}>Otra especialidad…</option>
           </select>
+          {form.specialtyId === OTHER && (
+            <input
+              autoFocus
+              value={form.specialtyOther}
+              onChange={(e) => set('specialtyOther', e.target.value)}
+              placeholder="¿Cuál es tu especialidad?"
+              className={`${field('specialtyOther')} mt-2`}
+            />
+          )}
+          {err('specialtyOther')}
         </div>
       )}
 

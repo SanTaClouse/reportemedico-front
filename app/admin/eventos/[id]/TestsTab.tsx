@@ -6,12 +6,12 @@ import { useRouter } from 'next/navigation'
 import QRCode from 'qrcode'
 import { toast } from 'sonner'
 import {
-  Eye, FlaskConical, Loader2, Radio, RotateCcw, ScanLine, Send, Star, Ticket, Trash2, X,
+  Eye, FlaskConical, Loader2, MailCheck, MailWarning, Radio, RotateCcw, ScanLine, Send, Star, Ticket, Trash2, X,
 } from 'lucide-react'
 import {
   attendanceLabel, createTestRegistration, deleteRegistration, deleteTests, entryUrl, formatTime, getEmailPreview,
-  resetTestCheckIns, sendTestEmail,
-  type AdminEvent, type EventAttendance, type RegistrationRow, type TestEmailType,
+  getEmailStatus, resetTestCheckIns, sendTestEmail,
+  type AdminEvent, type EmailStatus, type EventAttendance, type RegistrationRow, type TestEmailType,
 } from '@/lib/api-eventos'
 
 const EMAILS: { type: TestEmailType; label: string }[] = [
@@ -36,6 +36,50 @@ function TestQr({ value }: { value: string }) {
   }, [value])
   // eslint-disable-next-line @next/next/no-img-element -- data: URL generada en el cliente, next/image no aporta nada
   return src ? <img src={src} alt="QR de la inscripción de prueba" className="h-40 w-40 rounded-lg bg-white p-1" /> : <div className="h-40 w-40 rounded-lg bg-[var(--color-surface-2)]" />
+}
+
+/**
+ * Estado real del correo en el servidor. Sin esto, cuando los emails no salen
+ * hay que ir a leer los logs del hosting: el modo "no configurado" es silencioso.
+ */
+function EmailStatusCard({ token }: { token: string }) {
+  const [status, setStatus] = useState<EmailStatus | null>(null)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    getEmailStatus(token).then(setStatus).catch((e: Error) => setError(e.message))
+  }, [token])
+
+  if (error) return <p className="text-xs text-[var(--color-text-muted)]">No se pudo consultar el estado del correo: {error}</p>
+  if (!status) return <p className="text-xs text-[var(--color-text-muted)]">Consultando el estado del correo…</p>
+
+  const c = status.config
+  const rows: [string, string][] = [
+    ['Servidor', `${c.host ?? '— sin definir —'}:${c.port ?? '—'}${c.portIsNumber ? '' : '  ⚠ el puerto no es un número'}`],
+    ['Usuario', c.user ?? '— sin definir —'],
+    ['Contraseña', c.hasPassword ? 'definida' : '— sin definir —'],
+    ['Envía desde', c.eventsFrom ?? c.from ?? '— sin definir —'],
+    ['Avisos de inscripción a', c.notifyTo ?? '— sin definir —'],
+    ['Links de los correos', c.frontendUrl],
+  ]
+
+  return (
+    <div className={`rounded-xl border p-4 ${status.ok ? 'border-emerald-200 bg-emerald-50 dark:bg-emerald-500/10' : 'border-red-300 bg-red-50 dark:bg-red-500/10'}`}>
+      <p className={`flex items-center gap-2 font-semibold ${status.ok ? 'text-emerald-800 dark:text-emerald-300' : 'text-red-800 dark:text-red-300'}`}>
+        {status.ok ? <MailCheck size={16} strokeWidth={1.5} /> : <MailWarning size={16} strokeWidth={1.5} />}
+        {status.ok ? 'El correo está funcionando' : 'El correo NO está saliendo'}
+      </p>
+      <p className="mt-1 text-sm text-[var(--color-text-secondary)]">{status.message}</p>
+      <dl className="mt-3 grid gap-x-3 gap-y-1 text-xs sm:grid-cols-[170px_1fr]">
+        {rows.map(([k, v]) => (
+          <div key={k} className="contents">
+            <dt className="text-[var(--color-text-muted)]">{k}</dt>
+            <dd className="font-mono text-[var(--color-text-primary)] break-all">{v}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  )
 }
 
 export default function TestsTab({ event, tests, token }: { event: AdminEvent; tests: RegistrationRow[]; token: string }) {
@@ -72,6 +116,8 @@ export default function TestsTab({ event, tests, token }: { event: AdminEvent; t
 
   return (
     <div className="space-y-6">
+      <EmailStatusCard token={token} />
+
       <div className="rounded-xl border border-amber-200 bg-amber-50 p-5 dark:bg-amber-500/10 dark:border-amber-500/30">
         <p className="flex items-center gap-2 font-semibold text-amber-900 dark:text-amber-200">
           <FlaskConical size={17} strokeWidth={1.5} /> Cómo probar el flujo completo del QR

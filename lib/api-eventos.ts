@@ -121,6 +121,7 @@ export interface RegistrationRow {
   reviewedAt: string | null
   createdAt: string
   specialty: { name: string } | null
+  specialtyOther: string | null
   doctor: { id: string; slug: string; plan: string } | null
   checkIns: { part: EventPart; createdAt: string }[]
 }
@@ -139,6 +140,8 @@ export interface RegisterPayload {
   phone: string
   sector: EventSector
   specialtyId?: string
+  /** Especialidad escrita a mano cuando no está en el catálogo */
+  specialtyOther?: string
   institution?: string
   position?: string
   attendance: EventAttendance
@@ -367,6 +370,26 @@ export const deleteTests = (id: string, token: string) =>
   apiFetch<{ deleted: number }>(`/admin/events/${id}/tests`, { method: 'DELETE', token })
 
 // Personal de puerta
+export interface EmailStatus {
+  ok: boolean
+  message: string
+  config: {
+    host: string | null
+    port: string | null
+    portIsNumber: boolean
+    user: string | null
+    hasPassword: boolean
+    from: string | null
+    eventsFrom: string | null
+    notifyTo: string | null
+    frontendUrl: string
+  }
+}
+
+/** Diagnóstico del correo en el servidor: distingue "faltan variables" de "el proveedor rechaza" */
+export const getEmailStatus = (token: string) =>
+  apiFetch<EmailStatus>('/email/verify', { token, cache: 'no-store' })
+
 export const getStaff = (token: string) => apiFetch<StaffUser[]>('/admin/event-staff', { token, cache: 'no-store' })
 
 export const createStaff = (data: { name: string; email: string; password: string }, token: string) =>

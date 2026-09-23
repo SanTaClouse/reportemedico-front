@@ -29,6 +29,9 @@ const STATUS_STYLE: Record<RegistrationStatus, string> = {
 }
 
 const esc = (v: string) => `"${String(v ?? '').replace(/"/g, '""')}"`
+
+/** La del catálogo, o la que escribió a mano si eligió "Otra" */
+const especialidad = (r: RegistrationRow) => r.specialty?.name ?? r.specialtyOther ?? null
 const fecha = (d: string) =>
   new Date(d).toLocaleString('es-DO', { timeZone: 'America/Santo_Domingo', dateStyle: 'short', timeStyle: 'short' })
 
@@ -41,7 +44,7 @@ function toCsv(event: AdminEvent, rows: RegistrationRow[]) {
     const day = r.checkIns.find((c) => c.part === 'DAY')
     const eve = r.checkIns.find((c) => c.part === 'EVENING')
     return [
-      r.firstName, r.lastName, r.email, r.phone, SECTOR_LABELS[r.sector], r.specialty?.name ?? '',
+      r.firstName, r.lastName, r.email, r.phone, SECTOR_LABELS[r.sector], especialidad(r) ?? '',
       r.institution ?? '', r.position ?? '', attendanceLabel(event, r.attendance), STATUS_LABELS[r.status],
       r.isVip ? 'Si' : '', r.doctor ? 'Si' : '', fecha(r.createdAt), day ? fecha(day.createdAt) : '',
       eve ? fecha(eve.createdAt) : '',
@@ -276,7 +279,13 @@ export default function RegistrationsTab({
                       </a>
                     </td>
                     <td className={`${td} text-xs`}>
-                      <p className="text-[var(--color-text-primary)]">{SECTOR_LABELS[r.sector]}{r.specialty ? ` · ${r.specialty.name}` : ''}</p>
+                      <p className="text-[var(--color-text-primary)]">
+                        {SECTOR_LABELS[r.sector]}
+                        {especialidad(r) ? ` · ${especialidad(r)}` : ''}
+                        {!r.specialty && r.specialtyOther && (
+                          <span className="ml-1 text-[10px] uppercase text-[var(--color-text-muted)]">(escrita)</span>
+                        )}
+                      </p>
                       {(r.institution || r.position) && (
                         <p className="text-[var(--color-text-muted)]">{[r.institution, r.position].filter(Boolean).join(' · ')}</p>
                       )}
