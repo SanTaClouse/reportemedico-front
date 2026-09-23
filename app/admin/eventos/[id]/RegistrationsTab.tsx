@@ -101,8 +101,17 @@ export default function RegistrationsTab({
     }
   }
 
-  const changeStatus = (ids: string[], status: RegistrationStatus) =>
-    run(`status-${status}-${ids.join()}`, async () => {
+  const changeStatus = (ids: string[], status: RegistrationStatus) => {
+    // Aprobar dispara el correo con el QR: en lote conviene confirmar, porque
+    // un clic de más son cientos de correos que no se pueden deshacer.
+    if (status === 'APPROVED' && ids.length > 1) {
+      const ok = confirm(
+        `Vas a aprobar ${ids.length} inscripciones.\n\n` +
+          `A cada persona le llega su correo con el código QR. Esto no se puede deshacer.`,
+      )
+      if (!ok) return Promise.resolve()
+    }
+    return run(`status-${status}-${ids.join()}`, async () => {
       const res = await setRegistrationStatus(event.id, ids, status, token)
       setSelected(new Set())
       if (status === 'APPROVED') {
@@ -114,6 +123,7 @@ export default function RegistrationsTab({
         toast.success(`${res.updated} actualizada${res.updated === 1 ? '' : 's'}${status === 'REJECTED' ? ' (sin aviso a la persona)' : ''}`)
       }
     })
+  }
 
   const exportCsv = () =>
     run('csv', async () => {
@@ -337,12 +347,16 @@ export default function RegistrationsTab({
                         )}
                         {r.status === 'APPROVED' && (
                           <button
-                            onClick={() => run(`qr-${r.id}`, async () => {
-                              const res = await resendAccess(event.id, r.id, token)
-                              if (!res.smtp) toast.warning('SMTP no configurado: el email no salió (modo local).')
-                              else if (res.sent) toast.success(`QR reenviado a ${r.email}`)
-                              else toast.error('No se pudo enviar el email')
-                            })}
+                            onClick={() => {
+                              // Confirmación: un clic de más le manda un correo al invitado
+                              if (!confirm(`¿Reenviar el código QR a ${r.firstName} ${r.lastName}?\n\nLe va a llegar un correo a ${r.email}.`)) return
+                              void run(`qr-${r.id}`, async () => {
+                                const res = await resendAccess(event.id, r.id, token)
+                                if (!res.smtp) toast.warning('SMTP no configurado: el email no salió (modo local).')
+                                else if (res.sent) toast.success(`QR reenviado a ${r.email}`)
+                                else toast.error('No se pudo enviar el email')
+                              })
+                            }}
                             disabled={!!working}
                             title="Enviar / reenviar el QR ahora"
                             className="rounded-lg p-1.5 text-primary hover:bg-primary-pale disabled:opacity-40"
