@@ -3,8 +3,9 @@
 import { useState } from 'react'
 import { ArrowRight, CalendarPlus, CheckCircle2, Loader2, MessageCircle } from 'lucide-react'
 import {
-  SECTOR_LABELS, SITE_URL, attendanceLabel, googleCalendarUrl, icsUrl, partTitle, partsOf, registerForEvent,
-  type EventAttendance, type EventSector, type PublicEvent,
+  SECTOR_LABELS, SITE_URL, attendanceLabel, formatTime, googleCalendarUrl, icsUrl, partTitle, partWindow, partsOf,
+  registerForEvent,
+  type EventAttendance, type EventPart, type EventSector, type PublicEvent,
 } from '@/lib/api-eventos'
 
 interface Props {
@@ -16,6 +17,10 @@ interface Props {
 const inputClass =
   'w-full px-3.5 py-3 border border-[var(--color-border)] rounded-xl text-base bg-[var(--color-surface)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30'
 const labelClass = 'block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5'
+
+/** "Gala Aniversaria · 50 Líderes" → "Gala Aniversaria": en el formulario alcanza
+ *  el nombre corto, el completo se usa en la página y en los emails. */
+const shortTitle = (title: string) => title.split('·')[0].trim()
 
 const EMPTY = {
   firstName: '', lastName: '', email: '', phone: '',
@@ -132,6 +137,12 @@ export default function RegistrationForm({ event, specialties }: Props) {
     )
   }
 
+  // Horarios desde la API: si Alberto los cambia en el panel, el formulario sigue
+  const horario = (part: EventPart) => {
+    const w = partWindow(event, part)
+    return `${formatTime(w.start)} – ${formatTime(w.end)}`
+  }
+
   const field = (key: string) => (errors[key] ? `${inputClass} !border-red-400` : inputClass)
   const err = (key: string) => errors[key] && <p className="text-xs text-red-600 mt-1">{errors[key]}</p>
 
@@ -215,9 +226,9 @@ export default function RegistrationForm({ event, specialties }: Props) {
         <legend className={labelClass}>¿A qué vas a asistir?</legend>
         <div className="grid gap-2">
           {([
-            { value: 'BOTH', title: 'A las dos', sub: `${event.dayTitle} + ${event.eveningTitle}` },
-            { value: 'DAY', title: event.dayTitle, sub: 'De día · 9 paneles' },
-            { value: 'EVENING', title: event.eveningTitle, sub: 'De noche · celebración y reconocimientos' },
+            { value: 'DAY', title: shortTitle(event.dayTitle), sub: `${horario('DAY')} · 9 paneles` },
+            { value: 'EVENING', title: shortTitle(event.eveningTitle), sub: `${horario('EVENING')} · celebración y reconocimientos` },
+            { value: 'BOTH', title: 'Ambas actividades', sub: 'Jornada y gala' },
           ] as { value: EventAttendance; title: string; sub: string }[]).map((opt) => {
             const active = form.attendance === opt.value
             return (
