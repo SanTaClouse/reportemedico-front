@@ -1,6 +1,11 @@
+import SlowLoadNotice from '@/components/admin/SlowLoadNotice'
+
 export default function AdminLoading() {
   return (
     <div className="p-6">
+      {/* Si la carga se estira, ofrece recargar en vez de dejar el esqueleto eterno */}
+      <SlowLoadNotice />
+
       {/* Page title */}
       <div className="skeleton h-7 w-48 rounded mb-6" />
 

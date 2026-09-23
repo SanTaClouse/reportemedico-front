@@ -4,8 +4,11 @@ import Link from 'next/link'
 import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { ExternalLink, FileText, Radio, ScanLine } from 'lucide-react'
+import AdminLoadError from '@/components/admin/AdminLoadError'
+import EventVolumeAlert from '@/components/admin/EventVolumeAlert'
 import {
-  SECTOR_LABELS, formatDate, getEventAdmin, getRegistrations, getStaff, type RegistrationList,
+  SECTOR_LABELS, daysUntilEvent, formatDate, getEventAdmin, getRegistrations, getStaff,
+  type AdminEvent, type RegistrationList,
 } from '@/lib/api-eventos'
 import RegistrationsTab from './RegistrationsTab'
 import SettingsTab from './SettingsTab'
@@ -29,7 +32,24 @@ const EMPTY: RegistrationList = { items: [], total: 0, page: 1, limit: 50 }
 
 export default async function AdminEventoPage({ params, searchParams }: Props) {
   const token = cookies().get('rm_token')?.value || ''
-  const event = await getEventAdmin(params.id, token).catch(() => null)
+  // Se distingue "no existe" de "la API falló": antes, un reinicio del servidor
+  // mostraba un 404 como si el evento no existiera.
+  let event: AdminEvent | null = null
+  let loadError: string | null = null
+  try {
+    event = await getEventAdmin(params.id, token)
+  } catch (e) {
+    const msg = (e as Error).message
+    if (/no encontrado|not found|404/i.test(msg)) notFound()
+    loadError = msg
+  }
+  if (loadError) {
+    return (
+      <div className="p-6 max-w-3xl">
+        <AdminLoadError what="el evento" detail={loadError} />
+      </div>
+    )
+  }
   if (!event) notFound()
 
   const tab: Tab = TABS.some((t) => t.key === searchParams.tab) ? (searchParams.tab as Tab) : 'inscritos'
@@ -89,6 +109,13 @@ export default async function AdminEventoPage({ params, searchParams }: Props) {
           ))}
         </div>
       </div>
+
+      <EventVolumeAlert
+        daysLeft={daysUntilEvent(event.dayStartsAt)}
+        approved={s.approved}
+        reminderDays={event.reminderDays}
+        eventDate={formatDate(event.dayStartsAt, { day: 'numeric', month: 'long' })}
+      />
 
       <div className="mt-5 grid grid-cols-2 md:grid-cols-5 gap-3">
         {cards.map((c) => (

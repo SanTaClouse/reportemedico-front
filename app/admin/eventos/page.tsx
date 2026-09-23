@@ -3,18 +3,29 @@ export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { cookies } from 'next/headers'
 import { CalendarDays, ChevronRight } from 'lucide-react'
-import { formatDate, getEventsAdmin } from '@/lib/api-eventos'
+import AdminLoadError from '@/components/admin/AdminLoadError'
+import { formatDate, getEventsAdmin, type AdminEvent } from '@/lib/api-eventos'
 
 export default async function AdminEventosPage() {
   const token = cookies().get('rm_token')?.value || ''
-  const events = await getEventsAdmin(token).catch(() => [])
+  let events: AdminEvent[] = []
+  let error: string | null = null
+  try {
+    events = await getEventsAdmin(token)
+  } catch (e) {
+    error = (e as Error).message
+  }
 
   return (
     <div className="p-6 max-w-4xl">
       <h1 className="font-display text-2xl font-bold text-[var(--color-text-primary)]">Eventos</h1>
       <p className="text-sm text-[var(--color-text-muted)] mt-1">Inscripciones, aprobaciones y control de acceso.</p>
 
-      {events.length === 0 ? (
+      {error ? (
+        <div className="mt-6">
+          <AdminLoadError what="la lista de eventos" detail={error} />
+        </div>
+      ) : events.length === 0 ? (
         <p className="py-10 text-center text-sm text-[var(--color-text-muted)]">No hay eventos cargados.</p>
       ) : (
         <ul className="mt-6 space-y-3">

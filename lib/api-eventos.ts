@@ -22,7 +22,8 @@ async function apiFetch<T>(path: string, options: FetchOptions = {}): Promise<T>
   const res = await fetch(`${API_URL}${path}`, {
     ...init,
     headers,
-    signal: init.signal ?? AbortSignal.timeout(15000),
+    // 8 s: si la API está reiniciando, mejor fallar rápido y ofrecer reintentar
+    signal: init.signal ?? AbortSignal.timeout(8000),
   })
   if (!res.ok) {
     const body = await res.json().catch(() => ({ message: '' }))
@@ -417,3 +418,10 @@ export const searchAccess = (slug: string, q: string, token: string) =>
 
 export const getLive = (slug: string, token: string) =>
   apiFetch<LiveData>(`/access/${slug}/live`, { token, cache: 'no-store' })
+
+/** Días de calendario (hora RD) que faltan para una fecha; negativo si ya pasó */
+export function daysUntilEvent(iso: string, now: Date = new Date()): number {
+  const rd = (d: Date) =>
+    new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d)
+  return Math.round((Date.parse(rd(new Date(iso))) - Date.parse(rd(now))) / 86_400_000)
+}
