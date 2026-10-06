@@ -26,6 +26,8 @@ import {
   setArticleRelevance,
   deleteArticle,
   login,
+  subscribeNewsletter,
+  subscribeErrorMessage,
 } from '@/lib/api'
 
 // ─── Helpers de mock ──────────────────────────────────────────────────────────
@@ -391,5 +393,105 @@ describe('login()', () => {
       status: 401,
       message: 'Credenciales inválidas',
     })
+  })
+})
+
+// ─── subscribeNewsletter() ────────────────────────────────────────────────────
+
+describe('subscribeNewsletter()', () => {
+  const SUBSCRIBER = { id: 'sub-1', email: 'mvalbuena@antillesmedical.com' }
+
+  beforeEach(() => {
+    vi.useFakeTimers()
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+  })
+
+  function okResponse(data: unknown) {
+    return { ok: true, status: 201, json: () => Promise.resolve(data) } as Response
+  }
+
+  function errorResponse(status: number) {
+    return { ok: false, status, json: () => Promise.resolve({}) } as Response
+  }
+
+  it('envía POST /subscribers con email, nombre y temas', async () => {
+    mockFetchOk(SUBSCRIBER)
+
+    await subscribeNewsletter('mvalbuena@antillesmedical.com', 'Mauricio', ['tag-1'])
+
+    const [url, opts] = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0]
+    expect(url).toContain('/subscribers')
+    expect(opts?.method).toBe('POST')
+    expect(JSON.parse(opts?.body as string)).toEqual({
+      email: 'mvalbuena@antillesmedical.com',
+      name: 'Mauricio',
+      tagIds: ['tag-1'],
+    })
+  })
+
+  it('reintenta ante un corte de red y termina suscribiendo', async () => {
+    global.fetch = vi
+      .fn()
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockResolvedValueOnce(okResponse(SUBSCRIBER))
+
+    const promise = subscribeNewsletter('mvalbuena@antillesmedical.com')
+    await vi.runAllTimersAsync()
+
+    await expect(promise).resolves.toEqual(SUBSCRIBER)
+    expect(global.fetch).toHaveBeenCalledTimes(2)
+  })
+
+  it('reintenta ante un 5xx', async () => {
+    global.fetch = vi
+      .fn()
+      .mockResolvedValueOnce(errorResponse(502))
+      .mockResolvedValueOnce(okResponse(SUBSCRIBER))
+
+    const promise = subscribeNewsletter('mvalbuena@antillesmedical.com')
+    await vi.runAllTimersAsync()
+
+    await expect(promise).resolves.toEqual(SUBSCRIBER)
+  })
+
+  it('se rinde después de 3 intentos', async () => {
+    mockFetchNetworkError()
+
+    const promise = subscribeNewsletter('mvalbuena@antillesmedical.com')
+    const assertion = expect(promise).rejects.toBeInstanceOf(TypeError)
+    await vi.runAllTimersAsync()
+
+    await assertion
+    expect(global.fetch).toHaveBeenCalledTimes(3)
+  })
+
+  it('no reintenta los 4xx', async () => {
+    mockFetchError(429)
+
+    await expect(subscribeNewsletter('mvalbuena@antillesmedical.com')).rejects.toMatchObject({ status: 429 })
+    expect(global.fetch).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('subscribeErrorMessage()', () => {
+  it('explica un fallo de conexión', () => {
+    expect(subscribeErrorMessage(new TypeError('Failed to fetch'))).toMatch(/conectar con el servidor/)
+  })
+
+  it('explica el límite de intentos', () => {
+    expect(subscribeErrorMessage(new ApiError(429, ''))).toMatch(/demasiados intentos/)
+  })
+
+  it('pide revisar el email ante un 400', () => {
+    expect(subscribeErrorMessage(new ApiError(400, ''))).toMatch(/email/)
+  })
+
+  it('da un mensaje genérico para el resto', () => {
+    expect(subscribeErrorMessage(new ApiError(500, ''))).toMatch(/No se pudo completar/)
   })
 })

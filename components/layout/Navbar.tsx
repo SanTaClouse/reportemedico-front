@@ -8,7 +8,7 @@ import { useSearch } from '@/lib/hooks/useSearch'
 import { Menu, X, Sun, Moon, Search, Loader2, Check, UserCircle, Stethoscope, Mail } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useUser } from '@auth0/nextjs-auth0/client'
-import { subscribeNewsletter, getTags, type Tag } from '@/lib/api'
+import { subscribeNewsletter, subscribeErrorMessage, getTags, type Tag } from '@/lib/api'
 
 const NAV_LINKS = [
   { href: '/', label: 'Inicio' },
@@ -203,8 +203,8 @@ function SubscribeModal({ onClose }: { onClose: () => void }) {
     try {
       await subscribeNewsletter(email.trim(), name.trim() || undefined)
       setStep('interests')
-    } catch {
-      setError('No se pudo completar la suscripción. Intenta de nuevo.')
+    } catch (err) {
+      setError(subscribeErrorMessage(err))
     } finally {
       setLoading(false)
     }

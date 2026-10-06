@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Mail, Check, Loader2, BellPlus } from 'lucide-react'
-import { subscribeNewsletter } from '@/lib/api'
+import { subscribeNewsletter, subscribeErrorMessage } from '@/lib/api'
 
 const LS_KEY = 'rm_news_email'
 
@@ -54,8 +54,8 @@ export default function TopicSubscribe({ tags }: { tags: { id: string; name: str
       }
       setKnownEmail(targetEmail)
       setDone(true)
-    } catch {
-      setError('No se pudo completar. Intenta de nuevo.')
+    } catch (err) {
+      setError(subscribeErrorMessage(err))
     } finally {
       setLoading(false)
     }

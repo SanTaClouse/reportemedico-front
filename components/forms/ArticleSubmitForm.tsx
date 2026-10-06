@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import type { Tag } from '@/lib/api'
-import { submitArticle, checkTagExists, subscribeNewsletter } from '@/lib/api'
+import { submitArticle, checkTagExists, subscribeNewsletter, subscribeErrorMessage } from '@/lib/api'
 import { CheckCircle, Plus, Check, X, Loader2, Clock, Mail, Stethoscope } from 'lucide-react'
 import { useUser } from '@auth0/nextjs-auth0/client'
 import ImageUploader from '@/components/ui/ImageUploader'
@@ -199,8 +199,8 @@ export default function ArticleSubmitForm({ tags }: ArticleSubmitFormProps) {
     try {
       await subscribeNewsletter(emailInput.trim(), form.authorName || undefined)
       setEmailSubmitted(true)
-    } catch {
-      setEmailError('No se pudo registrar el email. Intentá de nuevo.')
+    } catch (err) {
+      setEmailError(subscribeErrorMessage(err))
     } finally {
       setEmailLoading(false)
     }

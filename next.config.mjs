@@ -34,6 +34,15 @@ const nextConfig = {
   // Temporales (307): al terminar el evento se apuntan al siguiente foro.
   async redirects() {
     return [
+      // www → dominio raíz. Con www la API rechaza al navegador por CORS y fallaba
+      // todo lo que la página le pide (suscripción, búsqueda, inscripciones…).
+      // De paso evita contenido duplicado en Google.
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.reportemedico.com' }],
+        destination: 'https://reportemedico.com/:path*',
+        permanent: true,
+      },
       { source: '/foro', destination: '/eventos/foro-salud-5', permanent: false },
       { source: '/foro/inscripcion', destination: '/eventos/foro-salud-5/inscripcion', permanent: false },
       { source: '/inscripcion-foro', destination: '/eventos/foro-salud-5/inscripcion', permanent: false },

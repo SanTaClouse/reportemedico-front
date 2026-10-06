@@ -719,11 +719,41 @@ export interface SubscriberStats {
   unsubscribed: number
 }
 
-export function subscribeNewsletter(email: string, name?: string, tagIds?: string[]) {
-  return apiFetch<Subscriber>('/subscribers', {
-    method: 'POST',
-    body: JSON.stringify({ email, name, ...(tagIds?.length ? { tagIds } : {}) }),
-  })
+const SUBSCRIBE_ATTEMPTS = 3
+
+/**
+ * Suscripción al newsletter. El alta del back es idempotente (upsert por email),
+ * así que reintenta ante cortes de red, timeouts (el back puede estar arrancando
+ * en frío) y errores 5xx. Los 4xx no se reintentan: repetir no los arregla.
+ */
+export async function subscribeNewsletter(email: string, name?: string, tagIds?: string[]) {
+  const body = JSON.stringify({ email, name, ...(tagIds?.length ? { tagIds } : {}) })
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await apiFetch<Subscriber>('/subscribers', {
+        method: 'POST',
+        body,
+        signal: AbortSignal.timeout(15000),
+      })
+    } catch (err) {
+      const retryable = !(err instanceof ApiError) || err.status >= 500
+      if (!retryable || attempt >= SUBSCRIBE_ATTEMPTS) {
+        console.error('[subscribe] falló la suscripción', err)
+        throw err
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1000 * attempt))
+    }
+  }
+}
+
+/** Mensaje para el usuario según por qué falló la suscripción */
+export function subscribeErrorMessage(err: unknown): string {
+  if (!(err instanceof ApiError)) {
+    return 'No pudimos conectar con el servidor. Revisa tu conexión e intenta de nuevo.'
+  }
+  if (err.status === 429) return 'Hubo demasiados intentos seguidos. Espera unos minutos y vuelve a intentarlo.'
+  if (err.status === 400) return 'Revisa que el email esté bien escrito.'
+  return 'No se pudo completar la suscripción. Intenta de nuevo en unos minutos.'
 }
 
 export function getAdminSubscribers(params: { page?: string; limit?: string }, token: string) {
